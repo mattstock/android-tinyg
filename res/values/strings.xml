@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TinyG</string>
+    <string name="local_service_started">Local service has started</string>
+    <string name="local_service_stopped">Local service has stopped</string>
+    <string name="local_service_connected">Local Service Connected</string>
+    <string name="local_service_disconnected">Local service disconnected</string>
+    <string name="local_service_label">TinyG Connector</string>
+    <string name="network">Network</string>
+    <string name="usb">USB</string>
+    <string name="unknown_host">Unknown Host</string>
+    <string name="network_error">Network Error</string>
+    <string name="connected">Connected</string>
+    <string name="xpos">X+</string>
+    <string name="xneg">X-</string>
+    <string name="ypos">Y+</string>
+    <string name="yneg">Y-</string>
+    <string name="zpos">Z+</string>
+    <string name="zneg">Z-</string>
+    <string name="rpos">R+</string>
+    <string name="rneg">R-</string>
+    <string name="zero">Zero</string>    
+    <string name="zeropos">0.000</string>
+    <string name="xloc">X: </string>
+    <string name="yloc">Y: </string>
+    <string name="zloc">Z: </string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="stop">STOP</string>
+    <color name="red">#ff0000</color>
+</resources>

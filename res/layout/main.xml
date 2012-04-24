@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" >
+
+        <TableRow
+            android:id="@+id/tableRow1"
+            android:layout_width="wrap_content"
+            android:layout_height="100dp" >
+
+            <Button
+                android:id="@+id/xpos"
+	            android:onClick="myClickHandler"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/xpos" />
+
+            <Button
+                android:id="@+id/xneg"
+	            android:onClick="myClickHandler"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/xneg" />
+
+            <Button
+                android:id="@+id/rpos"
+	            android:onClick="myClickHandler"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/rpos" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/tableRow2"
+            android:layout_width="wrap_content"
+            android:layout_height="100dp" >
+
+            <Button
+                android:id="@+id/ypos"
+	            android:onClick="myClickHandler"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/ypos" />
+
+            <Button
+                android:id="@+id/yneg"
+	            android:onClick="myClickHandler"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/yneg" />
+
+            <Button
+                android:id="@+id/rneg"
+	            android:onClick="myClickHandler"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/rneg" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/tableRow3"
+            android:layout_width="wrap_content"
+            android:layout_height="100dp" >
+
+            <Button
+                android:id="@+id/zpos"
+	            android:onClick="myClickHandler"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/zpos" />
+
+            <Button
+                android:id="@+id/zneg"
+	            android:onClick="myClickHandler"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/zneg" />
+
+            <Button
+                android:id="@+id/zero"
+	            android:onClick="myClickHandler"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/zero" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/tableRow4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/xloc"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/xloc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/zeropos"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <Button
+                android:id="@+id/connect"
+	            android:onClick="myClickHandler"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/connect" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/tableRow5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/yloc"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/yloc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/zeropos"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <Button
+                android:id="@+id/disconnect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="myClickHandler"
+                android:text="@string/disconnect"
+                android:visibility="invisible" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/tableRow6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/zloc"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/zloc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/zeropos"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <Button
+                android:id="@+id/stop"
+	            android:onClick="myClickHandler"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/red"
+                android:text="@string/stop" />
+
+        </TableRow>
+
+    </TableLayout>
