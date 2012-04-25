@@ -72,7 +72,6 @@ public class NetworkDriver implements TinygDriver {
 		return is;
 	}
 
-	@Override
 	public void write(String message) {
 		try {
 			Log.d(TAG,"writing to tinyg: " + message);

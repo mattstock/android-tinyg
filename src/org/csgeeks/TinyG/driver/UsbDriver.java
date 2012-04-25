@@ -23,7 +23,6 @@ public class UsbDriver implements TinygDriver {
 		return null;
 	}
 
-	@Override
 	public void write(String message) {
 		// TODO Auto-generated method stub
 		
