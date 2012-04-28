@@ -10,8 +10,11 @@ import org.csgeeks.TinyG.driver.UsbDriver;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -35,7 +38,9 @@ public class TinyGActivity extends Activity {
 	private Machine machine;
 	private Double r = 10.0;
 	private Double x, y, z = 0.0;
-
+	private String netIP;
+	private int netPort;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -44,7 +49,22 @@ public class TinyGActivity extends Activity {
 		mDisconnect = findViewById(R.id.disconnect);
 		mConnect = findViewById(R.id.connect);
 		machine = new Machine();
+	    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+	    netIP = settings.getString("tgfx_hostname", "");
+	    netPort = Integer.parseInt(settings.getString("tgfx_port","4444"));
 	}
+
+	@Override
+    protected void onStop(){
+       super.onStop();
+
+	   SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+       SharedPreferences.Editor editor = settings.edit();
+       editor.putString("tgfx_hostname", netIP);
+       editor.putString("tgfx_port", Integer.toString(netPort));
+       // Commit the edits!
+       editor.commit();
+    }
 
 	@Override
 	public void onDestroy() {
@@ -53,21 +73,17 @@ public class TinyGActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.options, menu);
-		return true;
+        menu.add(Menu.NONE, 0, 0, "Settings");
+        return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
-		case R.id.usb:
-			connectionType = conntype.USB;
-			return true;
-		case R.id.network:
-			connectionType = conntype.NET;
-			return true;
+        case 0:
+            startActivity(new Intent(this, ShowSettingsActivity.class));
+            return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -124,7 +140,7 @@ public class TinyGActivity extends Activity {
 			switch (connectionType) {
 			case NET:
 				if (tinyg == null) {
-					tinyg = new NetworkDriver("192.168.1.15", 4444);
+					tinyg = new NetworkDriver(netIP, netPort);
 				} else {
 					tinyg.disconnect();
 				}
@@ -159,7 +175,7 @@ public class TinyGActivity extends Activity {
 	private class ConnectTask extends AsyncTask<Integer, Integer, RetCode> {
 		@Override
 		protected RetCode doInBackground(Integer... params) {
-			Log.d(TAG, "Starting connect in background");
+			Log.d(TAG, "Starting connect to " + netIP + " in background");
 			RetCode res = tinyg.connect();
 			Log.d(TAG, "Returned from connect");
 			return res;

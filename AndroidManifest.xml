@@ -18,11 +18,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service
-            android:name=".driver.ConnectionService"
-            android:label="@string/local_service_label"
-            android:icon="@drawable/stat_sample">
-        </service>
+        <activity android:name=".ShowSettingsActivity"></activity>
     </application>
 
 </manifest>

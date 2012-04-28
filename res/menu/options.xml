@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item android:id="@+id/network" android:title="@string/network"></item>
-    <item android:id="@+id/usb" android:title="@string/usb"></item>
-    
-
-</menu>
