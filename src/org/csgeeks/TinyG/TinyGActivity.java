@@ -73,7 +73,8 @@ public class TinyGActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(Menu.NONE, 0, 0, "Settings");
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.options, menu);
         return super.onCreateOptionsMenu(menu);
 	}
 
@@ -81,7 +82,7 @@ public class TinyGActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
-        case 0:
+        case R.id.settings:
             startActivity(new Intent(this, ShowSettingsActivity.class));
             return true;
 		default:
@@ -91,51 +92,6 @@ public class TinyGActivity extends Activity {
 
 	public void myClickHandler(View view) {
 		switch (view.getId()) {
-		case R.id.xpos:
-			if (tinyg != null) {
-				x += r;
-				tinyg.write("{\"gc\": \"g0x" + x.toString() + "\"}\n");
-			}
-			break;
-		case R.id.xneg:
-			if (tinyg != null) {
-				x -= r;
-				tinyg.write("{\"gc\": \"g0x" + x.toString() + "\"}\n");
-			}
-			break;
-		case R.id.ypos:
-			if (tinyg != null) {
-				y += r;
-				tinyg.write("{\"gc\": \"g0y" + y.toString() + "\"}\n");
-			}
-			break;
-		case R.id.yneg:
-			if (tinyg != null) {
-				y -= r;
-				tinyg.write("{\"gc\": \"g0y" + y.toString() + "\"}\n");
-			}
-			break;
-		case R.id.zpos:
-			if (tinyg != null) {
-				z += r;
-				tinyg.write("{\"gc\": \"g0z" + z.toString() + "\"}\n");
-			}
-			break;
-		case R.id.zneg:
-			if (tinyg != null) {
-				z -= r;
-				tinyg.write("{\"gc\": \"g0z" + z.toString() + "\"}\n");
-			}
-			break;
-		case R.id.rpos:
-			r += 1;
-			break;
-		case R.id.rneg:
-			r -= 1;
-			break;
-		case R.id.zero:
-			tinyg.write(Machine.CMD_ZERO_ALL_AXIS);
-			break;
 		case R.id.connect:
 			switch (connectionType) {
 			case NET:
@@ -145,8 +101,7 @@ public class TinyGActivity extends Activity {
 					tinyg.disconnect();
 				}
 				new ConnectTask().execute(0);
-				Toast.makeText(mContext, "Connecting...", Toast.LENGTH_SHORT)
-						.show();
+				Toast.makeText(mContext, "Connecting...", Toast.LENGTH_SHORT).show();
 				view.setVisibility(View.INVISIBLE);
 				break;
 			case USB:
@@ -169,7 +124,46 @@ public class TinyGActivity extends Activity {
 				Log.d(TAG, "done with disconnect");
 			}
 			view.setVisibility(View.INVISIBLE);
+			break;
 		}
+		// If we're ready, handle buttons that will send messages to TinyG
+		if (tinyg != null && tinyg.isReady()) { 
+			switch (view.getId()) {
+			case R.id.xpos:
+				x += r;
+				tinyg.write("{\"gc\": \"g0x" + x.toString() + "\"}\n");
+				break;
+			case R.id.xneg:
+				x -= r;
+				tinyg.write("{\"gc\": \"g0x" + x.toString() + "\"}\n");
+				break;
+			case R.id.ypos:
+				y += r;
+				tinyg.write("{\"gc\": \"g0y" + y.toString() + "\"}\n");
+				break;
+			case R.id.yneg:
+				y -= r;
+				tinyg.write("{\"gc\": \"g0y" + y.toString() + "\"}\n");
+				break;
+			case R.id.zpos:
+				z += r;
+				tinyg.write("{\"gc\": \"g0z" + z.toString() + "\"}\n");
+				break;
+			case R.id.zneg:
+				z -= r;
+				tinyg.write("{\"gc\": \"g0z" + z.toString() + "\"}\n");
+				break;
+			case R.id.rpos:
+				r += 1;
+				break;
+			case R.id.rneg:
+				r -= 1;
+				break;
+			case R.id.zero:
+				tinyg.write(Machine.CMD_ZERO_ALL_AXIS);
+				break;
+			}
+		} 
 	}
 
 	private class ConnectTask extends AsyncTask<Integer, Integer, RetCode> {

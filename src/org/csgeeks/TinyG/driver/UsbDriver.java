@@ -28,4 +28,9 @@ public class UsbDriver implements TinygDriver {
 		
 	}
 
+	public boolean isReady() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

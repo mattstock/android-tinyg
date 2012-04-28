@@ -17,7 +17,11 @@ public class NetworkDriver implements TinygDriver {
 	InputStream is;
 	OutputStream os;
 	Socket socket;
+	private boolean ready = false;
 
+	public boolean isReady() {
+		return ready;
+	}
 	
 	public RetCode connect() {
 		try {
@@ -33,6 +37,7 @@ public class NetworkDriver implements TinygDriver {
 			Log.e(TAG,"Socket: " + e.getMessage());
 			return new RetCode(false, e.getMessage());
 		}
+		ready = true;
 		return new RetCode(true, null);
 	}
 	
@@ -50,6 +55,7 @@ public class NetworkDriver implements TinygDriver {
 			is = null;
 			os = null;
 			socket = null;
+			ready = false;
 		}
 		Log.d(TAG,"disconnect done");
 		return new RetCode(true, null);
