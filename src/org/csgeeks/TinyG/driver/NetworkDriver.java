@@ -1,7 +1,5 @@
 package org.csgeeks.TinyG.driver;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,19 +8,14 @@ import java.net.UnknownHostException;
 
 import android.util.Log;
 
-public class NetworkDriver implements TinygDriver {
+public class NetworkDriver extends TinyGDriver {
 	private static final String TAG = "TinyG";
 	private String hostname;
 	private int port;
 	InputStream is;
 	OutputStream os;
 	Socket socket;
-	private boolean ready = false;
 
-	public boolean isReady() {
-		return ready;
-	}
-	
 	public RetCode connect() {
 		try {
 			socket = new Socket(hostname, port);
@@ -37,7 +30,6 @@ public class NetworkDriver implements TinygDriver {
 			Log.e(TAG,"Socket: " + e.getMessage());
 			return new RetCode(false, e.getMessage());
 		}
-		ready = true;
 		return new RetCode(true, null);
 	}
 	
