@@ -19,6 +19,8 @@
     <string name="zneg">Z-</string>
     <string name="rpos">R+</string>
     <string name="rneg">R-</string>
+    <string name="apos">A+</string>
+    <string name="aneg">A-</string>
     <string name="zero">Zero</string>    
     <string name="zeropos">0.000</string>
     <string name="xloc">X: </string>
@@ -26,7 +28,27 @@
     <string name="zloc">Z: </string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
-    <string name="stop">STOP</string>
+    <string name="stop">stop</string>
+    <string name="reset">reset</string>
+    <string name="nop">nop</string>
+    <string name="run">run</string>
+    <string name="end">end</string>
+    <string name="hold">hold</string>
+    <string name="homing">homing</string>
     <color name="red">#ff0000</color>
-    <string name="aloc">A:</string>
+    <string name="aloc">A: </string>
+    <string name="status">Status: </string>
+    <string name="momo">Mode: </string>
+    <string name="line">Line: </string>
+    <string name="vel">Vel: </string>
+    <string name="na">-</string>
+    <string name="jogval">Jog Rate: </string>
+    <string name="mm">mm</string>
+    <string name="inch">inch</string>
+    <string name="traverse">traverse</string>
+    <string name="straight">straight</string>
+    <string name="cw">cw</string>
+    <string name="ccw">ccw</string>
+    <string name="invalid">invalid</string>
+    
 </resources>

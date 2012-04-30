@@ -7,6 +7,7 @@ import org.csgeeks.TinyG.driver.NetworkDriver;
 import org.csgeeks.TinyG.driver.RetCode;
 import org.csgeeks.TinyG.driver.TinyGDriver;
 import org.csgeeks.TinyG.system.Machine;
+import org.csgeeks.TinyG.system.Machine.unit_modes;
 
 import android.app.Activity;
 import android.content.Context;
@@ -113,11 +114,33 @@ public class TinyGActivity extends Activity {
 				tinyg.write("{\"gc\": \"g91g0z" + Double.toString(-jogRate)
 						+ "\"}\n");
 				break;
+			case R.id.apos:
+				tinyg.write("{\"gc\": \"g91g0a" + Double.toString(jogRate)
+						+ "\"}\n");
+				break;
+			case R.id.aneg:
+				tinyg.write("{\"gc\": \"g91g0a" + Double.toString(-jogRate)
+						+ "\"}\n");
+				break;
 			case R.id.rpos:
 				jogRate += 1;
 				break;
 			case R.id.rneg:
 				jogRate -= 1;
+				break;
+			case R.id.units:
+				switch (tinyg.getMachine().getUnitMode()) {
+				case MM:
+					tinyg.write(TinyGDriver.CMD_SET_UNIT_INCHES);
+					// A hack
+					tinyg.getMachine().setUnits(unit_modes.INCHES);
+					break;
+				case INCHES:
+					tinyg.write(TinyGDriver.CMD_SET_UNIT_MM);
+					// A hack
+					tinyg.getMachine().setUnits(unit_modes.MM);
+					break;
+				}
 				break;
 			case R.id.zero:
 				tinyg.write(TinyGDriver.CMD_ZERO_ALL_AXIS);
@@ -127,9 +150,9 @@ public class TinyGActivity extends Activity {
 				machine.getAxisByName("Y").setWork_position(0);
 				machine.getAxisByName("Z").setWork_position(0);
 				machine.getAxisByName("A").setWork_position(0);
-				updateState(machine);
 				break;
 			}
+			updateState(tinyg.getMachine());
 		}
 	}
 
@@ -219,5 +242,54 @@ public class TinyGActivity extends Activity {
 				.getAxisByName("Z").getWork_position()));
 		((TextView) findViewById(R.id.aloc)).setText(Float.toString(machine
 				.getAxisByName("A").getWork_position()));
+		((TextView) findViewById(R.id.jogval)).setText(Float.toString(jogRate));
+		((TextView) findViewById(R.id.line)).setText(Integer.toString(machine.getLine_number()));
+		switch (machine.getMotionMode()) {
+		case traverse:
+			((TextView) findViewById(R.id.momo)).setText(R.string.traverse);
+			break;
+		case straight:
+			((TextView) findViewById(R.id.momo)).setText(R.string.straight);
+			break;
+		case cw_arc:
+			((TextView) findViewById(R.id.momo)).setText(R.string.cw);
+			break;
+		case ccw_arc:
+			((TextView) findViewById(R.id.momo)).setText(R.string.ccw);
+			break;
+		case invalid:
+			((TextView) findViewById(R.id.momo)).setText(R.string.invalid);
+			break;
+		}
+		switch (machine.getMachineState()) {
+		case reset:
+			((TextView) findViewById(R.id.status)).setText(R.string.reset);
+			break;
+		case nop:
+			((TextView) findViewById(R.id.status)).setText(R.string.nop);
+			break;
+		case stop:
+			((TextView) findViewById(R.id.status)).setText(R.string.stop);
+			break;
+		case end:
+			((TextView) findViewById(R.id.status)).setText(R.string.end);
+			break;
+		case run:
+			((TextView) findViewById(R.id.status)).setText(R.string.run);
+			break;
+		case hold:
+			((TextView) findViewById(R.id.status)).setText(R.string.hold);
+			break;
+		case homing:
+			((TextView) findViewById(R.id.status)).setText(R.string.homing);
+			break;
+		}
+		switch (machine.getUnitMode()) {
+		case INCHES:
+			((Button) findViewById(R.id.units)).setText(R.string.inch);
+		case MM:
+			((Button) findViewById(R.id.units)).setText(R.string.mm);
+		}
+		((TextView) findViewById(R.id.velocity)).setText(Float.toString(machine.getVelocity()));
 	}
 }

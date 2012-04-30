@@ -35,6 +35,13 @@
                 android:layout_height="75dp"
                 android:onClick="myClickHandler"
                 android:text="@string/rpos" />
+
+            <Button
+                android:id="@+id/apos"
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                android:onClick="myClickHandler"
+                android:text="@string/apos" />
         </TableRow>
 
         <TableRow
@@ -62,6 +69,13 @@
                 android:layout_height="75dp"
                 android:onClick="myClickHandler"
                 android:text="@string/rneg" />
+
+            <Button
+                android:id="@+id/aneg"
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                android:onClick="myClickHandler"
+                android:text="@string/aneg" />
         </TableRow>
 
         <TableRow
@@ -89,11 +103,18 @@
                 android:layout_height="75dp"
                 android:onClick="myClickHandler"
                 android:text="@string/zero" />
+
+            <Button
+                android:id="@+id/units"
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                android:onClick="myClickHandler"
+                android:text="@string/mm" />
         </TableRow>
     </TableLayout>
 
     <TableLayout
-        android:id="@+id/status"
+        android:id="@+id/statusLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" >
 
@@ -103,7 +124,7 @@
             android:layout_height="wrap_content" >
 
             <TextView
-                android:id="@+id/textView1"
+                android:id="@+id/labelX"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/xloc"
@@ -111,9 +132,23 @@
 
             <TextView
                 android:id="@+id/xloc"
-                android:layout_width="wrap_content"
+                android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:text="@string/zeropos"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/labelStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/status"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/na"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
@@ -123,7 +158,7 @@
             android:layout_height="wrap_content" >
 
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/labelY"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/yloc"
@@ -135,6 +170,20 @@
                 android:layout_height="wrap_content"
                 android:text="@string/zeropos"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/labelMomo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/momo"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/momo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/na"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
         <TableRow
@@ -143,7 +192,7 @@
             android:layout_height="wrap_content" >
 
             <TextView
-                android:id="@+id/textView3"
+                android:id="@+id/labelZ"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/zloc"
@@ -155,6 +204,20 @@
                 android:layout_height="wrap_content"
                 android:text="@string/zeropos"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/labelVelocity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/vel"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/velocity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/na"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
         <TableRow
@@ -163,7 +226,7 @@
             android:layout_height="wrap_content" >
 
             <TextView
-                android:id="@+id/textView4"
+                android:id="@+id/labelA"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/aloc"
@@ -175,14 +238,55 @@
                 android:layout_height="wrap_content"
                 android:text="@string/zeropos"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/labelLine"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/line"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/line"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/na"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
     </TableLayout>
+
+    <TableLayout
+        android:id="@+id/jogLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <TableRow
+            android:id="@+id/tableRow8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:id="@+id/labelJogval"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/jogval"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/jogval"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/zeropos"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+        </TableRow>
+    </TableLayout>
+
     <Button
         android:id="@+id/connect"
-        android:layout_gravity="center_horizontal|bottom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
         android:onClick="myClickHandler"
         android:text="@string/connect" />
-    
+
 </LinearLayout>
