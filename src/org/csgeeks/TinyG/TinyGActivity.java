@@ -9,13 +9,13 @@ import org.csgeeks.TinyG.driver.TinyGDriver;
 import org.csgeeks.TinyG.system.Machine;
 import org.csgeeks.TinyG.system.Machine.unit_modes;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,7 +25,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class TinyGActivity extends Activity {
+public class TinyGActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
 
 	private TinyGDriver tinyg;
@@ -38,7 +38,7 @@ public class TinyGActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.jog);
+		setContentView(R.layout.main);
 		mContext = getApplicationContext();
 		mConnect = findViewById(R.id.connect);
 		settings = PreferenceManager.getDefaultSharedPreferences(mContext);
