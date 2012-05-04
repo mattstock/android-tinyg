@@ -9,11 +9,14 @@ import org.csgeeks.TinyG.driver.TinyGDriver;
 import org.csgeeks.TinyG.system.Machine;
 import org.csgeeks.TinyG.system.Machine.unit_modes;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -27,21 +30,28 @@ import android.widget.Toast;
 
 public class TinyGActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
-
-	private TinyGDriver tinyg;
+    private boolean mIsBound;
+    private TinyGDriver tinyg;
 	private Context mContext;
-	private ListenerTask mListener;
-	private View mConnect;
+	private Button mConnect;
 	private float jogRate = 10;
 	private SharedPreferences settings;
+    private ServiceConnection mConnection;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		mContext = getApplicationContext();
-		mConnect = findViewById(R.id.connect);
 		settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+		mConnect = (Button) findViewById(R.id.connect);
+		mConnection = new NetworkServiceConnection();
+        bindService(new Intent(TinyGActivity.this, 
+                TinyGDriver.class), mConnection, Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+		if (savedInstanceState != null) {
+			restoreState(savedInstanceState);
+		}
 	}
 
 	@Override
@@ -63,32 +73,30 @@ public class TinyGActivity extends FragmentActivity {
 		}
 	}
 
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putFloat("jogRate", jogRate);
+	}
+
+	private void restoreState(Bundle inState) {
+		jogRate = inState.getFloat("jogRate");
+	}
+	
 	public void myClickHandler(View view) {
 		switch (view.getId()) {
 		case R.id.connect:
-			if (mListener != null) {
-				Log.d(TAG, "telling listener to cancel");
-				mListener.cancel(true);
-				mListener = null;
-			}
-			if (tinyg != null) {
-				Log.d(TAG, "sending disconnect command to tinyg");
+			if (mIsBound) {
 				tinyg.disconnect();
-				tinyg = null;
 				((Button) view).setText(R.string.connect);
 			} else {
-				tinyg = new NetworkDriver(settings.getString("tgfx_hostname",
-						"127.0.0.1"), Integer.parseInt(settings.getString(
-						"tgfx_port", "4444")));
-				new ConnectTask().execute(0);
-				Toast.makeText(mContext, "Connecting...", Toast.LENGTH_SHORT)
-						.show();
+				tinyg.connect("127.0.0.1", 4444);
 				((Button) view).setText(R.string.disconnect);
 			}
 			break;
 		}
 		// If we're ready, handle buttons that will send messages to TinyG
-		if (tinyg != null && tinyg.isReady()) {
+		if (mIsBound && tinyg.isReady()) {
 			switch (view.getId()) {
 			case R.id.xpos:
 				tinyg.write("{\"gc\": \"g91g0x" + Double.toString(jogRate)
@@ -156,82 +164,33 @@ public class TinyGActivity extends FragmentActivity {
 		}
 	}
 
-	private class ConnectTask extends AsyncTask<Integer, Integer, RetCode> {
-		@Override
-		protected RetCode doInBackground(Integer... params) {
-			Log.d(TAG,
-					"Starting connect to "
-							+ settings.getString("tgfx_hostname", "127.0.0.1")
-							+ " in background");
-			RetCode res = tinyg.connect();
-			Log.d(TAG, "Returned from connect");
-			return res;
-		}
 
-		protected void onPostExecute(RetCode res) {
-			if (res.result) {
-				Toast.makeText(mContext, "Connected", Toast.LENGTH_SHORT)
-						.show();
+	private class NetworkServiceConnection implements ServiceConnection {
 
-				mListener = new ListenerTask();
-				mListener.execute(new InputStream[] { tinyg.getInputStream() });
-				Log.i(TAG, "Listener started");
-				tinyg.write(TinyGDriver.CMD_DISABLE_LOCAL_ECHO);
-				tinyg.write(TinyGDriver.CMD_GET_OK_PROMPT);
-				tinyg.write(TinyGDriver.CMD_SET_STATUS_UPDATE_INTERVAL);
-				tinyg.write(TinyGDriver.CMD_GET_OK_PROMPT);
-				tinyg.write(TinyGDriver.CMD_GET_STATUS_REPORT);
-				tinyg.write(TinyGDriver.CMD_GET_OK_PROMPT);
-			} else {
-				CharSequence c = res.message;
-				Toast.makeText(mContext, c, Toast.LENGTH_SHORT).show();
-				tinyg = null;
-			}
-		}
+	    public void onServiceConnected(ComponentName className, IBinder service) {
+	        // This is called when the connection with the service has been
+	        // established, giving us the service object we can use to
+	        // interact with the service.  Because we have bound to a explicit
+	        // service that we know is running in our own process, we can
+	        // cast its IBinder to a concrete class and directly access it.
+	        tinyg = ((TinyGDriver.NetworkBinder)service).getService();
+	        
+	        // Tell the user about this for our demo.
+	        Toast.makeText(TinyGActivity.this, R.string.local_service_connected,
+	                Toast.LENGTH_SHORT).show();
+	    }
+
+	    public void onServiceDisconnected(ComponentName className) {
+	        // This is called when the connection with the service has been
+	        // unexpectedly disconnected -- that is, its process crashed.
+	        // Because it is running in our same process, we should never
+	        // see this happen.
+	        tinyg = null;
+	        Toast.makeText(TinyGActivity.this, R.string.local_service_disconnected,
+	                Toast.LENGTH_SHORT).show();
+	    }
 	}
 
-	private class ListenerTask extends AsyncTask<InputStream, String, Void> {
-
-		@Override
-		protected Void doInBackground(InputStream... params) {
-			byte[] buffer = new byte[1024];
-			InputStream is = params[0];
-			int b;
-			int idx = 0;
-			try {
-				while (!isCancelled()) {
-					if ((b = is.read()) == -1) {
-						break;
-					}
-					buffer[idx++] = (byte) b;
-					if (b == '\n') {
-						publishProgress(new String(buffer, 0, idx));
-						idx = 0;
-					}
-				}
-			} catch (IOException e) {
-				Log.e(TAG, "listener read: " + e.getMessage());
-			}
-			return null;
-		}
-
-		@Override
-		protected void onProgressUpdate(String... values) {
-			if (values.length > 0) {
-				Log.i(TAG, "onProgressUpdate: " + values[0].length()
-						+ " bytes received.");
-				if (tinyg.processJSON(values[0])) {
-					updateState(tinyg.getMachine());
-				}
-			}
-		}
-
-		@Override
-		protected void onCancelled() {
-			Log.i(TAG, "ListenerTask cancelled");
-			mConnect.setVisibility(View.VISIBLE);
-		}
-	}
 
 	public void updateState(Machine machine) {
 		((TextView) findViewById(R.id.xloc)).setText(Float.toString(machine
