@@ -2,6 +2,9 @@ package org.csgeeks.TinyG.driver;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 import org.csgeeks.TinyG.R;
 import org.csgeeks.TinyG.system.Machine;
@@ -12,22 +15,26 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
-public abstract class TinyGDriver extends Service {
+public class TinyGDriver extends Service {
 	private Machine machine;
     private NotificationManager mNM;
-	private TinyGDriver tinyg;
 	private ListenerTask mListener;
 	private String tgfx_hostname;
 	private int tgfx_port;
-	protected boolean ready;
+	private boolean ready;
+	private InputStream is;
+	private OutputStream os;
+	private Socket socket;
 
 	private static final String TAG = "TinyG";
 	public static final String CMD_GET_OK_PROMPT = "{\"gc\":\"?\"}\n";
@@ -63,6 +70,13 @@ public abstract class TinyGDriver extends Service {
         mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		machine = new Machine();
 		ready = false;
+		Context mContext = getApplicationContext();
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+		tgfx_hostname = settings.getString("tgfx_hostname", "127.0.0.1");
+		tgfx_port = Integer.parseInt(settings.getString("tgfx_port", "4444"));
+		
+		new ConnectTask().execute(0);
+		Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show();
 
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
@@ -111,11 +125,21 @@ public abstract class TinyGDriver extends Service {
 		@Override
 		protected RetCode doInBackground(Integer... params) {
 			Log.d(TAG,
-					"Starting connect to "
-							+ tgfx_hostname + " in background");
-			RetCode res = tinyg.connect();
-			Log.d(TAG, "Returned from connect");
-			return res;
+					"Starting connect to " + tgfx_hostname + " in background");
+			try {
+				socket = new Socket(tgfx_hostname, tgfx_port);
+				os = socket.getOutputStream();
+				is = socket.getInputStream();
+			} catch (UnknownHostException e) {
+				socket = null;
+				Log.e(TAG,"Socket: " + e.getMessage());
+				return new RetCode(false, e.getMessage());
+			} catch (IOException e) {
+				socket = null;
+				Log.e(TAG,"Socket: " + e.getMessage());
+				return new RetCode(false, e.getMessage());
+			}
+			return new RetCode(true, null);
 		}
 
 		protected void onPostExecute(RetCode res) {
@@ -124,18 +148,18 @@ public abstract class TinyGDriver extends Service {
 						.show();
 
 				mListener = new ListenerTask();
-				mListener.execute(new InputStream[] { tinyg.getInputStream() });
+				mListener.execute(new InputStream[] { is });
 				Log.i(TAG, "Listener started");
-				tinyg.write(TinyGDriver.CMD_DISABLE_LOCAL_ECHO);
-				tinyg.write(TinyGDriver.CMD_GET_OK_PROMPT);
-				tinyg.write(TinyGDriver.CMD_SET_STATUS_UPDATE_INTERVAL);
-				tinyg.write(TinyGDriver.CMD_GET_OK_PROMPT);
-				tinyg.write(TinyGDriver.CMD_GET_STATUS_REPORT);
-				tinyg.write(TinyGDriver.CMD_GET_OK_PROMPT);
+				write(TinyGDriver.CMD_DISABLE_LOCAL_ECHO);
+				write(TinyGDriver.CMD_GET_OK_PROMPT);
+				write(TinyGDriver.CMD_SET_STATUS_UPDATE_INTERVAL);
+				write(TinyGDriver.CMD_GET_OK_PROMPT);
+				write(TinyGDriver.CMD_GET_STATUS_REPORT);
+				write(TinyGDriver.CMD_GET_OK_PROMPT);
 			} else {
 				CharSequence c = res.message;
 				Toast.makeText(TinyGDriver.this, c, Toast.LENGTH_SHORT).show();
-				tinyg = null;
+				stopSelf();
 			}
 		}
 	}
@@ -170,8 +194,8 @@ public abstract class TinyGDriver extends Service {
 			if (values.length > 0) {
 				Log.i(TAG, "onProgressUpdate: " + values[0].length()
 						+ " bytes received.");
-				if (tinyg.processJSON(values[0])) {
-					updateState(tinyg.getMachine());
+				if (processJSON(values[0])) {
+					// TODO: Post update to GUI.  Use messaging?
 				}
 			}
 		}
@@ -179,7 +203,6 @@ public abstract class TinyGDriver extends Service {
 		@Override
 		protected void onCancelled() {
 			Log.i(TAG, "ListenerTask cancelled");
-			mConnect.setVisibility(View.VISIBLE);
 		}
 	}
 
@@ -247,11 +270,39 @@ public abstract class TinyGDriver extends Service {
 		return ready;
 	}
 
-	public abstract RetCode disconnect();
+	public RetCode disconnect() {
+		if (mListener != null) {
+			mListener.cancel(true);	
+		}
+		if (socket != null) {
+			try {
+				Log.d(TAG,"closing socket");
+				socket.close();
+				is.close();
+				os.close();
+			} catch (IOException e) {
+				Log.e(TAG, "Close: " + e.getMessage());
+				return new RetCode(false, e.getMessage());
+			}
+			is = null;
+			os = null;
+			socket = null;
+			ready = false;
+		}
+		Log.d(TAG,"disconnect done");
+		return new RetCode(true, null);
+	}
 
-	public abstract void write(String string);
+	public void write(String message) {
+		try {
+			Log.d(TAG,"writing to tinyg: " + message);
+			os.write(message.getBytes());
+		} catch (IOException e) {
+			Log.e(TAG, "write: " + e.getMessage());
+		}
+	}
 
-	public abstract InputStream getInputStream();
-
-	public abstract RetCode connect();
+	public RetCode connect() {
+		return new RetCode(true, null);
+	}
 }

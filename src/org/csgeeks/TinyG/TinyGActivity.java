@@ -1,10 +1,5 @@
 package org.csgeeks.TinyG;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.csgeeks.TinyG.driver.NetworkDriver;
-import org.csgeeks.TinyG.driver.RetCode;
 import org.csgeeks.TinyG.driver.TinyGDriver;
 import org.csgeeks.TinyG.system.Machine;
 import org.csgeeks.TinyG.system.Machine.unit_modes;
@@ -13,11 +8,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -30,25 +22,16 @@ import android.widget.Toast;
 
 public class TinyGActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
-    private boolean mIsBound;
+    private boolean mIsBound = false;
     private TinyGDriver tinyg;
-	private Context mContext;
-	private Button mConnect;
 	private float jogRate = 10;
-	private SharedPreferences settings;
     private ServiceConnection mConnection;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		mContext = getApplicationContext();
-		settings = PreferenceManager.getDefaultSharedPreferences(mContext);
-		mConnect = (Button) findViewById(R.id.connect);
 		mConnection = new NetworkServiceConnection();
-        bindService(new Intent(TinyGActivity.this, 
-                TinyGDriver.class), mConnection, Context.BIND_AUTO_CREATE);
-        mIsBound = true;
 		if (savedInstanceState != null) {
 			restoreState(savedInstanceState);
 		}
@@ -87,16 +70,23 @@ public class TinyGActivity extends FragmentActivity {
 		switch (view.getId()) {
 		case R.id.connect:
 			if (mIsBound) {
-				tinyg.disconnect();
+				unbindService(mConnection);
+				mIsBound = false;
 				((Button) view).setText(R.string.connect);
 			} else {
-				tinyg.connect("127.0.0.1", 4444);
-				((Button) view).setText(R.string.disconnect);
+		        if (bindService(new Intent(TinyGActivity.this, 
+		                TinyGDriver.class), mConnection, Context.BIND_AUTO_CREATE)) {
+		        	mIsBound = true;
+					((Button) view).setText(R.string.disconnect);
+		        } else {
+			        Toast.makeText(this, "service failed",
+			                Toast.LENGTH_SHORT).show();
+		        }
 			}
 			break;
 		}
 		// If we're ready, handle buttons that will send messages to TinyG
-		if (mIsBound && tinyg.isReady()) {
+		if (mIsBound && tinyg != null && tinyg.isReady()) {
 			switch (view.getId()) {
 			case R.id.xpos:
 				tinyg.write("{\"gc\": \"g91g0x" + Double.toString(jogRate)
