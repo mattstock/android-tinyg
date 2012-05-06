@@ -1,13 +1,15 @@
 package org.csgeeks.TinyG;
 
-import org.csgeeks.TinyG.driver.TinyGDriver;
 import org.csgeeks.TinyG.system.Machine;
 import org.csgeeks.TinyG.system.Machine.unit_modes;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
@@ -22,18 +24,51 @@ import android.widget.Toast;
 
 public class TinyGActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
-    private boolean mIsBound = false;
-    private TinyGDriver tinyg;
+	private TinyGDriver tinyg;
 	private float jogRate = 10;
-    private ServiceConnection mConnection;
+	private ServiceConnection mConnection;
+	private BroadcastReceiver mIntentReceiver;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		mConnection = new NetworkServiceConnection();
+
 		if (savedInstanceState != null) {
 			restoreState(savedInstanceState);
+		}
+		if (bindService(new Intent(TinyGActivity.this, TinyGDriver.class),
+				mConnection, Context.BIND_AUTO_CREATE)) {
+		} else {
+			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
+					.show();
+		}
+	}
+
+	@Override
+	public void onResume() {
+		IntentFilter updateFilter;
+		updateFilter = new IntentFilter(TinyGDriver.TINYG_UPDATE);
+		mIntentReceiver = new TinyGServiceReceiver();
+		registerReceiver(mIntentReceiver, updateFilter);
+
+		super.onResume();
+
+	}
+
+	@Override
+	public void onDestroy() {
+		unbindService(mConnection);
+		unregisterReceiver(mIntentReceiver);
+		super.onDestroy();
+	}
+
+	public class TinyGServiceReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			updateState(tinyg.getMachine());
 		}
 	}
 
@@ -65,28 +100,32 @@ public class TinyGActivity extends FragmentActivity {
 	private void restoreState(Bundle inState) {
 		jogRate = inState.getFloat("jogRate");
 	}
-	
+
 	public void myClickHandler(View view) {
+		// Just in case something happened, though it seems like this shouldn't
+		// be possible.
+		if (tinyg == null) {
+			if (bindService(new Intent(TinyGActivity.this, TinyGDriver.class),
+					mConnection, Context.BIND_AUTO_CREATE)) {
+			} else {
+				Toast.makeText(this, "Binding service failed",
+						Toast.LENGTH_SHORT).show();
+			}
+			return;
+		}
 		switch (view.getId()) {
 		case R.id.connect:
-			if (mIsBound) {
-				unbindService(mConnection);
-				mIsBound = false;
+			if (tinyg.isReady()) {
+				tinyg.disconnect();
 				((Button) view).setText(R.string.connect);
 			} else {
-		        if (bindService(new Intent(TinyGActivity.this, 
-		                TinyGDriver.class), mConnection, Context.BIND_AUTO_CREATE)) {
-		        	mIsBound = true;
-					((Button) view).setText(R.string.disconnect);
-		        } else {
-			        Toast.makeText(this, "service failed",
-			                Toast.LENGTH_SHORT).show();
-		        }
+				tinyg.connect();
+				((Button) view).setText(R.string.disconnect);
 			}
 			break;
 		}
 		// If we're ready, handle buttons that will send messages to TinyG
-		if (mIsBound && tinyg != null && tinyg.isReady()) {
+		if (tinyg != null && tinyg.isReady()) {
 			switch (view.getId()) {
 			case R.id.xpos:
 				tinyg.write("{\"gc\": \"g91g0x" + Double.toString(jogRate)
@@ -154,33 +193,15 @@ public class TinyGActivity extends FragmentActivity {
 		}
 	}
 
-
 	private class NetworkServiceConnection implements ServiceConnection {
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			tinyg = ((TinyGDriver.NetworkBinder) service).getService();
+		}
 
-	    public void onServiceConnected(ComponentName className, IBinder service) {
-	        // This is called when the connection with the service has been
-	        // established, giving us the service object we can use to
-	        // interact with the service.  Because we have bound to a explicit
-	        // service that we know is running in our own process, we can
-	        // cast its IBinder to a concrete class and directly access it.
-	        tinyg = ((TinyGDriver.NetworkBinder)service).getService();
-	        
-	        // Tell the user about this for our demo.
-	        Toast.makeText(TinyGActivity.this, R.string.local_service_connected,
-	                Toast.LENGTH_SHORT).show();
-	    }
-
-	    public void onServiceDisconnected(ComponentName className) {
-	        // This is called when the connection with the service has been
-	        // unexpectedly disconnected -- that is, its process crashed.
-	        // Because it is running in our same process, we should never
-	        // see this happen.
-	        tinyg = null;
-	        Toast.makeText(TinyGActivity.this, R.string.local_service_disconnected,
-	                Toast.LENGTH_SHORT).show();
-	    }
+		public void onServiceDisconnected(ComponentName className) {
+			tinyg = null;
+		}
 	}
-
 
 	public void updateState(Machine machine) {
 		((TextView) findViewById(R.id.xloc)).setText(Float.toString(machine
@@ -192,7 +213,8 @@ public class TinyGActivity extends FragmentActivity {
 		((TextView) findViewById(R.id.aloc)).setText(Float.toString(machine
 				.getAxisByName("A").getWork_position()));
 		((TextView) findViewById(R.id.jogval)).setText(Float.toString(jogRate));
-		((TextView) findViewById(R.id.line)).setText(Integer.toString(machine.getLine_number()));
+		((TextView) findViewById(R.id.line)).setText(Integer.toString(machine
+				.getLine_number()));
 		switch (machine.getMotionMode()) {
 		case traverse:
 			((TextView) findViewById(R.id.momo)).setText(R.string.traverse);
@@ -239,6 +261,7 @@ public class TinyGActivity extends FragmentActivity {
 		case MM:
 			((Button) findViewById(R.id.units)).setText(R.string.mm);
 		}
-		((TextView) findViewById(R.id.velocity)).setText(Float.toString(machine.getVelocity()));
+		((TextView) findViewById(R.id.velocity)).setText(Float.toString(machine
+				.getVelocity()));
 	}
 }

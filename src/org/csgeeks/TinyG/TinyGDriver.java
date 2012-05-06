@@ -1,4 +1,4 @@
-package org.csgeeks.TinyG.driver;
+package org.csgeeks.TinyG;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,6 +55,7 @@ public class TinyGDriver extends Service {
 	public static final String CMD_GET_MOTOR_2_SETTINGS = "{\"2\":null}\n";
 	public static final String CMD_GET_MOTOR_3_SETTINGS = "{\"3\":null}\n";
 	public static final String CMD_GET_MOTOR_4_SETTINGS = "{\"4\":null}\n";
+	public static final String TINYG_UPDATE = "org.csgeeks.TinyG.UPDATE";
 	private static final String STATUS_REPORT = "{\"sr\":{";
 	private static final String CMD_PAUSE = "!\n";
 	private static final String CMD_RESUME = "~\n";
@@ -66,29 +67,25 @@ public class TinyGDriver extends Service {
     }
     
     @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_NOT_STICKY;
+    }
+
+    @Override
     public void onCreate() {
         mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		machine = new Machine();
 		ready = false;
-		Context mContext = getApplicationContext();
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
-		tgfx_hostname = settings.getString("tgfx_hostname", "127.0.0.1");
-		tgfx_port = Integer.parseInt(settings.getString("tgfx_port", "4444"));
-		
-		new ConnectTask().execute(0);
-		Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show();
 
         // Display a notification about us starting.  We put an icon in the status bar.
-        showNotification();
+       // showNotification();
     }
 
     @Override
     public void onDestroy() {
         // Cancel the persistent notification.
         mNM.cancel(R.string.local_service_started);
-
-        // Tell the user we stopped.
-        Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT).show();
+        disconnect();
     }
 
     @Override
@@ -96,8 +93,6 @@ public class TinyGDriver extends Service {
         return mBinder;
     }
 
-    // This is the object that receives interactions from clients.  See
-    // RemoteService for a more complete example.
     private final IBinder mBinder = new NetworkBinder();
 
     private void showNotification() {
@@ -121,11 +116,111 @@ public class TinyGDriver extends Service {
         mNM.notify(R.string.local_service_started, notification);
     }
 
-	private class ConnectTask extends AsyncTask<Integer, Integer, RetCode> {
+	public Machine getMachine() {
+		return machine;
+	}
+
+	public boolean processJSON(String string) {
+		try {
+			JSONObject json = new JSONObject(string);
+			if (json.has("sr")) {
+				JSONObject sr = json.getJSONObject("sr");
+				// We should do this based on the machine configuration.
+				// Hardcoded for now.
+				machine.getAxisByName("X").setWork_position(
+						(float) sr.getDouble("posx"));
+				machine.getAxisByName("Y").setWork_position(
+						(float) sr.getDouble("posy"));
+				machine.getAxisByName("Z").setWork_position(
+						(float) sr.getDouble("posz"));
+				machine.getAxisByName("A").setWork_position(
+						(float) sr.getDouble("posa"));
+				machine.setLine_number(sr.getInt("line"));
+				machine.setVelocity((float) sr.getDouble("vel"));
+				machine.setUnits(sr.getInt("unit"));
+				machine.setMotionMode(sr.getInt("momo"));
+				machine.setMachineState(sr.getInt("stat"));
+				return true;
+			}
+			if (json.has("gc")) {
+				JSONObject gc = json.getJSONObject("gc");
+				String gcode = gc.getString("gc");
+				if (gc.getString("msg").equals("OK")) {
+					if (gcode.regionMatches(0, "G20", 0, 3)) {
+						// Hack
+						Log.i(TAG, "Got confirmation of unit change to inches");
+
+					}
+					if (gcode.regionMatches(0, "G21", 0, 3)) {
+						// Hack
+						Log.i(TAG, "Got confirmation of unit change to mm");
+
+					}
+					if (gcode.regionMatches(0, "G92", 0, 3)) {
+						// Should set the local screen value based on this.
+						// Instead, I'm going to cheat
+						// and set it when we send the zero command...
+						Log.i(TAG, "Got confirmation of zeroing");
+					}
+				}
+			}
+			if (json.has("sys")) {
+
+			}
+		} catch (JSONException e) {
+			Log.e(TAG, "Received malformed JSON: " + string + ": " + e.getMessage());
+		}
+		return false;
+	}
+
+	public boolean isReady() {
+		return ready;
+	}
+
+	public void disconnect() {
+		if (mListener != null) {
+			mListener.cancel(true);	
+		}
+		if (socket != null) {
+			try {
+				Log.d(TAG,"closing socket");
+				socket.close();
+				is.close();
+				os.close();
+			} catch (IOException e) {
+				Log.e(TAG, "Close: " + e.getMessage());
+			}
+			is = null;
+			os = null;
+			socket = null;
+			ready = false;
+		}
+		Log.d(TAG,"disconnect done");
+	}
+
+	public void write(String message) {
+		try {
+			Log.d(TAG,"writing to tinyg: " + message);
+			os.write(message.getBytes());
+		} catch (IOException e) {
+			Log.e(TAG, "write: " + e.getMessage());
+		}
+	}
+
+	public void connect() {
+		Context mContext = getApplicationContext();
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+		tgfx_hostname = settings.getString("tgfx_hostname", "127.0.0.1");
+		tgfx_port = Integer.parseInt(settings.getString("tgfx_port", "4444"));
+		
+		new ConnectTask().execute(0);
+		Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show();
+	}
+	
+	private class ConnectTask extends AsyncTask<Integer, Integer, Boolean> {
 		@Override
-		protected RetCode doInBackground(Integer... params) {
-			Log.d(TAG,
-					"Starting connect to " + tgfx_hostname + " in background");
+		protected Boolean doInBackground(Integer... params) {
+			Log.d(TAG, "Starting connect to " + tgfx_hostname + " in background");
 			try {
 				socket = new Socket(tgfx_hostname, tgfx_port);
 				os = socket.getOutputStream();
@@ -133,22 +228,24 @@ public class TinyGDriver extends Service {
 			} catch (UnknownHostException e) {
 				socket = null;
 				Log.e(TAG,"Socket: " + e.getMessage());
-				return new RetCode(false, e.getMessage());
+				Toast.makeText(TinyGDriver.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+				return false;
 			} catch (IOException e) {
 				socket = null;
 				Log.e(TAG,"Socket: " + e.getMessage());
-				return new RetCode(false, e.getMessage());
+				Toast.makeText(TinyGDriver.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+				return false;
 			}
-			return new RetCode(true, null);
+			return true;
 		}
 
-		protected void onPostExecute(RetCode res) {
-			if (res.result) {
+		protected void onPostExecute(Boolean res) {
+			if (res) {
 				Toast.makeText(TinyGDriver.this, "Connected", Toast.LENGTH_SHORT)
 						.show();
-
 				mListener = new ListenerTask();
 				mListener.execute(new InputStream[] { is });
+				ready = true;
 				Log.i(TAG, "Listener started");
 				write(TinyGDriver.CMD_DISABLE_LOCAL_ECHO);
 				write(TinyGDriver.CMD_GET_OK_PROMPT);
@@ -156,16 +253,11 @@ public class TinyGDriver extends Service {
 				write(TinyGDriver.CMD_GET_OK_PROMPT);
 				write(TinyGDriver.CMD_GET_STATUS_REPORT);
 				write(TinyGDriver.CMD_GET_OK_PROMPT);
-			} else {
-				CharSequence c = res.message;
-				Toast.makeText(TinyGDriver.this, c, Toast.LENGTH_SHORT).show();
-				stopSelf();
 			}
 		}
 	}
 
 	private class ListenerTask extends AsyncTask<InputStream, String, Void> {
-
 		@Override
 		protected Void doInBackground(InputStream... params) {
 			byte[] buffer = new byte[1024];
@@ -195,7 +287,8 @@ public class TinyGDriver extends Service {
 				Log.i(TAG, "onProgressUpdate: " + values[0].length()
 						+ " bytes received.");
 				if (processJSON(values[0])) {
-					// TODO: Post update to GUI.  Use messaging?
+					Intent intent = new Intent(TINYG_UPDATE);
+					sendBroadcast(intent);
 				}
 			}
 		}
@@ -205,104 +298,5 @@ public class TinyGDriver extends Service {
 			Log.i(TAG, "ListenerTask cancelled");
 		}
 	}
-
-	public Machine getMachine() {
-		return machine;
-	}
-
-	public boolean processJSON(String string) {
-		try {
-			JSONObject json = new JSONObject(string);
-			if (json.has("sr")) {
-				JSONObject sr = json.getJSONObject("sr");
-				// We should do this based on the machine configuration.
-				// Hardcoded for now.
-				machine.getAxisByName("X").setWork_position(
-						(float) sr.getDouble("posx"));
-				machine.getAxisByName("Y").setWork_position(
-						(float) sr.getDouble("posy"));
-				machine.getAxisByName("Z").setWork_position(
-						(float) sr.getDouble("posz"));
-				machine.getAxisByName("A").setWork_position(
-						(float) sr.getDouble("posa"));
-				machine.setLine_number(sr.getInt("line"));
-				machine.setVelocity((float) sr.getDouble("vel"));
-				machine.setUnits(sr.getInt("unit"));
-				machine.setMotionMode(sr.getInt("momo"));
-				machine.setMachineState(sr.getInt("stat"));
-				ready = true;
-				return true;
-			}
-			if (json.has("gc")) {
-				JSONObject gc = json.getJSONObject("gc");
-				String gcode = gc.getString("gc");
-				if (gc.getString("msg").equals("OK")) {
-					if (gcode.regionMatches(0, "G20", 0, 3)) {
-						// Hack
-						Log.i(TAG, "Got confirmation of unit change to inches");
-
-					}
-					if (gcode.regionMatches(0, "G21", 0, 3)) {
-						// Hack
-						Log.i(TAG, "Got confirmation of unit change to mm");
-
-					}
-					if (gcode.regionMatches(0, "G92", 0, 3)) {
-						// Should set the local screen value based on this.
-						// Instead, I'm going to cheat
-						// and set it when we send the zero command...
-						Log.i(TAG, "Got confirmation of zeroing");
-					}
-				}
-			}
-			if (json.has("sys")) {
-
-			}
-		} catch (JSONException e) {
-			Log.e(TAG,
-					"Received malformed JSON: " + string + ": "
-							+ e.getMessage());
-		}
-		return false;
-	}
-
-	public boolean isReady() {
-		return ready;
-	}
-
-	public RetCode disconnect() {
-		if (mListener != null) {
-			mListener.cancel(true);	
-		}
-		if (socket != null) {
-			try {
-				Log.d(TAG,"closing socket");
-				socket.close();
-				is.close();
-				os.close();
-			} catch (IOException e) {
-				Log.e(TAG, "Close: " + e.getMessage());
-				return new RetCode(false, e.getMessage());
-			}
-			is = null;
-			os = null;
-			socket = null;
-			ready = false;
-		}
-		Log.d(TAG,"disconnect done");
-		return new RetCode(true, null);
-	}
-
-	public void write(String message) {
-		try {
-			Log.d(TAG,"writing to tinyg: " + message);
-			os.write(message.getBytes());
-		} catch (IOException e) {
-			Log.e(TAG, "write: " + e.getMessage());
-		}
-	}
-
-	public RetCode connect() {
-		return new RetCode(true, null);
-	}
 }
+

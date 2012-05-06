@@ -17,9 +17,12 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+              	<action android:name="org.csgeeks.TinyG.UPDATE" />
+            </intent-filter>
         </activity>
         <activity android:name=".ShowSettingsActivity"></activity>
-        <service android:name=".driver.TinyGDriver"></service>
+        <service android:name=".TinyGDriver"></service>
     </application>
 
 </manifest>
