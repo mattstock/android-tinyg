@@ -103,12 +103,12 @@ public class TinyGActivity extends FragmentActivity {
 		case R.id.machine:
 			startActivity(new Intent(this, MachineActivity.class));
 			return true;
-//		case R.id.motors:
-//			startActivity(new Intent(this, MotorActivity.class));
-//			return true;
-//		case R.id.axis:
-//			startActivity(new Intent(this, AxisActivity.class));
-//			return true;
+		case R.id.motors:
+			startActivity(new Intent(this, MotorActivity.class));
+			return true;
+		case R.id.axis:
+			startActivity(new Intent(this, AxisActivity.class));
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
