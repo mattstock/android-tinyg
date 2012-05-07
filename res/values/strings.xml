@@ -57,6 +57,19 @@
     <string name="si">Update interval: </string>
     <string name="fr">Feed rate: </string>
     <string name="sa">Step angle: </string>
+    <string name="sv">Homing search velocity: </string>
+    <string name="lv">Homing latch velocity: </string>
+    <string name="am">Axis mode: </string>
+    <string name="vm">Velocity max: </string>
+    <string name="tm">Travel max: </string>
+    <string name="jm">Jerk max: </string>
+    <string name="jd">Junction deviation: </string>
+    <string name="sm">Switch mode: </string>
+    <string name="ma">Map to axis: </string>
+    <string name="tr">Travel/rev: </string>
+    <string name="mi">Microsteps: </string>
+    <string name="po">Polarity: </string>
+    <string name="pm">Power mgmt: </string>
     <string name="save">Save</string>
     <string-array name="axisArray">
         <item>Axis X</item>

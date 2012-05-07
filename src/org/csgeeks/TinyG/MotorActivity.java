@@ -17,13 +17,14 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 public class MotorActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
 	private TinyGDriver tinyg;
 	private ServiceConnection mConnection;
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -31,18 +32,28 @@ public class MotorActivity extends FragmentActivity {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		mConnection = new NetworkServiceConnection();
 
-		if (bindService(new Intent(this, TinyGDriver.class),
-				mConnection, Context.BIND_AUTO_CREATE)) {
+		if (bindService(new Intent(this, TinyGDriver.class), mConnection,
+				Context.BIND_AUTO_CREATE)) {
 		} else {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
 					.show();
 		}
-		
+
+		// configure motor picker
 		Spinner s = (Spinner) findViewById(R.id.motorpick);
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.axisArray, android.R.layout.simple_spinner_item);
+		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+				this, R.array.motorArray, android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		s.setAdapter(adapter);
-		s.setOnItemSelectedListener(new MyOnItemSelectedListener());
+		s.setOnItemSelectedListener(new MotorItemSelectedListener());
+
+		// Configure axis picker
+		s = (Spinner) findViewById(R.id.map_axis);
+		adapter = ArrayAdapter.createFromResource(this, R.array.axisArray,
+				android.R.layout.simple_spinner_item);
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		s.setAdapter(adapter);
+		s.setOnItemSelectedListener(new AxisItemSelectedListener());
 	}
 
 	@Override
@@ -51,25 +62,44 @@ public class MotorActivity extends FragmentActivity {
 		super.onDestroy();
 	}
 
-	public class MyOnItemSelectedListener implements OnItemSelectedListener {
+	// TODO
+	private class MotorItemSelectedListener implements OnItemSelectedListener {
 
-	    public void onItemSelected(AdapterView<?> parent,
-	        View view, int pos, long id) {
-	      Toast.makeText(parent.getContext(), "The planet is " +
-	          parent.getItemAtPosition(pos).toString(), Toast.LENGTH_LONG).show();
-	    }
+		public void onItemSelected(AdapterView<?> parent, View view, int pos,
+				long id) {
+			Toast.makeText(
+					parent.getContext(),
+					"The planet is " + parent.getItemAtPosition(pos).toString(),
+					Toast.LENGTH_LONG).show();
+		}
 
-	    public void onNothingSelected(AdapterView parent) {
-	      // Do nothing.
-	    }
+		public void onNothingSelected(AdapterView<?> parent) {
+			// Do nothing.
+		}
 	}
-	
+
+	// TODO
+	private class AxisItemSelectedListener implements OnItemSelectedListener {
+
+		public void onItemSelected(AdapterView<?> parent, View view, int pos,
+				long id) {
+			Toast.makeText(
+					parent.getContext(),
+					"The planet is " + parent.getItemAtPosition(pos).toString(),
+					Toast.LENGTH_LONG).show();
+		}
+
+		public void onNothingSelected(AdapterView<?> parent) {
+			// Do nothing.
+		}
+	}
+
 	public void myClickHandler(View view) {
 		// Just in case something happened, though it seems like this shouldn't
 		// be possible.
 		if (tinyg == null) {
-			if (bindService(new Intent(this, TinyGDriver.class),
-					mConnection, Context.BIND_AUTO_CREATE)) {
+			if (bindService(new Intent(this, TinyGDriver.class), mConnection,
+					Context.BIND_AUTO_CREATE)) {
 			} else {
 				Toast.makeText(this, "Binding service failed",
 						Toast.LENGTH_SHORT).show();
@@ -78,20 +108,33 @@ public class MotorActivity extends FragmentActivity {
 		}
 		switch (view.getId()) {
 		case R.id.save:
+			// TODO
 			break;
 		}
 	}
-	
+
 	private class NetworkServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			tinyg = ((TinyGDriver.NetworkBinder) service).getService();
-			Log.i(TAG,"got binder");
+			Log.i(TAG, "got binder");
 			if (tinyg.isReady()) {
-				Log.i(TAG,"setting values in motor activity");
+				Log.i(TAG, "setting values in motor activity");
 				Motor one = tinyg.getMachine().getMotorByNumber(1);
-				((EditText) findViewById(R.id.step_angle)).setText(Float.toString(one.getStep_angle()));
+				((Spinner) findViewById(R.id.map_axis)).setSelection(one
+						.getMapToAxis());
+				((EditText) findViewById(R.id.step_angle)).setText(Float
+						.toString(one.getStep_angle()));
+				((EditText) findViewById(R.id.travel_rev)).setText(Float
+						.toString(one.getTravel_per_revolution()));
+				((EditText) findViewById(R.id.microsteps)).setText(Integer
+						.toString(one.getMicrosteps()));
+				((ToggleButton) findViewById(R.id.polarity)).setChecked(one
+						.isPolarity());
+				((ToggleButton) findViewById(R.id.power_management))
+						.setChecked(one.isPower_management());
 			}
 		}
+
 		public void onServiceDisconnected(ComponentName className) {
 			tinyg = null;
 		}
