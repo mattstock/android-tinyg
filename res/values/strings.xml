@@ -55,6 +55,21 @@
     <string name="fb">Firmware build: </string>
     <string name="fv">Firmware version: </string>
     <string name="si">Update interval: </string>
+    <string name="fr">Feed rate: </string>
+    <string name="sa">Step angle: </string>
     <string name="save">Save</string>
-    
+    <string-array name="axisArray">
+        <item>Axis X</item>
+        <item>Axis Y</item>
+        <item>Axis Z</item>
+        <item>Axis A</item>
+        <item>Axis B</item>
+        <item>Axis C</item>
+    </string-array>
+    <string-array name="motorArray">
+        <item>Motor 1</item>
+        <item>Motor 2</item>
+        <item>Motor 3</item>
+        <item>Motor 4</item>
+    </string-array>
 </resources>
