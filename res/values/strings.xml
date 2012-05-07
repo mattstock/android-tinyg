@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TinyG</string>
+    <string name="app_name">TinyG for Android</string>
     <string name="local_service_started">Local service has started</string>
     <string name="local_service_stopped">Local service has stopped</string>
     <string name="local_service_connected">Local Service Connected</string>
@@ -50,5 +50,11 @@
     <string name="cw">cw</string>
     <string name="ccw">ccw</string>
     <string name="invalid">invalid</string>
+    <string name="version">0.9</string>
+    <string name="about">Version 0.9\n\nAndroid app copyright 2012 Matthew Stock.\nTinyG and TgFX copyright Synthetos, LLC.</string>
+    <string name="fb">Firmware build: </string>
+    <string name="fv">Firmware version: </string>
+    <string name="si">Update interval: </string>
+    <string name="save">Save</string>
     
 </resources>

@@ -27,7 +27,6 @@ import android.widget.Toast;
 
 public class TinyGDriver extends Service {
 	private Machine machine;
-    private NotificationManager mNM;
 	private ListenerTask mListener;
 	private String tgfx_hostname;
 	private int tgfx_port;
@@ -73,18 +72,12 @@ public class TinyGDriver extends Service {
 
     @Override
     public void onCreate() {
-        mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		machine = new Machine();
 		ready = false;
-
-        // Display a notification about us starting.  We put an icon in the status bar.
-       // showNotification();
     }
 
     @Override
     public void onDestroy() {
-        // Cancel the persistent notification.
-        mNM.cancel(R.string.local_service_started);
         disconnect();
     }
 
@@ -95,27 +88,6 @@ public class TinyGDriver extends Service {
 
     private final IBinder mBinder = new NetworkBinder();
 
-    private void showNotification() {
-        // In this sample, we'll use the same text for the ticker and the expanded notification
-        CharSequence text = getText(R.string.local_service_started);
-
-        // Set the icon, scrolling text and timestamp
-        Notification notification = new Notification(R.drawable.stat_sample, text,
-                System.currentTimeMillis());
-
-        // The PendingIntent to launch our activity if the user selects this notification
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, TinyGDriver.class), 0);
-
-        // Set the info for the views that show in the notification panel.
-        notification.setLatestEventInfo(this, getText(R.string.local_service_label),
-                       text, contentIntent);
-
-        // Send the notification.
-        // We use a layout id because it is a unique number.  We use it later to cancel.
-        mNM.notify(R.string.local_service_started, notification);
-    }
-
 	public Machine getMachine() {
 		return machine;
 	}
@@ -124,6 +96,7 @@ public class TinyGDriver extends Service {
 		try {
 			JSONObject json = new JSONObject(string);
 			if (json.has("sr")) {
+				Log.i(TAG,"Got sr JSON");
 				JSONObject sr = json.getJSONObject("sr");
 				// We should do this based on the machine configuration.
 				// Hardcoded for now.
@@ -165,7 +138,12 @@ public class TinyGDriver extends Service {
 				}
 			}
 			if (json.has("sys")) {
-
+				Log.i(TAG,"Got sys JSON");
+				JSONObject sys = json.getJSONObject("sys");
+				machine.setFirmware_build((float) sys.getDouble("fb"));
+				machine.setFirmware_version((float) sys.getDouble("fv"));
+				machine.setStatus_report_interval(sys.getInt("si"));
+				// More later if we want them.
 			}
 		} catch (JSONException e) {
 			Log.e(TAG, "Received malformed JSON: " + string + ": " + e.getMessage());
@@ -208,6 +186,9 @@ public class TinyGDriver extends Service {
 	}
 
 	public void connect() {
+		if (ready) {
+			return;
+		}
 		Context mContext = getApplicationContext();
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
 		tgfx_hostname = settings.getString("tgfx_hostname", "127.0.0.1");
@@ -253,6 +234,18 @@ public class TinyGDriver extends Service {
 				write(TinyGDriver.CMD_GET_OK_PROMPT);
 				write(TinyGDriver.CMD_GET_STATUS_REPORT);
 				write(TinyGDriver.CMD_GET_OK_PROMPT);
+//				write(TinyGDriver.CMD_GET_X_AXIS);
+//				write(TinyGDriver.CMD_GET_Y_AXIS);
+//				write(TinyGDriver.CMD_GET_Z_AXIS);
+//				write(TinyGDriver.CMD_GET_A_AXIS);
+//				write(TinyGDriver.CMD_GET_B_AXIS);
+//				write(TinyGDriver.CMD_GET_C_AXIS);
+//				write(TinyGDriver.CMD_GET_MOTOR_1_SETTINGS);
+//				write(TinyGDriver.CMD_GET_MOTOR_2_SETTINGS);
+//				write(TinyGDriver.CMD_GET_MOTOR_3_SETTINGS);
+//				write(TinyGDriver.CMD_GET_MOTOR_4_SETTINGS);
+				write(TinyGDriver.CMD_GET_MACHINE_SETTINGS);
+				write(TinyGDriver.CMD_GET_OK_PROMPT);
 			}
 		}
 	}
@@ -284,8 +277,7 @@ public class TinyGDriver extends Service {
 		@Override
 		protected void onProgressUpdate(String... values) {
 			if (values.length > 0) {
-				Log.i(TAG, "onProgressUpdate: " + values[0].length()
-						+ " bytes received.");
+				Log.i(TAG, "onProgressUpdate: " + values[0]);
 				if (processJSON(values[0])) {
 					Intent intent = new Intent(TINYG_UPDATE);
 					sendBroadcast(intent);

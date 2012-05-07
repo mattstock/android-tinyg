@@ -3,6 +3,8 @@ package org.csgeeks.TinyG;
 import org.csgeeks.TinyG.system.Machine;
 import org.csgeeks.TinyG.system.Machine.unit_modes;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -12,7 +14,10 @@ import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,7 +33,8 @@ public class TinyGActivity extends FragmentActivity {
 	private float jogRate = 10;
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
-
+	private static final int DIALOG_ABOUT = 0;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -39,7 +45,7 @@ public class TinyGActivity extends FragmentActivity {
 		if (savedInstanceState != null) {
 			restoreState(savedInstanceState);
 		}
-		if (bindService(new Intent(TinyGActivity.this, TinyGDriver.class),
+		if (bindService(new Intent(this, TinyGDriver.class),
 				mConnection, Context.BIND_AUTO_CREATE)) {
 		} else {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
@@ -59,9 +65,14 @@ public class TinyGActivity extends FragmentActivity {
 	}
 
 	@Override
+	public void onPause() {
+		unregisterReceiver(mIntentReceiver);
+		super.onPause();
+	}
+	
+	@Override
 	public void onDestroy() {
 		unbindService(mConnection);
-		unregisterReceiver(mIntentReceiver);
 		super.onDestroy();
 	}
 
@@ -86,11 +97,35 @@ public class TinyGActivity extends FragmentActivity {
 		case R.id.settings:
 			startActivity(new Intent(this, ShowSettingsActivity.class));
 			return true;
+		case R.id.about:
+			showDialog(DIALOG_ABOUT);
+			return true;
+		case R.id.machine:
+			startActivity(new Intent(this, MachineActivity.class));
+			return true;
+//		case R.id.motors:
+//			startActivity(new Intent(this, MotorActivity.class));
+//			return true;
+//		case R.id.axis:
+//			startActivity(new Intent(this, AxisActivity.class));
+//			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
 	}
 
+	@Override
+	public Dialog onCreateDialog(int arg) {
+		switch (arg) {
+		case DIALOG_ABOUT:
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setMessage(R.string.about)
+				.setTitle(R.string.app_name);
+			return builder.create();
+		}
+		return null;
+	}
+	
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
@@ -105,7 +140,7 @@ public class TinyGActivity extends FragmentActivity {
 		// Just in case something happened, though it seems like this shouldn't
 		// be possible.
 		if (tinyg == null) {
-			if (bindService(new Intent(TinyGActivity.this, TinyGDriver.class),
+			if (bindService(new Intent(this, TinyGDriver.class),
 					mConnection, Context.BIND_AUTO_CREATE)) {
 			} else {
 				Toast.makeText(this, "Binding service failed",
