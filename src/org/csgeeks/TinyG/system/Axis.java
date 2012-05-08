@@ -23,7 +23,7 @@ public class Axis {
 
     public enum AXIS {
 
-        X, Y, Z, A;
+        X, Y, Z, A, B, C;
     }
 
     public Axis() {
@@ -37,6 +37,10 @@ public class Axis {
     public Axis(AXIS ax) {
         if (ax == AXIS.A) {
             this.setAxis_name("A");
+        } else if (ax == AXIS.B) {
+            this.setAxis_name("B");
+        } else if (ax == AXIS.C) {
+            this.setAxis_name("C");
         } else if (ax == AXIS.Z) {
             this.setAxis_name("Z");
         } else if (ax == AXIS.Y) {

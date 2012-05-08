@@ -23,6 +23,8 @@
         </activity>
         <activity android:name=".ShowSettingsActivity"></activity>
         <activity android:name=".MachineActivity"></activity>
+        <activity android:name=".MotorActivity"></activity>
+        <activity android:name=".AxisActivity"></activity>
         <service android:name=".TinyGDriver"></service>
     </application>
 

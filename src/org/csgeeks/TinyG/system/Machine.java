@@ -283,11 +283,15 @@ public class Machine {
 		Axis y = new Axis(Axis.AXIS.Y);
 		Axis z = new Axis(Axis.AXIS.Z);
 		Axis a = new Axis(Axis.AXIS.A);
+		Axis b = new Axis(Axis.AXIS.B);
+		Axis c = new Axis(Axis.AXIS.C);
 
 		axis.add(x);
 		axis.add(y);
 		axis.add(z);
 		axis.add(a);
+		axis.add(b);
+		axis.add(c);
 	}
 
 	public Axis getAxisByName(String name) {

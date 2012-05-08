@@ -67,10 +67,22 @@ public class MotorActivity extends FragmentActivity {
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
-			Toast.makeText(
-					parent.getContext(),
-					"The planet is " + parent.getItemAtPosition(pos).toString(),
-					Toast.LENGTH_LONG).show();
+			if (tinyg.isReady()) {
+				Log.i(TAG, "setting values in motor activity");
+				Motor m = tinyg.getMachine().getMotorByNumber(pos+1);
+				((Spinner) findViewById(R.id.map_axis)).setSelection(m
+						.getMapToAxis());
+				((EditText) findViewById(R.id.step_angle)).setText(Float
+						.toString(m.getStep_angle()));
+				((EditText) findViewById(R.id.travel_rev)).setText(Float
+						.toString(m.getTravel_per_revolution()));
+				((EditText) findViewById(R.id.microsteps)).setText(Integer
+						.toString(m.getMicrosteps()));
+				((ToggleButton) findViewById(R.id.polarity)).setChecked(m
+						.isPolarity());
+				((ToggleButton) findViewById(R.id.power_management))
+						.setChecked(m.isPower_management());
+			}
 		}
 
 		public void onNothingSelected(AdapterView<?> parent) {
@@ -117,22 +129,6 @@ public class MotorActivity extends FragmentActivity {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			tinyg = ((TinyGDriver.NetworkBinder) service).getService();
 			Log.i(TAG, "got binder");
-			if (tinyg.isReady()) {
-				Log.i(TAG, "setting values in motor activity");
-				Motor one = tinyg.getMachine().getMotorByNumber(1);
-				((Spinner) findViewById(R.id.map_axis)).setSelection(one
-						.getMapToAxis());
-				((EditText) findViewById(R.id.step_angle)).setText(Float
-						.toString(one.getStep_angle()));
-				((EditText) findViewById(R.id.travel_rev)).setText(Float
-						.toString(one.getTravel_per_revolution()));
-				((EditText) findViewById(R.id.microsteps)).setText(Integer
-						.toString(one.getMicrosteps()));
-				((ToggleButton) findViewById(R.id.polarity)).setChecked(one
-						.isPolarity());
-				((ToggleButton) findViewById(R.id.power_management))
-						.setChecked(one.isPower_management());
-			}
 		}
 
 		public void onServiceDisconnected(ComponentName className) {

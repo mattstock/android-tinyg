@@ -58,6 +58,7 @@ public class MachineActivity extends FragmentActivity {
 		}
 		switch (view.getId()) {
 		case R.id.save:
+			// TODO
 			break;
 		}
 	}

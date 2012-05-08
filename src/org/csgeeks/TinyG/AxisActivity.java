@@ -58,10 +58,49 @@ public class AxisActivity extends FragmentActivity {
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
-			Toast.makeText(
-					parent.getContext(),
-					"The planet is " + parent.getItemAtPosition(pos).toString(),
-					Toast.LENGTH_LONG).show();
+			if (tinyg.isReady()) {
+				Log.i(TAG, "setting values in axis activity");
+				String name = "X";
+				switch (pos) {
+				case 0:
+					name = "X";
+					break;
+				case 1:
+					name = "Y";
+					break;
+				case 2:
+					name = "Z";
+					break;
+				case 3:
+					name = "A";
+					break;
+				case 4:
+					name = "B";
+					break;
+				case 5:
+					name = "C";
+					break;
+				}
+				Axis a = tinyg.getMachine().getAxisByName(name);
+				((EditText) findViewById(R.id.feed_rate)).setText(Float
+						.toString(a.getFeed_rate_maximum()));
+				((EditText) findViewById(R.id.search_velocity)).setText(Float
+						.toString(a.getHoming_search_velocity()));
+				((EditText) findViewById(R.id.latch_velocity)).setText(Float
+						.toString(a.getHoming_latch_velocity()));
+				((ToggleButton) findViewById(R.id.axis_mode)).setChecked(a
+						.isAxis_mode());
+				((EditText) findViewById(R.id.switch_mode)).setText(Integer
+						.toString(a.getSwitch_mode()));
+				((EditText) findViewById(R.id.velocity_max)).setText(Float
+						.toString(a.getVelocity_maximum()));
+				((EditText) findViewById(R.id.travel_max)).setText(Float
+						.toString(a.getTravel_maximum()));
+				((EditText) findViewById(R.id.jerk_max)).setText(Float
+						.toString(a.getJerk_maximum()));
+				((EditText) findViewById(R.id.junction_deviation))
+						.setText(Float.toString(a.getJunction_devation()));
+			}
 		}
 
 		public void onNothingSelected(AdapterView<?> parent) {
@@ -92,28 +131,6 @@ public class AxisActivity extends FragmentActivity {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			tinyg = ((TinyGDriver.NetworkBinder) service).getService();
 			Log.i(TAG, "got binder");
-			if (tinyg.isReady()) {
-				Log.i(TAG, "setting values in axis activity");
-				Axis x = tinyg.getMachine().getAxisByName("X");
-				((EditText) findViewById(R.id.feed_rate)).setText(Float
-						.toString(x.getFeed_rate_maximum()));
-				((EditText) findViewById(R.id.search_velocity)).setText(Float
-						.toString(x.getHoming_search_velocity()));
-				((EditText) findViewById(R.id.latch_velocity)).setText(Float
-						.toString(x.getHoming_latch_velocity()));
-				((ToggleButton) findViewById(R.id.axis_mode)).setChecked(x
-						.isAxis_mode());
-				((EditText) findViewById(R.id.switch_mode)).setText(Integer
-						.toString(x.getSwitch_mode()));
-				((EditText) findViewById(R.id.velocity_max)).setText(Float
-						.toString(x.getVelocity_maximum()));
-				((EditText) findViewById(R.id.travel_max)).setText(Float
-						.toString(x.getTravel_maximum()));
-				((EditText) findViewById(R.id.jerk_max)).setText(Float
-						.toString(x.getJerk_maximum()));
-				((EditText) findViewById(R.id.junction_deviation))
-						.setText(Float.toString(x.getJunction_devation()));
-			}
 		}
 
 		public void onServiceDisconnected(ComponentName className) {

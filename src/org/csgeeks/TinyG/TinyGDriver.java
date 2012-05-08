@@ -7,7 +7,9 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import org.csgeeks.TinyG.R;
+import org.csgeeks.TinyG.system.Axis;
 import org.csgeeks.TinyG.system.Machine;
+import org.csgeeks.TinyG.system.Motor;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -145,10 +147,87 @@ public class TinyGDriver extends Service {
 				machine.setStatus_report_interval(sys.getInt("si"));
 				// More later if we want them.
 			}
+			if (json.has("1")) {
+				Log.i(TAG,"Got motor 1 JSON");
+				JSONObject motor = json.getJSONObject("1");
+				parseMotor(1, motor);
+			}
+			if (json.has("2")) {
+				Log.i(TAG,"Got motor 2 JSON");
+				JSONObject motor = json.getJSONObject("2");
+				parseMotor(2, motor);
+			}
+			if (json.has("3")) {
+				Log.i(TAG,"Got motor 3 JSON");
+				JSONObject motor = json.getJSONObject("3");
+				parseMotor(3, motor);
+			}
+			if (json.has("4")) {
+				Log.i(TAG,"Got motor 4 JSON");
+				JSONObject motor = json.getJSONObject("4");
+				parseMotor(4, motor);
+			}
+			if (json.has("a")) {
+				Log.i(TAG,"Got axis A JSON");
+				JSONObject axis = json.getJSONObject("a");
+				parseAxis("A", axis);
+			}
+			if (json.has("b")) {
+				Log.i(TAG,"Got axis B JSON");
+				JSONObject axis = json.getJSONObject("b");
+				parseAxis("B", axis);
+			}
+			if (json.has("c")) {
+				Log.i(TAG,"Got axis C JSON");
+				JSONObject axis = json.getJSONObject("c");
+				parseAxis("C", axis);
+			}
+			if (json.has("x")) {
+				Log.i(TAG,"Got axis X JSON");
+				JSONObject axis = json.getJSONObject("x");
+				parseAxis("X", axis);
+			}
+			if (json.has("y")) {
+				Log.i(TAG,"Got axis Y JSON");
+				JSONObject axis = json.getJSONObject("y");
+				parseAxis("Y", axis);
+			}
+			if (json.has("z")) {
+				Log.i(TAG,"Got axis Z JSON");
+				JSONObject axis = json.getJSONObject("z");
+				parseAxis("Z", axis);
+			}
 		} catch (JSONException e) {
 			Log.e(TAG, "Received malformed JSON: " + string + ": " + e.getMessage());
 		}
 		return false;
+	}
+
+	private void parseAxis(String string, JSONObject axis) {
+		try {
+			Axis a = machine.getAxisByName(string);
+			a.setTravel_maximum((float) axis.getDouble("tm"));
+			a.setVelocity_maximum((float) axis.getDouble("vm"));
+			a.setJerk_maximum((float) axis.getDouble("jm"));
+			a.setJunction_devation((float) axis.getDouble("jd"));
+			a.setSwitch_mode(axis.getInt("sm"));
+		} catch (JSONException e) {
+			Log.e(TAG, "Received malformed JSON in parseAxis: " + e.getMessage());
+		}
+	}
+
+	private void parseMotor(int i, JSONObject motor) {
+		try {
+			Motor m = machine.getMotorByNumber(i);
+			m.setMapToAxis(motor.getInt("ma"));
+			m.setStep_angle((float) motor.getDouble("sa"));
+			m.setTravel_per_revolution((float) motor.getDouble("tr"));
+			m.setMicrosteps(motor.getInt("mi"));
+			m.setPolarity(motor.getInt("po") == 1);
+			m.setPower_management(motor.getInt("pm") == 1);
+		} catch (JSONException e) {
+			Log.e(TAG, "Received malformed JSON in parseMotor: " + e.getMessage());
+		}
 	}
 
 	public boolean isReady() {
@@ -178,7 +257,6 @@ public class TinyGDriver extends Service {
 
 	public void write(String message) {
 		try {
-			Log.d(TAG,"writing to tinyg: " + message);
 			os.write(message.getBytes());
 		} catch (IOException e) {
 			Log.e(TAG, "write: " + e.getMessage());
@@ -228,24 +306,7 @@ public class TinyGDriver extends Service {
 				mListener.execute(new InputStream[] { is });
 				ready = true;
 				Log.i(TAG, "Listener started");
-				write(TinyGDriver.CMD_DISABLE_LOCAL_ECHO);
-				write(TinyGDriver.CMD_GET_OK_PROMPT);
-				write(TinyGDriver.CMD_SET_STATUS_UPDATE_INTERVAL);
-				write(TinyGDriver.CMD_GET_OK_PROMPT);
-				write(TinyGDriver.CMD_GET_STATUS_REPORT);
-				write(TinyGDriver.CMD_GET_OK_PROMPT);
-//				write(TinyGDriver.CMD_GET_X_AXIS);
-//				write(TinyGDriver.CMD_GET_Y_AXIS);
-//				write(TinyGDriver.CMD_GET_Z_AXIS);
-//				write(TinyGDriver.CMD_GET_A_AXIS);
-//				write(TinyGDriver.CMD_GET_B_AXIS);
-//				write(TinyGDriver.CMD_GET_C_AXIS);
-//				write(TinyGDriver.CMD_GET_MOTOR_1_SETTINGS);
-//				write(TinyGDriver.CMD_GET_MOTOR_2_SETTINGS);
-//				write(TinyGDriver.CMD_GET_MOTOR_3_SETTINGS);
-//				write(TinyGDriver.CMD_GET_MOTOR_4_SETTINGS);
-				write(TinyGDriver.CMD_GET_MACHINE_SETTINGS);
-				write(TinyGDriver.CMD_GET_OK_PROMPT);
+				refresh();
 			}
 		}
 	}
@@ -289,6 +350,23 @@ public class TinyGDriver extends Service {
 		protected void onCancelled() {
 			Log.i(TAG, "ListenerTask cancelled");
 		}
+	}
+
+	public void refresh() {
+		write(TinyGDriver.CMD_DISABLE_LOCAL_ECHO);
+		write(TinyGDriver.CMD_SET_STATUS_UPDATE_INTERVAL);
+		write(TinyGDriver.CMD_GET_STATUS_REPORT);
+		write(TinyGDriver.CMD_GET_X_AXIS);
+		write(TinyGDriver.CMD_GET_Y_AXIS);
+		write(TinyGDriver.CMD_GET_Z_AXIS);
+		write(TinyGDriver.CMD_GET_A_AXIS);
+		write(TinyGDriver.CMD_GET_B_AXIS);
+		write(TinyGDriver.CMD_GET_C_AXIS);
+		write(TinyGDriver.CMD_GET_MOTOR_1_SETTINGS);
+		write(TinyGDriver.CMD_GET_MOTOR_2_SETTINGS);
+		write(TinyGDriver.CMD_GET_MOTOR_3_SETTINGS);
+		write(TinyGDriver.CMD_GET_MOTOR_4_SETTINGS);
+		write(TinyGDriver.CMD_GET_MACHINE_SETTINGS);
 	}
 }
 

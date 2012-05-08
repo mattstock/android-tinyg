@@ -109,6 +109,9 @@ public class TinyGActivity extends FragmentActivity {
 		case R.id.axis:
 			startActivity(new Intent(this, AxisActivity.class));
 			return true;
+		case R.id.refresh:
+			tinyg.refresh();
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
