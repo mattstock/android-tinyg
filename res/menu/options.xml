@@ -5,6 +5,7 @@
     <item android:id="@+id/machine" android:title="Machine Info"></item>
     <item android:id="@+id/motors" android:title="Motors"></item>
     <item android:id="@+id/axis" android:title="Axis"></item>
+    <item android:id="@+id/refresh" android:title="Refresh"></item>
     
 
 </menu>
