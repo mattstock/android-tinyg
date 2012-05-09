@@ -2,14 +2,12 @@ package org.csgeeks.TinyG;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.csgeeks.TinyG.Support.Machine;
 import org.csgeeks.TinyG.Support.Parser;
+import org.csgeeks.TinyG.Support.TinyGDriver;
 
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,87 +18,38 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
-public class TinyGDriver extends Service {
-	private Machine machine;
+public class TinyGNetwork extends TinyGDriver {
 	private ListenerTask mListener;
 	private String tgfx_hostname;
 	private int tgfx_port;
-	private boolean ready;
-	private InputStream is;
-	private OutputStream os;
 	private Socket socket;
+    private final IBinder mBinder = new NetworkBinder();
 
-	private static final String TAG = "TinyG";
 	public static final String TINYG_UPDATE = "org.csgeeks.TinyG.UPDATE";
 	private static final String STATUS_REPORT = "{\"sr\":{";
 	private static final String CMD_PAUSE = "!\n";
 	private static final String CMD_RESUME = "~\n";
 
     public class NetworkBinder extends Binder {
-        public TinyGDriver getService() {
-            return TinyGDriver.this;
+        public TinyGNetwork getService() {
+            return TinyGNetwork.this;
         }
     }
     
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        return START_NOT_STICKY;
-    }
-
-    @Override
-    public void onCreate() {
-		machine = new Machine();
-		ready = false;
-    }
-
-    @Override
-    public void onDestroy() {
-        disconnect();
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return mBinder;
-    }
-
-    private final IBinder mBinder = new NetworkBinder();
-
-	public Machine getMachine() {
-		return machine;
-	}
-
-
-	public boolean isReady() {
-		return ready;
-	}
 
 	public void disconnect() {
+		super.disconnect();
 		if (mListener != null) {
 			mListener.cancel(true);	
 		}
 		if (socket != null) {
 			try {
-				Log.d(TAG,"closing socket");
 				socket.close();
-				is.close();
-				os.close();
 			} catch (IOException e) {
-				Log.e(TAG, "Close: " + e.getMessage());
+				//
 			}
-			is = null;
-			os = null;
-			socket = null;
-			ready = false;
 		}
-		Log.d(TAG,"disconnect done");
-	}
-
-	public void write(String message) {
-		try {
-			os.write(message.getBytes());
-		} catch (IOException e) {
-			Log.e(TAG, "write: " + e.getMessage());
-		}
+		socket = null;
 	}
 
 	public void connect() {
@@ -127,12 +76,12 @@ public class TinyGDriver extends Service {
 			} catch (UnknownHostException e) {
 				socket = null;
 				Log.e(TAG,"Socket: " + e.getMessage());
-				Toast.makeText(TinyGDriver.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+				Toast.makeText(TinyGNetwork.this, e.getMessage(), Toast.LENGTH_SHORT).show();
 				return false;
 			} catch (IOException e) {
 				socket = null;
 				Log.e(TAG,"Socket: " + e.getMessage());
-				Toast.makeText(TinyGDriver.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+				Toast.makeText(TinyGNetwork.this, e.getMessage(), Toast.LENGTH_SHORT).show();
 				return false;
 			}
 			return true;
@@ -140,7 +89,7 @@ public class TinyGDriver extends Service {
 
 		protected void onPostExecute(Boolean res) {
 			if (res) {
-				Toast.makeText(TinyGDriver.this, "Connected", Toast.LENGTH_SHORT)
+				Toast.makeText(TinyGNetwork.this, "Connected", Toast.LENGTH_SHORT)
 						.show();
 				mListener = new ListenerTask();
 				mListener.execute(new InputStream[] { is });
@@ -186,27 +135,17 @@ public class TinyGDriver extends Service {
 			}
 		}
 
+
+
 		@Override
 		protected void onCancelled() {
 			Log.i(TAG, "ListenerTask cancelled");
 		}
 	}
 
-	public void refresh() {
-		write(Parser.CMD_DISABLE_LOCAL_ECHO);
-		write(Parser.CMD_SET_STATUS_UPDATE_INTERVAL);
-		write(Parser.CMD_GET_STATUS_REPORT);
-		write(Parser.CMD_GET_X_AXIS);
-		write(Parser.CMD_GET_Y_AXIS);
-		write(Parser.CMD_GET_Z_AXIS);
-		write(Parser.CMD_GET_A_AXIS);
-		write(Parser.CMD_GET_B_AXIS);
-		write(Parser.CMD_GET_C_AXIS);
-		write(Parser.CMD_GET_MOTOR_1_SETTINGS);
-		write(Parser.CMD_GET_MOTOR_2_SETTINGS);
-		write(Parser.CMD_GET_MOTOR_3_SETTINGS);
-		write(Parser.CMD_GET_MOTOR_4_SETTINGS);
-		write(Parser.CMD_GET_MACHINE_SETTINGS);
+	@Override
+	public IBinder onBind(Intent intent) {
+		return mBinder;
 	}
 }
 

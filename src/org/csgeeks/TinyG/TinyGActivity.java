@@ -30,7 +30,7 @@ import android.widget.Toast;
 
 public class TinyGActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
-	private TinyGDriver tinyg;
+	private TinyGNetwork tinyg;
 	private float jogRate = 10;
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
@@ -46,7 +46,7 @@ public class TinyGActivity extends FragmentActivity {
 		if (savedInstanceState != null) {
 			restoreState(savedInstanceState);
 		}
-		if (bindService(new Intent(this, TinyGDriver.class),
+		if (bindService(new Intent(this, TinyGNetwork.class),
 				mConnection, Context.BIND_AUTO_CREATE)) {
 		} else {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
@@ -57,7 +57,7 @@ public class TinyGActivity extends FragmentActivity {
 	@Override
 	public void onResume() {
 		IntentFilter updateFilter;
-		updateFilter = new IntentFilter(TinyGDriver.TINYG_UPDATE);
+		updateFilter = new IntentFilter(TinyGNetwork.TINYG_UPDATE);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
 
@@ -144,7 +144,7 @@ public class TinyGActivity extends FragmentActivity {
 		// Just in case something happened, though it seems like this shouldn't
 		// be possible.
 		if (tinyg == null) {
-			if (bindService(new Intent(this, TinyGDriver.class),
+			if (bindService(new Intent(this, TinyGNetwork.class),
 					mConnection, Context.BIND_AUTO_CREATE)) {
 			} else {
 				Toast.makeText(this, "Binding service failed",
@@ -234,7 +234,7 @@ public class TinyGActivity extends FragmentActivity {
 
 	private class NetworkServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
-			tinyg = ((TinyGDriver.NetworkBinder) service).getService();
+			tinyg = ((TinyGNetwork.NetworkBinder) service).getService();
 		}
 
 		public void onServiceDisconnected(ComponentName className) {

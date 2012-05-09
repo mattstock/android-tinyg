@@ -22,7 +22,7 @@ import android.widget.ToggleButton;
 
 public class AxisActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
-	private TinyGDriver tinyg;
+	private TinyGNetwork tinyg;
 	private ServiceConnection mConnection;
 
 	@Override
@@ -32,7 +32,7 @@ public class AxisActivity extends FragmentActivity {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		mConnection = new NetworkServiceConnection();
 
-		if (bindService(new Intent(this, TinyGDriver.class), mConnection,
+		if (bindService(new Intent(this, TinyGNetwork.class), mConnection,
 				Context.BIND_AUTO_CREATE)) {
 		} else {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
@@ -112,7 +112,7 @@ public class AxisActivity extends FragmentActivity {
 		// Just in case something happened, though it seems like this shouldn't
 		// be possible.
 		if (tinyg == null) {
-			if (bindService(new Intent(this, TinyGDriver.class), mConnection,
+			if (bindService(new Intent(this, TinyGNetwork.class), mConnection,
 					Context.BIND_AUTO_CREATE)) {
 			} else {
 				Toast.makeText(this, "Binding service failed",
@@ -129,7 +129,7 @@ public class AxisActivity extends FragmentActivity {
 
 	private class NetworkServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
-			tinyg = ((TinyGDriver.NetworkBinder) service).getService();
+			tinyg = ((TinyGNetwork.NetworkBinder) service).getService();
 			Log.i(TAG, "got binder");
 		}
 
