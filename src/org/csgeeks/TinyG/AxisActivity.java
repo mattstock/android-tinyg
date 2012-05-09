@@ -1,6 +1,6 @@
 package org.csgeeks.TinyG;
 
-import org.csgeeks.TinyG.system.Axis;
+import org.csgeeks.TinyG.Support.Axis;
 
 import android.content.ComponentName;
 import android.content.Context;

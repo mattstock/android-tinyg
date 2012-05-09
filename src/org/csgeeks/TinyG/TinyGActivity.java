@@ -1,7 +1,8 @@
 package org.csgeeks.TinyG;
 
-import org.csgeeks.TinyG.system.Machine;
-import org.csgeeks.TinyG.system.Machine.unit_modes;
+import org.csgeeks.TinyG.Support.Machine;
+import org.csgeeks.TinyG.Support.Machine.unit_modes;
+import org.csgeeks.TinyG.Support.Parser;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -206,19 +207,19 @@ public class TinyGActivity extends FragmentActivity {
 			case R.id.units:
 				switch (tinyg.getMachine().getUnitMode()) {
 				case MM:
-					tinyg.write(TinyGDriver.CMD_SET_UNIT_INCHES);
+					tinyg.write(Parser.CMD_SET_UNIT_INCHES);
 					// A hack
 					tinyg.getMachine().setUnits(unit_modes.INCHES);
 					break;
 				case INCHES:
-					tinyg.write(TinyGDriver.CMD_SET_UNIT_MM);
+					tinyg.write(Parser.CMD_SET_UNIT_MM);
 					// A hack
 					tinyg.getMachine().setUnits(unit_modes.MM);
 					break;
 				}
 				break;
 			case R.id.zero:
-				tinyg.write(TinyGDriver.CMD_ZERO_ALL_AXIS);
+				tinyg.write(Parser.CMD_ZERO_ALL_AXIS);
 				// This is a bit of a hack.
 				Machine machine = tinyg.getMachine();
 				machine.getAxisByName("X").setWork_position(0);

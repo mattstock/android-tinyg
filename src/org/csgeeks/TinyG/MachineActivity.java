@@ -1,6 +1,6 @@
 package org.csgeeks.TinyG;
 
-import org.csgeeks.TinyG.system.Machine;
+import org.csgeeks.TinyG.Support.Machine;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;

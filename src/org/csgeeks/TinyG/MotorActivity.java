@@ -1,6 +1,6 @@
 package org.csgeeks.TinyG;
 
-import org.csgeeks.TinyG.system.Motor;
+import org.csgeeks.TinyG.Support.Motor;
 
 import android.content.ComponentName;
 import android.content.Context;
