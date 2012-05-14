@@ -27,7 +27,7 @@ public class TinyGNetwork extends TinyGDriver {
 			try {
 				socket.close();
 			} catch (IOException e) {
-				//
+				// TODO
 			}
 		}
 		socket = null;

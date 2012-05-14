@@ -2,10 +2,7 @@ package org.csgeeks.TinyG;
 
 // Copyright 2012 Matthew Stock
 
-import org.csgeeks.TinyG.Support.Machine;
-import org.csgeeks.TinyG.Support.Machine.unit_modes;
-import org.csgeeks.TinyG.Support.Parser;
-import org.csgeeks.TinyG.Support.TinyGDriver;
+import org.csgeeks.TinyG.Support.*;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -18,14 +15,8 @@ import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Message;
 import android.os.Messenger;
-import android.os.RemoteException;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -36,11 +27,27 @@ import android.widget.Toast;
 
 public class TinyGActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
-	private Messenger tinyg;
+	private TinyGMessenger tinyg;
 	private float jogRate = 10;
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
 	private static final int DIALOG_ABOUT = 0;
+	
+	@Override
+	public void onResume() {
+		IntentFilter updateFilter = new IntentFilter();
+		updateFilter.addAction(TinyGDriver.MACHINE_STATUS);
+		updateFilter.addAction(TinyGDriver.CONNECTION_STATUS);
+		mIntentReceiver = new TinyGServiceReceiver();
+		registerReceiver(mIntentReceiver, updateFilter);
+		super.onResume();
+	}
+	
+	@Override
+	public void onPause() {
+		unregisterReceiver(mIntentReceiver);
+		super.onPause();
+	}
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -61,35 +68,24 @@ public class TinyGActivity extends FragmentActivity {
 	}
 
 	@Override
-	public void onResume() {
-//		IntentFilter updateFilter;
-//		updateFilter = new IntentFilter(TinyGNetwork.TINYG_UPDATE);
-//		mIntentReceiver = new TinyGServiceReceiver();
-//		registerReceiver(mIntentReceiver, updateFilter);
-
-		super.onResume();
-
-	}
-
-	@Override
-	public void onPause() {
-//		unregisterReceiver(mIntentReceiver);
-		super.onPause();
-	}
-	
-	@Override
 	public void onDestroy() {
 		unbindService(mConnection);
 		super.onDestroy();
 	}
 
-//	public class TinyGServiceReceiver extends BroadcastReceiver {
-//		@Override
-//		public void onReceive(Context context, Intent intent) {
-//			updateState(tinyg.getMachine());
-//		}
-//	}
-
+	public class TinyGServiceReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			if (action.equals(TinyGDriver.MACHINE_STATUS)) {
+				// TODO pull data out, update fields
+			}
+			if (action.equals(TinyGDriver.CONNECTION_STATUS)) {
+				// TODO pull data out, update button, etc.
+			}
+		}
+	}
+	 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -117,43 +113,14 @@ public class TinyGActivity extends FragmentActivity {
 			startActivity(new Intent(this, AxisActivity.class));
 			return true;
 		case R.id.refresh:
-			refresh();
+			tinyg.send_command(TinyGDriver.REFRESH);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
 	}
 
-	// Asks for the service to send a full update of all state.
-	public void refresh() {
-		write(Parser.CMD_DISABLE_LOCAL_ECHO);
-		write(Parser.CMD_SET_STATUS_UPDATE_INTERVAL);
-		write(Parser.CMD_GET_STATUS_REPORT);
-		write(Parser.CMD_GET_X_AXIS);
-		write(Parser.CMD_GET_Y_AXIS);
-		write(Parser.CMD_GET_Z_AXIS);
-		write(Parser.CMD_GET_A_AXIS);
-		write(Parser.CMD_GET_B_AXIS);
-		write(Parser.CMD_GET_C_AXIS);
-		write(Parser.CMD_GET_MOTOR_1_SETTINGS);
-		write(Parser.CMD_GET_MOTOR_2_SETTINGS);
-		write(Parser.CMD_GET_MOTOR_3_SETTINGS);
-		write(Parser.CMD_GET_MOTOR_4_SETTINGS);
-		write(Parser.CMD_GET_MACHINE_SETTINGS);
-	}
 
-	// Sends a command to the service
-	private void write(String cmd) {
-		if (tinyg == null)
-			return;
-		// TODO: need to add the command to this...  arg1?
-        Message msg = Message.obtain(null, TinyGDriver.COMMAND, 0, 0);
-        try {
-            tinyg.send(msg);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }		
-	}
 
 	@Override
 	public Dialog onCreateDialog(int arg) {
@@ -182,48 +149,48 @@ public class TinyGActivity extends FragmentActivity {
 			return;
 		switch (view.getId()) {
 		case R.id.connect:
-			if (tinyg.isReady()) {
-				tinyg.disconnect();
+			if (tinyg.isConnected()) {
+				tinyg.send_command(TinyGDriver.DISCONNECT);
 				((Button) view).setText(R.string.connect);
 			} else {
-				tinyg.connect();
+				tinyg.send_command(TinyGDriver.CONNECT);
 				((Button) view).setText(R.string.disconnect);
 			}
 			break;
 		}
 		// If we're ready, handle buttons that will send messages to TinyG
-		if (tinyg != null && tinyg.isReady()) {
+		if (tinyg != null && tinyg.isConnected()) {
 			switch (view.getId()) {
 			case R.id.xpos:
-				tinyg.write("{\"gc\": \"g91g0x" + Double.toString(jogRate)
+				tinyg.send_gcode("{\"gc\": \"g91g0x" + Double.toString(jogRate)
 						+ "\"}\n");
 				break;
 			case R.id.xneg:
-				tinyg.write("{\"gc\": \"g91g0x" + Double.toString(-jogRate)
+				tinyg.send_gcode("{\"gc\": \"g91g0x" + Double.toString(-jogRate)
 						+ "\"}\n");
 				break;
 			case R.id.ypos:
-				tinyg.write("{\"gc\": \"g91g0y" + Double.toString(jogRate)
+				tinyg.send_gcode("{\"gc\": \"g91g0y" + Double.toString(jogRate)
 						+ "\"}\n");
 				break;
 			case R.id.yneg:
-				tinyg.write("{\"gc\": \"g91g0y" + Double.toString(-jogRate)
+				tinyg.send_gcode("{\"gc\": \"g91g0y" + Double.toString(-jogRate)
 						+ "\"}\n");
 				break;
 			case R.id.zpos:
-				tinyg.write("{\"gc\": \"g91g0z" + Double.toString(jogRate)
+				tinyg.send_gcode("{\"gc\": \"g91g0z" + Double.toString(jogRate)
 						+ "\"}\n");
 				break;
 			case R.id.zneg:
-				tinyg.write("{\"gc\": \"g91g0z" + Double.toString(-jogRate)
+				tinyg.send_gcode("{\"gc\": \"g91g0z" + Double.toString(-jogRate)
 						+ "\"}\n");
 				break;
 			case R.id.apos:
-				tinyg.write("{\"gc\": \"g91g0a" + Double.toString(jogRate)
+				tinyg.send_gcode("{\"gc\": \"g91g0a" + Double.toString(jogRate)
 						+ "\"}\n");
 				break;
 			case R.id.aneg:
-				tinyg.write("{\"gc\": \"g91g0a" + Double.toString(-jogRate)
+				tinyg.send_gcode("{\"gc\": \"g91g0a" + Double.toString(-jogRate)
 						+ "\"}\n");
 				break;
 			case R.id.rpos:
@@ -233,36 +200,17 @@ public class TinyGActivity extends FragmentActivity {
 				jogRate -= 1;
 				break;
 			case R.id.units:
-				switch (tinyg.getMachine().getUnitMode()) {
-				case MM:
-					tinyg.write(Parser.CMD_SET_UNIT_INCHES);
-					// A hack
-					tinyg.getMachine().setUnits(unit_modes.INCHES);
-					break;
-				case INCHES:
-					tinyg.write(Parser.CMD_SET_UNIT_MM);
-					// A hack
-					tinyg.getMachine().setUnits(unit_modes.MM);
-					break;
-				}
 				break;
 			case R.id.zero:
-				tinyg.write(Parser.CMD_ZERO_ALL_AXIS);
-				// This is a bit of a hack.
-				Machine machine = tinyg.getMachine();
-				machine.getAxisByName("X").setWork_position(0);
-				machine.getAxisByName("Y").setWork_position(0);
-				machine.getAxisByName("Z").setWork_position(0);
-				machine.getAxisByName("A").setWork_position(0);
-			break;
+				tinyg.send_gcode(Parser.CMD_ZERO_ALL_AXIS);
+				break;
 			}
-			updateState(tinyg.getMachine());
 		}
 	}
 
 	private class DriverServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
-			tinyg = new Messenger(service);
+			tinyg = new TinyGMessenger(new Messenger(service));
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
@@ -270,6 +218,7 @@ public class TinyGActivity extends FragmentActivity {
 		}
 	}
 
+	// TODO: need to fix this to be updated based on messages
 	public void updateState(Machine machine) {
 		((TextView) findViewById(R.id.xloc)).setText(Float.toString(machine
 				.getAxisByName("X").getWork_position()));

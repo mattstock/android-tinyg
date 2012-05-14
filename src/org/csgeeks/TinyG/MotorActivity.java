@@ -1,14 +1,18 @@
 package org.csgeeks.TinyG;
 
-import org.csgeeks.TinyG.Support.Motor;
+import org.csgeeks.TinyG.Support.*;
+import org.csgeeks.TinyG.TinyGActivity.TinyGServiceReceiver;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Messenger;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -16,23 +20,25 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 public class MotorActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
-	private TinyGNetwork tinyg;
+	private TinyGMessenger tinyg;
 	private ServiceConnection mConnection;
+	private BroadcastReceiver mIntentReceiver;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.motor);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-		mConnection = new NetworkServiceConnection();
+		mConnection = new DriverServiceConnection();
 
-		if (bindService(new Intent(this, TinyGNetwork.class), mConnection,
+		if (bindService(new Intent(this, TinyGDriver.class), mConnection,
 				Context.BIND_AUTO_CREATE)) {
 		} else {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
@@ -57,9 +63,46 @@ public class MotorActivity extends FragmentActivity {
 	}
 
 	@Override
+	public void onResume() {
+		IntentFilter updateFilter = new IntentFilter();
+		updateFilter.addAction(TinyGDriver.MOTOR_1_STATUS);
+		updateFilter.addAction(TinyGDriver.MOTOR_2_STATUS);
+		updateFilter.addAction(TinyGDriver.MOTOR_3_STATUS);
+		updateFilter.addAction(TinyGDriver.MOTOR_4_STATUS);
+		mIntentReceiver = new TinyGServiceReceiver();
+		registerReceiver(mIntentReceiver, updateFilter);
+		super.onResume();
+	}
+	
+	@Override
+	public void onPause() {
+		unregisterReceiver(mIntentReceiver);
+		super.onPause();
+	}
+
+	@Override
 	public void onDestroy() {
 		unbindService(mConnection);
 		super.onDestroy();
+	}
+
+	private class TinyGServiceReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			if (action.equals(TinyGDriver.MOTOR_1_STATUS)) {
+				// TODO pull data out, update fields
+			}
+			if (action.equals(TinyGDriver.MOTOR_2_STATUS)) {
+				// TODO pull data out, update fields
+			}
+			if (action.equals(TinyGDriver.MOTOR_3_STATUS)) {
+				// TODO pull data out, update fields
+			}
+			if (action.equals(TinyGDriver.MOTOR_4_STATUS)) {
+				// TODO pull data out, update fields
+			}
+		}
 	}
 
 	// TODO
@@ -67,7 +110,7 @@ public class MotorActivity extends FragmentActivity {
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
-			if (tinyg.isReady()) {
+			if (tinyg != null) {
 				Log.i(TAG, "setting values in motor activity");
 				Motor m = tinyg.getMachine().getMotorByNumber(pos+1);
 				((Spinner) findViewById(R.id.map_axis)).setSelection(m
@@ -125,10 +168,9 @@ public class MotorActivity extends FragmentActivity {
 		}
 	}
 
-	private class NetworkServiceConnection implements ServiceConnection {
+	private class DriverServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
-			tinyg = ((TinyGNetwork.NetworkBinder) service).getService();
-			Log.i(TAG, "got binder");
+			tinyg = new TinyGMessenger(new Messenger(service));
 		}
 
 		public void onServiceDisconnected(ComponentName className) {

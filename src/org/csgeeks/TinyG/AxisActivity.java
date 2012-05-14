@@ -1,6 +1,6 @@
 package org.csgeeks.TinyG;
 
-import org.csgeeks.TinyG.Support.Axis;
+import org.csgeeks.TinyG.Support.*;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -9,6 +9,7 @@ import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Messenger;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -22,7 +23,7 @@ import android.widget.ToggleButton;
 
 public class AxisActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
-	private TinyGNetwork tinyg;
+	private TinyGMessenger tinyg;
 	private ServiceConnection mConnection;
 
 	@Override
@@ -30,9 +31,9 @@ public class AxisActivity extends FragmentActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.axis);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-		mConnection = new NetworkServiceConnection();
+		mConnection = new DriverServiceConnection();
 
-		if (bindService(new Intent(this, TinyGNetwork.class), mConnection,
+		if (bindService(new Intent(this, TinyGDriver.class), mConnection,
 				Context.BIND_AUTO_CREATE)) {
 		} else {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
@@ -58,7 +59,7 @@ public class AxisActivity extends FragmentActivity {
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
-			if (tinyg.isReady()) {
+			if (tinyg != null) {
 				Log.i(TAG, "setting values in axis activity");
 				String name = "X";
 				switch (pos) {
@@ -127,10 +128,9 @@ public class AxisActivity extends FragmentActivity {
 		}
 	}
 
-	private class NetworkServiceConnection implements ServiceConnection {
+	private class DriverServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
-			tinyg = ((TinyGNetwork.NetworkBinder) service).getService();
-			Log.i(TAG, "got binder");
+			tinyg = new TinyGMessenger(new Messenger(service));
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
