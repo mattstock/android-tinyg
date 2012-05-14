@@ -1,8 +1,11 @@
 package org.csgeeks.TinyG;
 
+// Copyright 2012 Matthew Stock
+
 import org.csgeeks.TinyG.Support.Machine;
 import org.csgeeks.TinyG.Support.Machine.unit_modes;
 import org.csgeeks.TinyG.Support.Parser;
+import org.csgeeks.TinyG.Support.TinyGDriver;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -15,6 +18,9 @@ import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -30,7 +36,7 @@ import android.widget.Toast;
 
 public class TinyGActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
-	private TinyGNetwork tinyg;
+	private Messenger tinyg;
 	private float jogRate = 10;
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
@@ -41,12 +47,12 @@ public class TinyGActivity extends FragmentActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-		mConnection = new NetworkServiceConnection();
+		mConnection = new DriverServiceConnection();
 
 		if (savedInstanceState != null) {
 			restoreState(savedInstanceState);
 		}
-		if (bindService(new Intent(this, TinyGNetwork.class),
+		if (bindService(new Intent(this, TinyGDriver.class),
 				mConnection, Context.BIND_AUTO_CREATE)) {
 		} else {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
@@ -56,10 +62,10 @@ public class TinyGActivity extends FragmentActivity {
 
 	@Override
 	public void onResume() {
-		IntentFilter updateFilter;
-		updateFilter = new IntentFilter(TinyGNetwork.TINYG_UPDATE);
-		mIntentReceiver = new TinyGServiceReceiver();
-		registerReceiver(mIntentReceiver, updateFilter);
+//		IntentFilter updateFilter;
+//		updateFilter = new IntentFilter(TinyGNetwork.TINYG_UPDATE);
+//		mIntentReceiver = new TinyGServiceReceiver();
+//		registerReceiver(mIntentReceiver, updateFilter);
 
 		super.onResume();
 
@@ -67,7 +73,7 @@ public class TinyGActivity extends FragmentActivity {
 
 	@Override
 	public void onPause() {
-		unregisterReceiver(mIntentReceiver);
+//		unregisterReceiver(mIntentReceiver);
 		super.onPause();
 	}
 	
@@ -77,12 +83,12 @@ public class TinyGActivity extends FragmentActivity {
 		super.onDestroy();
 	}
 
-	public class TinyGServiceReceiver extends BroadcastReceiver {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			updateState(tinyg.getMachine());
-		}
-	}
+//	public class TinyGServiceReceiver extends BroadcastReceiver {
+//		@Override
+//		public void onReceive(Context context, Intent intent) {
+//			updateState(tinyg.getMachine());
+//		}
+//	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -111,11 +117,42 @@ public class TinyGActivity extends FragmentActivity {
 			startActivity(new Intent(this, AxisActivity.class));
 			return true;
 		case R.id.refresh:
-			tinyg.refresh();
+			refresh();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+
+	// Asks for the service to send a full update of all state.
+	public void refresh() {
+		write(Parser.CMD_DISABLE_LOCAL_ECHO);
+		write(Parser.CMD_SET_STATUS_UPDATE_INTERVAL);
+		write(Parser.CMD_GET_STATUS_REPORT);
+		write(Parser.CMD_GET_X_AXIS);
+		write(Parser.CMD_GET_Y_AXIS);
+		write(Parser.CMD_GET_Z_AXIS);
+		write(Parser.CMD_GET_A_AXIS);
+		write(Parser.CMD_GET_B_AXIS);
+		write(Parser.CMD_GET_C_AXIS);
+		write(Parser.CMD_GET_MOTOR_1_SETTINGS);
+		write(Parser.CMD_GET_MOTOR_2_SETTINGS);
+		write(Parser.CMD_GET_MOTOR_3_SETTINGS);
+		write(Parser.CMD_GET_MOTOR_4_SETTINGS);
+		write(Parser.CMD_GET_MACHINE_SETTINGS);
+	}
+
+	// Sends a command to the service
+	private void write(String cmd) {
+		if (tinyg == null)
+			return;
+		// TODO: need to add the command to this...  arg1?
+        Message msg = Message.obtain(null, TinyGDriver.COMMAND, 0, 0);
+        try {
+            tinyg.send(msg);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }		
 	}
 
 	@Override
@@ -141,17 +178,8 @@ public class TinyGActivity extends FragmentActivity {
 	}
 
 	public void myClickHandler(View view) {
-		// Just in case something happened, though it seems like this shouldn't
-		// be possible.
-		if (tinyg == null) {
-			if (bindService(new Intent(this, TinyGNetwork.class),
-					mConnection, Context.BIND_AUTO_CREATE)) {
-			} else {
-				Toast.makeText(this, "Binding service failed",
-						Toast.LENGTH_SHORT).show();
-			}
+		if (tinyg == null)
 			return;
-		}
 		switch (view.getId()) {
 		case R.id.connect:
 			if (tinyg.isReady()) {
@@ -226,15 +254,15 @@ public class TinyGActivity extends FragmentActivity {
 				machine.getAxisByName("Y").setWork_position(0);
 				machine.getAxisByName("Z").setWork_position(0);
 				machine.getAxisByName("A").setWork_position(0);
-				break;
+			break;
 			}
 			updateState(tinyg.getMachine());
 		}
 	}
 
-	private class NetworkServiceConnection implements ServiceConnection {
+	private class DriverServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
-			tinyg = ((TinyGNetwork.NetworkBinder) service).getService();
+			tinyg = new Messenger(service);
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
