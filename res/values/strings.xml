@@ -85,4 +85,12 @@
         <item>Motor 3</item>
         <item>Motor 4</item>
     </string-array>
+    <string-array name="driverArrayLabels">
+        <item>Network</item>
+        <item>USB</item>
+   	</string-array>
+   	<string-array name="driverArrayValues">
+   	    <item>0</item>
+   	    <item>1</item>
+   	</string-array>
 </resources>

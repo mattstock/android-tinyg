@@ -12,11 +12,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -56,6 +59,9 @@ public class TinyGActivity extends FragmentActivity {
 		setContentView(R.layout.main);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		mConnection = new DriverServiceConnection();
+		Context mContext = getApplicationContext();
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+		bindType = Integer.parseInt(settings.getString("tgfx_driver", "0"));
 
 		if (savedInstanceState != null) {
 			restoreState(savedInstanceState);

@@ -18,11 +18,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ShowSettingsActivity"></activity>
-        <activity android:name=".MachineActivity"></activity>
-        <activity android:name=".MotorActivity"></activity>
-        <activity android:name=".AxisActivity"></activity>
-        <service android:name=".Support.TinyGNetwork"></service>
+        <activity android:name=".ShowSettingsActivity" />
+        <activity android:name=".MachineActivity" />
+        <activity android:name=".MotorActivity" />
+        <activity android:name=".AxisActivity" />
+        <service android:name=".Support.TinyGNetwork">
+            <intent-filter>
+                <action android:name="org.csgeeks.TinyG.Support.TinyGNetwork" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
