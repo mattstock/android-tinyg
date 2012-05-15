@@ -29,6 +29,7 @@ public class TinyGActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private float jogRate = 10;
+	private int bindType = 0;
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
 	private static final int DIALOG_ABOUT = 0;
@@ -36,7 +37,7 @@ public class TinyGActivity extends FragmentActivity {
 	@Override
 	public void onResume() {
 		IntentFilter updateFilter = new IntentFilter();
-		updateFilter.addAction(TinyGDriver.MACHINE_STATUS);
+		updateFilter.addAction(TinyGDriver.STATUS);
 		updateFilter.addAction(TinyGDriver.CONNECTION_STATUS);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
@@ -59,11 +60,23 @@ public class TinyGActivity extends FragmentActivity {
 		if (savedInstanceState != null) {
 			restoreState(savedInstanceState);
 		}
-		if (bindService(new Intent(this, TinyGDriver.class),
-				mConnection, Context.BIND_AUTO_CREATE)) {
-		} else {
+		
+		if (bindDriver(mConnection) == false) { 
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
 					.show();
+		}
+	}
+
+	private boolean bindDriver(ServiceConnection s) {
+		switch (bindType) {
+		case 0:
+			return bindService(new Intent(this, TinyGNetwork.class),
+					s, Context.BIND_AUTO_CREATE);
+		case 1:
+			return bindService(new Intent(TinyGDriver.USB_SERVICE),
+					s, Context.BIND_AUTO_CREATE);
+		default:
+			return false;
 		}
 	}
 
@@ -77,7 +90,7 @@ public class TinyGActivity extends FragmentActivity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			if (action.equals(TinyGDriver.MACHINE_STATUS)) {
+			if (action.equals(TinyGDriver.STATUS)) {
 				// TODO pull data out, update fields
 			}
 			if (action.equals(TinyGDriver.CONNECTION_STATUS)) {
@@ -138,10 +151,12 @@ public class TinyGActivity extends FragmentActivity {
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putFloat("jogRate", jogRate);
+		outState.putInt("bindType", bindType);
 	}
 
 	private void restoreState(Bundle inState) {
 		jogRate = inState.getFloat("jogRate");
+		bindType = inState.getInt("bindType");
 	}
 
 	public void myClickHandler(View view) {

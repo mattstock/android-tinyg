@@ -2,9 +2,11 @@ package org.csgeeks.TinyG;
 
 import org.csgeeks.TinyG.Support.*;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
@@ -25,7 +27,9 @@ public class AxisActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private ServiceConnection mConnection;
-
+	private BroadcastReceiver mIntentReceiver;
+	private int axis_pick;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -54,54 +58,54 @@ public class AxisActivity extends FragmentActivity {
 		super.onDestroy();
 	}
 
-	// TODO
+	@Override
+	public void onResume() {
+		IntentFilter updateFilter = new IntentFilter(TinyGDriver.AXIS_CONFIG);
+		mIntentReceiver = new TinyGServiceReceiver();
+		registerReceiver(mIntentReceiver, updateFilter);
+		super.onResume();
+	}
+	
+	@Override
+	public void onPause() {
+		unregisterReceiver(mIntentReceiver);
+		super.onPause();
+	}
+	
+	private class TinyGServiceReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			Bundle b = intent.getExtras();
+			if (action.equals(TinyGDriver.AXIS_CONFIG) && b.getInt("axis") == axis_pick) {
+				((EditText) findViewById(R.id.feed_rate)).setText(Float
+						.toString(b.getFloat("feed_rate")));
+				((EditText) findViewById(R.id.search_velocity)).setText(Float
+						.toString(b.getFloat("search_velocity")));
+					((EditText) findViewById(R.id.latch_velocity)).setText(Float
+							.toString(b.getFloat("latch_velocity")));
+					((ToggleButton) findViewById(R.id.axis_mode)).setChecked(b.getBoolean("axis_mode"));
+					((EditText) findViewById(R.id.switch_mode)).setText(Integer
+							.toString(b.getInt("switch_mode")));
+					((EditText) findViewById(R.id.velocity_max)).setText(Float
+							.toString(b.getFloat("velocity_max")));
+					((EditText) findViewById(R.id.travel_max)).setText(Float
+							.toString(b.getFloat("travel_max")));
+					((EditText) findViewById(R.id.jerk_max)).setText(Float
+							.toString(b.getFloat("jerk_max")));
+					((EditText) findViewById(R.id.junction_deviation))
+							.setText(Float.toString(b.getFloat("junction_deviation")));
+				}
+		}
+	}
+
+	
 	public class AxisItemSelectedListener implements OnItemSelectedListener {
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
-			if (tinyg != null) {
-				Log.i(TAG, "setting values in axis activity");
-				String name = "X";
-				switch (pos) {
-				case 0:
-					name = "X";
-					break;
-				case 1:
-					name = "Y";
-					break;
-				case 2:
-					name = "Z";
-					break;
-				case 3:
-					name = "A";
-					break;
-				case 4:
-					name = "B";
-					break;
-				case 5:
-					name = "C";
-					break;
-				}
-				Axis a = tinyg.getMachine().getAxisByName(name);
-				((EditText) findViewById(R.id.feed_rate)).setText(Float
-						.toString(a.getFeed_rate_maximum()));
-				((EditText) findViewById(R.id.search_velocity)).setText(Float
-						.toString(a.getHoming_search_velocity()));
-				((EditText) findViewById(R.id.latch_velocity)).setText(Float
-						.toString(a.getHoming_latch_velocity()));
-				((ToggleButton) findViewById(R.id.axis_mode)).setChecked(a
-						.isAxis_mode());
-				((EditText) findViewById(R.id.switch_mode)).setText(Integer
-						.toString(a.getSwitch_mode()));
-				((EditText) findViewById(R.id.velocity_max)).setText(Float
-						.toString(a.getVelocity_maximum()));
-				((EditText) findViewById(R.id.travel_max)).setText(Float
-						.toString(a.getTravel_maximum()));
-				((EditText) findViewById(R.id.jerk_max)).setText(Float
-						.toString(a.getJerk_maximum()));
-				((EditText) findViewById(R.id.junction_deviation))
-						.setText(Float.toString(a.getJunction_devation()));
-			}
+			axis_pick = pos;
+			tinyg.send_command(TinyGDriver.GET_AXIS, axis_pick);
 		}
 
 		public void onNothingSelected(AdapterView<?> parent) {
@@ -113,7 +117,7 @@ public class AxisActivity extends FragmentActivity {
 		// Just in case something happened, though it seems like this shouldn't
 		// be possible.
 		if (tinyg == null) {
-			if (bindService(new Intent(this, TinyGNetwork.class), mConnection,
+			if (bindService(new Intent(this, TinyGDriver.class), mConnection,
 					Context.BIND_AUTO_CREATE)) {
 			} else {
 				Toast.makeText(this, "Binding service failed",

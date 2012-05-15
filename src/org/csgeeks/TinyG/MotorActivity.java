@@ -30,7 +30,8 @@ public class MotorActivity extends FragmentActivity {
 	private TinyGMessenger tinyg;
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
-
+	private int motor_pick;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -64,11 +65,7 @@ public class MotorActivity extends FragmentActivity {
 
 	@Override
 	public void onResume() {
-		IntentFilter updateFilter = new IntentFilter();
-		updateFilter.addAction(TinyGDriver.MOTOR_1_STATUS);
-		updateFilter.addAction(TinyGDriver.MOTOR_2_STATUS);
-		updateFilter.addAction(TinyGDriver.MOTOR_3_STATUS);
-		updateFilter.addAction(TinyGDriver.MOTOR_4_STATUS);
+		IntentFilter updateFilter = new IntentFilter(TinyGDriver.MOTOR_CONFIG);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
 		super.onResume();
@@ -90,42 +87,30 @@ public class MotorActivity extends FragmentActivity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			if (action.equals(TinyGDriver.MOTOR_1_STATUS)) {
-				// TODO pull data out, update fields
-			}
-			if (action.equals(TinyGDriver.MOTOR_2_STATUS)) {
-				// TODO pull data out, update fields
-			}
-			if (action.equals(TinyGDriver.MOTOR_3_STATUS)) {
-				// TODO pull data out, update fields
-			}
-			if (action.equals(TinyGDriver.MOTOR_4_STATUS)) {
-				// TODO pull data out, update fields
-			}
+			Bundle b = intent.getExtras();
+				if (action.equals(TinyGDriver.MOTOR_CONFIG) && b.getInt("motor") == motor_pick) {
+					((EditText) findViewById(R.id.step_angle)).setText(Float
+							.toString(b.getFloat("step_angle")));
+					((EditText) findViewById(R.id.travel_rev)).setText(Float
+							.toString(b.getFloat("travel_rev")));
+					((EditText) findViewById(R.id.microsteps)).setText(Integer
+							.toString(b.getInt("microsteps")));
+					((ToggleButton) findViewById(R.id.polarity))
+							.setChecked(b.getBoolean("polarity"));
+					((ToggleButton) findViewById(R.id.power_management))
+							.setChecked(b.getBoolean("power_management"));
+					((Spinner) findViewById(R.id.map_axis)).setSelection(b
+							.getInt("map_to_axis"));
+				}
 		}
 	}
 
-	// TODO
 	private class MotorItemSelectedListener implements OnItemSelectedListener {
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
-			if (tinyg != null) {
-				Log.i(TAG, "setting values in motor activity");
-				Motor m = tinyg.getMachine().getMotorByNumber(pos+1);
-				((Spinner) findViewById(R.id.map_axis)).setSelection(m
-						.getMapToAxis());
-				((EditText) findViewById(R.id.step_angle)).setText(Float
-						.toString(m.getStep_angle()));
-				((EditText) findViewById(R.id.travel_rev)).setText(Float
-						.toString(m.getTravel_per_revolution()));
-				((EditText) findViewById(R.id.microsteps)).setText(Integer
-						.toString(m.getMicrosteps()));
-				((ToggleButton) findViewById(R.id.polarity)).setChecked(m
-						.isPolarity());
-				((ToggleButton) findViewById(R.id.power_management))
-						.setChecked(m.isPower_management());
-			}
+			motor_pick = pos+1;
+			tinyg.send_command(TinyGDriver.GET_MOTOR, motor_pick);
 		}
 
 		public void onNothingSelected(AdapterView<?> parent) {
@@ -133,15 +118,11 @@ public class MotorActivity extends FragmentActivity {
 		}
 	}
 
-	// TODO
 	private class AxisItemSelectedListener implements OnItemSelectedListener {
 
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
-			Toast.makeText(
-					parent.getContext(),
-					"The planet is " + parent.getItemAtPosition(pos).toString(),
-					Toast.LENGTH_LONG).show();
+			// TODO save the change in value in case of save.
 		}
 
 		public void onNothingSelected(AdapterView<?> parent) {
@@ -153,7 +134,7 @@ public class MotorActivity extends FragmentActivity {
 		// Just in case something happened, though it seems like this shouldn't
 		// be possible.
 		if (tinyg == null) {
-			if (bindService(new Intent(this, TinyGNetwork.class), mConnection,
+			if (bindService(new Intent(this, TinyGDriver.class), mConnection,
 					Context.BIND_AUTO_CREATE)) {
 			} else {
 				Toast.makeText(this, "Binding service failed",
