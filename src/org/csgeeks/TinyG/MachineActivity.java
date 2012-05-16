@@ -10,10 +10,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -34,6 +36,13 @@ public class MachineActivity extends FragmentActivity {
 		setContentView(R.layout.machine);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		mConnection = new DriverServiceConnection();
+		Context mContext = getApplicationContext();
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+		bindType = Integer.parseInt(settings.getString("tgfx_driver", "0"));
+
+		if (savedInstanceState != null) {
+			restoreState(savedInstanceState);
+		}
 
 		if (bindDriver(mConnection) == false) {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
@@ -67,7 +76,17 @@ public class MachineActivity extends FragmentActivity {
 		registerReceiver(mIntentReceiver, updateFilter);
 		super.onResume();
 	}
-	
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putInt("bindType", bindType);
+	}
+
+	private void restoreState(Bundle inState) {
+		bindType = inState.getInt("bindType");
+	}
+
 	@Override
 	public void onPause() {
 		unregisterReceiver(mIntentReceiver);
