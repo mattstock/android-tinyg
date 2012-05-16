@@ -31,6 +31,7 @@ public class MotorActivity extends FragmentActivity {
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
 	private int motor_pick;
+	private int bindType = 0;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -38,10 +39,8 @@ public class MotorActivity extends FragmentActivity {
 		setContentView(R.layout.motor);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		mConnection = new DriverServiceConnection();
-
-		if (bindService(new Intent(this, TinyGDriver.class), mConnection,
-				Context.BIND_AUTO_CREATE)) {
-		} else {
+		
+		if (bindDriver(mConnection) == false) {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
 					.show();
 		}
@@ -61,6 +60,19 @@ public class MotorActivity extends FragmentActivity {
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		s.setAdapter(adapter);
 		s.setOnItemSelectedListener(new AxisItemSelectedListener());
+	}
+
+	private boolean bindDriver(ServiceConnection s) {
+		switch (bindType) {
+		case 0:
+			return bindService(new Intent(this, TinyGNetwork.class),
+					s, Context.BIND_AUTO_CREATE);
+		case 1:
+			return bindService(new Intent(TinyGDriver.USB_SERVICE),
+					s, Context.BIND_AUTO_CREATE);
+		default:
+			return false;
+		}
 	}
 
 	@Override
@@ -110,6 +122,8 @@ public class MotorActivity extends FragmentActivity {
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
 			motor_pick = pos+1;
+			if (tinyg == null)
+				return;
 			tinyg.send_command(TinyGDriver.GET_MOTOR, motor_pick);
 		}
 
@@ -152,6 +166,7 @@ public class MotorActivity extends FragmentActivity {
 	private class DriverServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			tinyg = new TinyGMessenger(new Messenger(service));
+			tinyg.send_command(TinyGDriver.GET_MOTOR, motor_pick);
 		}
 
 		public void onServiceDisconnected(ComponentName className) {

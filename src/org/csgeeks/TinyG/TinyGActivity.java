@@ -33,6 +33,7 @@ public class TinyGActivity extends FragmentActivity {
 	private TinyGMessenger tinyg;
 	private float jogRate = 10;
 	private int bindType = 0;
+	private boolean connected = false;
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
 	private static final int DIALOG_ABOUT = 0;
@@ -95,12 +96,21 @@ public class TinyGActivity extends FragmentActivity {
 	public class TinyGServiceReceiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {
+			Bundle b = intent.getExtras();
 			String action = intent.getAction();
 			if (action.equals(TinyGDriver.STATUS)) {
-				// TODO pull data out, update fields
+				updateState(b);
 			}
 			if (action.equals(TinyGDriver.CONNECTION_STATUS)) {
-				// TODO pull data out, update button, etc.
+				Log.d(TAG, "got connection_status intent");
+				Button conn = ((Button) findViewById(R.id.connect));
+				if (b.getBoolean("connection")) {
+					conn.setText(R.string.disconnect);
+					connected = true;
+				} else {
+					conn.setText(R.string.connect);
+					connected = false;
+				}
 			}
 		}
 	}
@@ -158,11 +168,13 @@ public class TinyGActivity extends FragmentActivity {
 		super.onSaveInstanceState(outState);
 		outState.putFloat("jogRate", jogRate);
 		outState.putInt("bindType", bindType);
+		outState.putBoolean("connected", connected);
 	}
 
 	private void restoreState(Bundle inState) {
 		jogRate = inState.getFloat("jogRate");
 		bindType = inState.getInt("bindType");
+		connected = inState.getBoolean("connected");
 	}
 
 	public void myClickHandler(View view) {
@@ -170,17 +182,15 @@ public class TinyGActivity extends FragmentActivity {
 			return;
 		switch (view.getId()) {
 		case R.id.connect:
-			if (tinyg.isConnected()) {
+			if (connected) {
 				tinyg.send_command(TinyGDriver.DISCONNECT);
-				((Button) view).setText(R.string.connect);
 			} else {
 				tinyg.send_command(TinyGDriver.CONNECT);
-				((Button) view).setText(R.string.disconnect);
 			}
 			break;
 		}
 		// If we're ready, handle buttons that will send messages to TinyG
-		if (tinyg != null && tinyg.isConnected()) {
+		if (tinyg != null && connected) {
 			switch (view.getId()) {
 			case R.id.xpos:
 				tinyg.send_gcode("{\"gc\": \"g91g0x" + Double.toString(jogRate)
@@ -216,9 +226,11 @@ public class TinyGActivity extends FragmentActivity {
 				break;
 			case R.id.rpos:
 				jogRate += 1;
+				((TextView) findViewById(R.id.jogval)).setText(Float.toString(jogRate));
 				break;
 			case R.id.rneg:
 				jogRate -= 1;
+				((TextView) findViewById(R.id.jogval)).setText(Float.toString(jogRate));
 				break;
 			case R.id.units:
 				break;
@@ -239,66 +251,16 @@ public class TinyGActivity extends FragmentActivity {
 		}
 	}
 
-	// TODO: need to fix this to be updated based on messages
-	public void updateState(Machine machine) {
-		((TextView) findViewById(R.id.xloc)).setText(Float.toString(machine
-				.getAxisByName("X").getWork_position()));
-		((TextView) findViewById(R.id.yloc)).setText(Float.toString(machine
-				.getAxisByName("Y").getWork_position()));
-		((TextView) findViewById(R.id.zloc)).setText(Float.toString(machine
-				.getAxisByName("Z").getWork_position()));
-		((TextView) findViewById(R.id.aloc)).setText(Float.toString(machine
-				.getAxisByName("A").getWork_position()));
+	public void updateState(Bundle b) {
+		((TextView) findViewById(R.id.xloc)).setText(Float.toString(b.getFloat("posx")));
+		((TextView) findViewById(R.id.yloc)).setText(Float.toString(b.getFloat("posy")));
+		((TextView) findViewById(R.id.zloc)).setText(Float.toString(b.getFloat("posz")));
+		((TextView) findViewById(R.id.aloc)).setText(Float.toString(b.getFloat("posa")));
+		((TextView) findViewById(R.id.line)).setText(Integer.toString(b.getInt("line")));
 		((TextView) findViewById(R.id.jogval)).setText(Float.toString(jogRate));
-		((TextView) findViewById(R.id.line)).setText(Integer.toString(machine
-				.getLine_number()));
-		switch (machine.getMotionMode()) {
-		case traverse:
-			((TextView) findViewById(R.id.momo)).setText(R.string.traverse);
-			break;
-		case straight:
-			((TextView) findViewById(R.id.momo)).setText(R.string.straight);
-			break;
-		case cw_arc:
-			((TextView) findViewById(R.id.momo)).setText(R.string.cw);
-			break;
-		case ccw_arc:
-			((TextView) findViewById(R.id.momo)).setText(R.string.ccw);
-			break;
-		case invalid:
-			((TextView) findViewById(R.id.momo)).setText(R.string.invalid);
-			break;
-		}
-		switch (machine.getMachineState()) {
-		case reset:
-			((TextView) findViewById(R.id.status)).setText(R.string.reset);
-			break;
-		case nop:
-			((TextView) findViewById(R.id.status)).setText(R.string.nop);
-			break;
-		case stop:
-			((TextView) findViewById(R.id.status)).setText(R.string.stop);
-			break;
-		case end:
-			((TextView) findViewById(R.id.status)).setText(R.string.end);
-			break;
-		case run:
-			((TextView) findViewById(R.id.status)).setText(R.string.run);
-			break;
-		case hold:
-			((TextView) findViewById(R.id.status)).setText(R.string.hold);
-			break;
-		case homing:
-			((TextView) findViewById(R.id.status)).setText(R.string.homing);
-			break;
-		}
-		switch (machine.getUnitMode()) {
-		case INCHES:
-			((Button) findViewById(R.id.units)).setText(R.string.inch);
-		case MM:
-			((Button) findViewById(R.id.units)).setText(R.string.mm);
-		}
-		((TextView) findViewById(R.id.velocity)).setText(Float.toString(machine
-				.getVelocity()));
+		((TextView) findViewById(R.id.momo)).setText(b.getString("momo"));
+		((TextView) findViewById(R.id.status)).setText(b.getString("status"));
+		((Button) findViewById(R.id.units)).setText(b.getString("units"));
+		((TextView) findViewById(R.id.velocity)).setText(Float.toString(b.getFloat("velocity")));
 	}
 }

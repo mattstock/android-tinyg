@@ -1,5 +1,7 @@
 package org.csgeeks.TinyG;
 
+// Copyright 2012 Matthew Stock
+
 import org.csgeeks.TinyG.Support.*;
 
 import android.content.BroadcastReceiver;
@@ -15,11 +17,9 @@ import android.os.Messenger;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 public class MachineActivity extends FragmentActivity {
 	private static final String TAG = "TinyG";
@@ -53,6 +53,7 @@ public class MachineActivity extends FragmentActivity {
 			return false;
 		}
 	}
+
 	@Override
 	public void onDestroy() {
 		unbindService(mConnection);
@@ -110,6 +111,7 @@ public class MachineActivity extends FragmentActivity {
 			Bundle b = intent.getExtras();
 			
 			if (action.equals(TinyGDriver.MACHINE_CONFIG)) {
+				Log.d(TAG, "MachineActivity got an intent");
 				((TextView) findViewById(R.id.firmware_build)).setText(Float.toString(b.getFloat("firmware_build")));
 				((TextView) findViewById(R.id.firmware_version)).setText(Float.toString(b.getFloat("firmware_version")));
 				((EditText) findViewById(R.id.system_interval)).setText(Integer.toString(b.getInt("system_interval")));

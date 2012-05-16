@@ -29,6 +29,7 @@ public class AxisActivity extends FragmentActivity {
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
 	private int axis_pick;
+	private int bindType = 0;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -37,9 +38,7 @@ public class AxisActivity extends FragmentActivity {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		mConnection = new DriverServiceConnection();
 
-		if (bindService(new Intent(this, TinyGDriver.class), mConnection,
-				Context.BIND_AUTO_CREATE)) {
-		} else {
+		if (bindDriver(mConnection) == false) {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
 					.show();
 		}
@@ -52,6 +51,19 @@ public class AxisActivity extends FragmentActivity {
 		s.setOnItemSelectedListener(new AxisItemSelectedListener());
 	}
 
+	private boolean bindDriver(ServiceConnection s) {
+		switch (bindType) {
+		case 0:
+			return bindService(new Intent(this, TinyGNetwork.class),
+					s, Context.BIND_AUTO_CREATE);
+		case 1:
+			return bindService(new Intent(TinyGDriver.USB_SERVICE),
+					s, Context.BIND_AUTO_CREATE);
+		default:
+			return false;
+		}
+	}
+	
 	@Override
 	public void onDestroy() {
 		unbindService(mConnection);
@@ -105,6 +117,8 @@ public class AxisActivity extends FragmentActivity {
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
 			axis_pick = pos;
+			if (tinyg == null)
+				return;
 			tinyg.send_command(TinyGDriver.GET_AXIS, axis_pick);
 		}
 
@@ -135,6 +149,7 @@ public class AxisActivity extends FragmentActivity {
 	private class DriverServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			tinyg = new TinyGMessenger(new Messenger(service));
+			tinyg.send_command(TinyGDriver.GET_AXIS, axis_pick);
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
