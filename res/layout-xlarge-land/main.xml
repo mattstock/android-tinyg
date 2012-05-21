@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal" >
+     <fragment android:name="org.csgeeks.TinyG.JogFragment"
+            android:id="@+id/jogF"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+         <!-- Preview: layout=@layout/jog -->
+    </fragment>
+
+     <fragment
+         android:id="@+id/fileF"
+         android:name="org.csgeeks.TinyG.FileFragment"
+         android:layout_width="500dp"
+         android:layout_height="wrap_content"
+         android:layout_below="@id/jogF"
+         android:layout_marginTop="20dp" >
+
+         <!-- Preview: layout=@layout/gcodefile -->
+    </fragment>
+     
+     
+
+</RelativeLayout>
