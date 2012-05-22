@@ -50,7 +50,7 @@
     <string name="cw">cw</string>
     <string name="ccw">ccw</string>
     <string name="invalid">invalid</string>
-    <string name="version">0.9</string>
+    <string name="version">1.0</string>
     <string name="about">Version 0.9\n\nAndroid app copyright 2012 Matthew Stock.\nTinyG and TgFX copyright Synthetos, LLC.</string>
     <string name="fb">Firmware build: </string>
     <string name="fv">Firmware version: </string>
