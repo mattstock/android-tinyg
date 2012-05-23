@@ -17,6 +17,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -37,14 +38,19 @@ public class TinyGActivity extends FragmentActivity {
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
 	private static final int DIALOG_ABOUT = 0;
+	private static final int DIALOG_NO_USB = 1;
+	private static final int DIALOG_NO_SERVICE = 2;
 	
 	@Override
 	public void onResume() {
+		// I think we could register these in the manifest, but this seems to be the
+		// standard for BroadcastRecievers.
 		IntentFilter updateFilter = new IntentFilter();
 		updateFilter.addAction(TinyGDriver.STATUS);
 		updateFilter.addAction(TinyGDriver.CONNECTION_STATUS);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
+		
 		super.onResume();
 	}
 	
@@ -58,30 +64,51 @@ public class TinyGActivity extends FragmentActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		
+		// Force landscape for now, since we don't really handle the loss of the binding
+		// (and subsequent destruction of the service) very well.  Revisit later.
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		
+		
 		mConnection = new DriverServiceConnection();
 		Context mContext = getApplicationContext();
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
 		bindType = Integer.parseInt(settings.getString("tgfx_driver", "0"));
 
+		settings.registerOnSharedPreferenceChangeListener(new PrefsListener());
+		
 		if (savedInstanceState != null) {
 			restoreState(savedInstanceState);
 		}
 		
+		// Do the initial service binding
 		if (bindDriver(mConnection) == false) { 
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
 					.show();
 		}
 	}
-
+	
+	// Allows us to switch binding methods Network vs USB.
+	// Could add additional options like bluetooth in the future.
 	private boolean bindDriver(ServiceConnection s) {
 		switch (bindType) {
 		case 0:
 			return bindService(new Intent(this, TinyGNetwork.class),
 					s, Context.BIND_AUTO_CREATE);
 		case 1:
-			return bindService(new Intent(TinyGDriver.USB_SERVICE),
-					s, Context.BIND_AUTO_CREATE);
+			// Check to see if the platform supports USB
+			// Pop up a dialog if it doesn't.
+			// If the binding fails, pop up a dialog with link
+			// to service apk.
+			if (android.os.Build.VERSION.SDK_INT < 12) {
+				showDialog(DIALOG_NO_USB);
+				return false;
+			}
+			if (bindService(new Intent(TinyGDriver.USB_SERVICE),
+					s, Context.BIND_AUTO_CREATE))
+				return true;
+			showDialog(DIALOG_NO_SERVICE);
+			return false;
 		default:
 			return false;
 		}
@@ -93,6 +120,9 @@ public class TinyGActivity extends FragmentActivity {
 		super.onDestroy();
 	}
 
+	// This is how we get messages from the TinyG service.  Two different message types - a STATUS giving us
+	// updates from an SR statement, and a CONNECTION_STATUS signal so that we know if the service is connected
+	// to the USB or network port.
 	public class TinyGServiceReceiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -153,10 +183,20 @@ public class TinyGActivity extends FragmentActivity {
 
 	@Override
 	public Dialog onCreateDialog(int arg) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		switch (arg) {
 		case DIALOG_ABOUT:
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage(R.string.about)
+				.setTitle(R.string.app_name);
+			return builder.create();
+		case DIALOG_NO_USB:
+			builder.setMessage(R.string.no_usb)
+				.setTitle(R.string.app_name);
+			return builder.create();
+		case DIALOG_NO_SERVICE:
+			// TODO change this to ask if install is desired, if so
+			// startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("market://details?id=org.csgeeks.TinyG.USB")));
+			builder.setMessage(R.string.no_service)
 				.setTitle(R.string.app_name);
 			return builder.create();
 		}
@@ -241,6 +281,8 @@ public class TinyGActivity extends FragmentActivity {
 		}
 	}
 
+	// We get a driver binding, and so we create a helper class that interacts with the Messenger.
+	// We can probably redo this as a subclass.
 	private class DriverServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			tinyg = new TinyGMessenger(new Messenger(service));
@@ -251,6 +293,22 @@ public class TinyGActivity extends FragmentActivity {
 		}
 	}
 
+	// Make sure we rebind services if we change the preference.
+	private class PrefsListener implements SharedPreferences.OnSharedPreferenceChangeListener {
+		public void onSharedPreferenceChanged(
+				SharedPreferences sharedPreferences, String key) {
+			if (key.equals("tgfx_driver")) {
+				Log.d(TAG, "Changing binding");
+				bindType = Integer.parseInt(sharedPreferences.getString("tgfx_driver", "0"));
+				unbindService(mConnection);
+				if (bindDriver(mConnection) == false) { 
+					Toast.makeText(TinyGActivity.this, "Binding service failed", Toast.LENGTH_SHORT)
+						.show();
+				}
+			}
+		}
+	}
+	
 	public void updateState(Bundle b) {
 		((TextView) findViewById(R.id.xloc)).setText(Float.toString(b.getFloat("posx")));
 		((TextView) findViewById(R.id.yloc)).setText(Float.toString(b.getFloat("posy")));

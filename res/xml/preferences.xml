@@ -5,6 +5,4 @@
         <EditTextPreference android:key="tgfx_port" android:summary="Network port of tgFX server" android:defaultValue="4444" android:title="Port" android:dialogTitle="Port" android:dialogMessage="Server port"/>
     </PreferenceCategory>
     <ListPreference android:key="tgfx_driver" android:summary="The driver to use to connect to TinyG" android:title="Driver" android:dialogTitle="Driver" android:entries="@array/driverArrayLabels" android:entryValues="@array/driverArrayValues" android:defaultValue="0" />
-    
-
 </PreferenceScreen>

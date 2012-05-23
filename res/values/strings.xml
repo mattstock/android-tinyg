@@ -52,6 +52,8 @@
     <string name="invalid">invalid</string>
     <string name="version">1.0</string>
     <string name="about">Version 0.9\n\nAndroid app copyright 2012 Matthew Stock.\nTinyG and TgFX copyright Synthetos, LLC.</string>
+    <string name="no_usb">USB connectivity only supported in Android 3.1 and above.</string>
+    <string name="no_service">TinyG USB Service must be installed for USB support to work.</string>
     <string name="fb">Firmware build: </string>
     <string name="fv">Firmware version: </string>
     <string name="si">Update interval: </string>
