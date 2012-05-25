@@ -17,7 +17,6 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -36,6 +35,7 @@ public class TinyGActivity extends FragmentActivity {
 	private int bindType = 0;
 	private boolean connected = false;
 	private ServiceConnection mConnection;
+	private PrefsListener mPreferencesListener;
 	private BroadcastReceiver mIntentReceiver;
 	private static final int DIALOG_ABOUT = 0;
 	private static final int DIALOG_NO_USB = 1;
@@ -69,13 +69,13 @@ public class TinyGActivity extends FragmentActivity {
 		// (and subsequent destruction of the service) very well.  Revisit later.
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		
-		
 		mConnection = new DriverServiceConnection();
 		Context mContext = getApplicationContext();
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
 		bindType = Integer.parseInt(settings.getString("tgfx_driver", "0"));
 
-		settings.registerOnSharedPreferenceChangeListener(new PrefsListener());
+		mPreferencesListener = new PrefsListener();
+		settings.registerOnSharedPreferenceChangeListener(mPreferencesListener);
 		
 		if (savedInstanceState != null) {
 			restoreState(savedInstanceState);
@@ -101,13 +101,15 @@ public class TinyGActivity extends FragmentActivity {
 			// If the binding fails, pop up a dialog with link
 			// to service apk.
 			if (android.os.Build.VERSION.SDK_INT < 12) {
-				showDialog(DIALOG_NO_USB);
+				Toast.makeText(this, R.string.no_usb, Toast.LENGTH_SHORT)
+					.show();
 				return false;
 			}
 			if (bindService(new Intent(TinyGDriver.USB_SERVICE),
 					s, Context.BIND_AUTO_CREATE))
 				return true;
-			showDialog(DIALOG_NO_SERVICE);
+			Toast.makeText(this, R.string.no_service, Toast.LENGTH_LONG)
+				.show();
 			return false;
 		default:
 			return false;
@@ -172,7 +174,12 @@ public class TinyGActivity extends FragmentActivity {
 			startActivity(new Intent(this, AxisActivity.class));
 			return true;
 		case R.id.refresh:
-			tinyg.send_command(TinyGDriver.REFRESH);
+			if (connected) {
+				tinyg.send_command(TinyGDriver.REFRESH);
+			} else {
+				Toast.makeText(this, "Not connected!", Toast.LENGTH_SHORT)
+				.show();
+			}
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -189,13 +196,7 @@ public class TinyGActivity extends FragmentActivity {
 			builder.setMessage(R.string.about)
 				.setTitle(R.string.app_name);
 			return builder.create();
-		case DIALOG_NO_USB:
-			builder.setMessage(R.string.no_usb)
-				.setTitle(R.string.app_name);
-			return builder.create();
 		case DIALOG_NO_SERVICE:
-			// TODO change this to ask if install is desired, if so
-			// startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("market://details?id=org.csgeeks.TinyG.USB")));
 			builder.setMessage(R.string.no_service)
 				.setTitle(R.string.app_name);
 			return builder.create();
@@ -276,6 +277,9 @@ public class TinyGActivity extends FragmentActivity {
 				break;
 			case R.id.zero:
 				tinyg.send_gcode(Parser.CMD_ZERO_ALL_AXIS);
+				break;
+			case R.id.filepick:
+				Log.d(TAG, "ugly!");
 				break;
 			}
 		}
