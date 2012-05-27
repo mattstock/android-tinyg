@@ -3,52 +3,50 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal" >
+
         <Button
             android:id="@+id/filepick"
             android:layout_width="50dp"
             android:layout_height="50dp"
+            android:onClick="myClickHandler"
             android:text="File" />
-        <EditText 
+
+        <EditText
             android:id="@+id/filename"
-            android:inputType="text"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_width="match_parent" />
+            android:inputType="text" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal" >
+
         <Button
             android:id="@+id/start"
             android:layout_width="75dp"
             android:layout_height="75dp"
-            android:text="Start" />
+            android:onClick="myClickHandler"
+            android:text="@string/start" />
+
         <Button
             android:id="@+id/pause"
             android:layout_width="75dp"
             android:layout_height="75dp"
-            android:text="Pause" />
-         <Button
-            android:id="@+id/stop"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
-            android:text="Stop" />
-         
+            android:onClick="myClickHandler"
+            android:text="@string/pause" />
     </LinearLayout>
-	<ScrollView
-	    android:id="@+id/scrollView1"
-	    android:layout_width="match_parent"
-	    android:layout_height="match_parent" >
-		<TextView
-		    android:id="@+id/filedisplay"
-		    android:layout_width="match_parent"
-		    android:layout_height="wrap_content"
-		    android:text="Lorem ipsum" />
-	</ScrollView>
- 
+
+    <TextView
+        android:id="@+id/filedisplay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lorem ipsum" />
+
 </LinearLayout>

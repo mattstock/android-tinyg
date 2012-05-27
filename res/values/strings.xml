@@ -74,6 +74,10 @@
     <string name="po">Polarity: </string>
     <string name="pm">Power mgmt: </string>
     <string name="save">Save</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
     <string-array name="axisArray">
         <item>Axis X</item>
         <item>Axis Y</item>
