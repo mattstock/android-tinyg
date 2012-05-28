@@ -58,16 +58,14 @@ public class TinyGActivity extends FragmentActivity {
 	private static final int DIALOG_NO_SERVICE = 2;
 	private static final int DIALOG_DOWNLOAD = 3;
 	private int numLines;
-
+	final private Object synctoken = new Object();
 
 	@Override
 	public void onResume() {
-		// I think we could register these in the manifest, but this seems to be
-		// the
-		// standard for BroadcastRecievers.
 		IntentFilter updateFilter = new IntentFilter();
 		updateFilter.addAction(TinyGDriver.STATUS);
 		updateFilter.addAction(TinyGDriver.CONNECTION_STATUS);
+		updateFilter.addAction(TinyGDriver.GCODE_ACK);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
 
@@ -106,7 +104,7 @@ public class TinyGActivity extends FragmentActivity {
 		// For the file transfer to TinyG
 		mFilename = (EditText) findViewById(R.id.filename);
 		mFilename.setText(filename);
-
+		
 		// Do the initial service binding
 		if (bindDriver(mConnection) == false) {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
@@ -163,7 +161,6 @@ public class TinyGActivity extends FragmentActivity {
 				updateState(b);
 			}
 			if (action.equals(TinyGDriver.CONNECTION_STATUS)) {
-				Log.d(TAG, "got connection_status intent");
 				Button conn = ((Button) findViewById(R.id.connect));
 				if (b.getBoolean("connection")) {
 					conn.setText(R.string.disconnect);
@@ -171,6 +168,13 @@ public class TinyGActivity extends FragmentActivity {
 				} else {
 					conn.setText(R.string.connect);
 					connected = false;
+				}
+			}
+			if (action.equals(TinyGDriver.GCODE_ACK)) {
+				Log.d(TAG, "Got gcode ack");
+				synchronized (synctoken) {
+					Log.d(TAG, "unthrottling");
+					synctoken.notify();
 				}
 			}
 		}
@@ -440,11 +444,19 @@ public class TinyGActivity extends FragmentActivity {
 			try {
 				while (!isCancelled() && (line = in.readLine()) != null) {
 					idx++;
+					Thread.sleep(500);
+					synchronized (synctoken) {
+						Log.d(TAG, "throttling");
+//						synctoken.wait();		
+					}
 					publishProgress(line, Integer.toString(idx));
 				}
 				in.close();
 			} catch (IOException e) {
 				Log.e(TAG, "error writing file: " + e.getMessage());
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			return null;
 		}
@@ -466,6 +478,7 @@ public class TinyGActivity extends FragmentActivity {
 		}
 		
 	    protected void onPostExecute() {
+	    	Log.i(TAG, "FileWriteTask complete");
 	        dismissDialog(DIALOG_DOWNLOAD);
 	    }
 
@@ -484,6 +497,7 @@ public class TinyGActivity extends FragmentActivity {
 	private void pickFile() {
 		String fileName = mFilename.getText().toString();
 
+		// TODO write our own
 		Intent intent = new Intent("org.openintents.action.PICK_FILE");
 
 		// Construct URI from file name.
