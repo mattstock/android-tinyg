@@ -51,11 +51,12 @@ public class TinyGActivity extends FragmentActivity {
 	private PrefsListener mPreferencesListener;
 	private EditText mFilename;
 	private BroadcastReceiver mIntentReceiver;
-	private FileWriteTask mFileTask;
 	private ProgressDialog progressDialog;
+	private FileWriteTask mFileTask;
 	private static final int DIALOG_ABOUT = 0;
 	private static final int DIALOG_NO_USB = 1;
 	private static final int DIALOG_NO_SERVICE = 2;
+	private static final int DIALOG_DOWNLOAD = 3;
 	private int numLines;
 
 
@@ -105,9 +106,6 @@ public class TinyGActivity extends FragmentActivity {
 		// For the file transfer to TinyG
 		mFilename = (EditText) findViewById(R.id.filename);
 		mFilename.setText(filename);
-		progressDialog = new ProgressDialog(this);
-		progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-		progressDialog.setMessage("Transferring...");
 
 		// Do the initial service binding
 		if (bindDriver(mConnection) == false) {
@@ -229,10 +227,23 @@ public class TinyGActivity extends FragmentActivity {
 		case DIALOG_NO_SERVICE:
 			builder.setMessage(R.string.no_service).setTitle(R.string.app_name);
 			return builder.create();
+		case DIALOG_DOWNLOAD:
+			progressDialog = new ProgressDialog(this);
+			progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			progressDialog.setMessage("Transferring...");
+			return progressDialog;
 		}
 		return null;
 	}
 
+    @Override
+    protected void onPrepareDialog(int id, Dialog dialog) {
+        switch(id) {
+        case DIALOG_DOWNLOAD:
+            progressDialog.setProgress(0);
+        }
+    }
+    
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
@@ -280,6 +291,7 @@ public class TinyGActivity extends FragmentActivity {
 						download_mode = false;
 					}
 				} else {
+					showDialog(DIALOG_DOWNLOAD);
 					openFile(mFilename.getText().toString());
 				}
 				break;
@@ -410,8 +422,6 @@ public class TinyGActivity extends FragmentActivity {
 		// Now send them!
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(string));
-			progressDialog.setProgress(0);
-			progressDialog.show();
 			mFileTask = new FileWriteTask();
 			mFileTask.execute(in);
 		} catch (FileNotFoundException e) {
@@ -450,11 +460,13 @@ public class TinyGActivity extends FragmentActivity {
 		@Override
 		protected void onCancelled() {
 			Log.i(TAG, "FileWriteTask cancelled");
-			progressDialog.hide();
+			// TODO add a hard stop instruction to TinyG
+			dismissDialog(DIALOG_DOWNLOAD);
+			Toast.makeText(TinyGActivity.this, "Download cancelled", Toast.LENGTH_SHORT).show();			
 		}
 		
 	    protected void onPostExecute() {
-	        progressDialog.dismiss();
+	        dismissDialog(DIALOG_DOWNLOAD);
 	    }
 
 	}
