@@ -446,20 +446,20 @@ public class TinyGActivity extends FragmentActivity {
 			try {
 				while (!isCancelled() && (line = in.readLine()) != null) {
 					idx++;
-					synchronized (synctoken) {
-						if (throttle) {
-							synctoken.wait();
+					try {
+						synchronized (synctoken) {
+							if (throttle) 
+								synctoken.wait();
 						}
-					}					
+					} catch (InterruptedException e) {
+						// This is probably ok, just proceed.
+					}				
 					publishProgress(line, Integer.toString(idx));
 				}
 				in.close();
 			} catch (IOException e) {
 				Log.e(TAG, "error writing file: " + e.getMessage());
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} 
 			return null;
 		}
 
