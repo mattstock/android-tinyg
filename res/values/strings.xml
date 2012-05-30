@@ -23,6 +23,7 @@
     <string name="aneg">A-</string>
     <string name="zero">Zero</string>    
     <string name="zeropos">0.000</string>
+    <string name="zeroloc">(0.0, 0.0, 0.0, 0.0)</string>
     <string name="xloc">X: </string>
     <string name="yloc">Y: </string>
     <string name="zloc">Z: </string>
@@ -37,6 +38,7 @@
     <string name="homing">homing</string>
     <color name="red">#ff0000</color>
     <string name="aloc">A: </string>
+    <string name="position">Position: </string>
     <string name="status">Status: </string>
     <string name="momo">Mode: </string>
     <string name="line">Line: </string>
@@ -100,5 +102,13 @@
    	<string-array name="driverArrayValues">
    	    <item>0</item>
    	    <item>1</item>
+   	</string-array>
+   	<string-array name="actionArray">
+   	    <item>Jog</item>
+   	    <item>File</item>
+   	    <item>Path</item>
+   	    <item>System</item>
+   	    <item>Motor</item>
+   	    <item>Axis</item>    
    	</string-array>
 </resources>
