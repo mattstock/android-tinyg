@@ -47,6 +47,7 @@ public class TinyGActivity extends FragmentActivity {
 	private String filename;
 	private int bindType = 0;
 	private boolean connected = false, download_mode = false;
+	private boolean throttle;
 	private ServiceConnection mConnection;
 	private PrefsListener mPreferencesListener;
 	private EditText mFilename;
@@ -59,13 +60,13 @@ public class TinyGActivity extends FragmentActivity {
 	private static final int DIALOG_DOWNLOAD = 3;
 	private int numLines;
 	final private Object synctoken = new Object();
-
+	
 	@Override
 	public void onResume() {
 		IntentFilter updateFilter = new IntentFilter();
 		updateFilter.addAction(TinyGDriver.STATUS);
 		updateFilter.addAction(TinyGDriver.CONNECTION_STATUS);
-		updateFilter.addAction(TinyGDriver.GCODE_ACK);
+		updateFilter.addAction(TinyGDriver.THROTTLE);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
 
@@ -104,6 +105,7 @@ public class TinyGActivity extends FragmentActivity {
 		// For the file transfer to TinyG
 		mFilename = (EditText) findViewById(R.id.filename);
 		mFilename.setText(filename);
+		throttle = false;
 		
 		// Do the initial service binding
 		if (bindDriver(mConnection) == false) {
@@ -170,10 +172,10 @@ public class TinyGActivity extends FragmentActivity {
 					connected = false;
 				}
 			}
-			if (action.equals(TinyGDriver.GCODE_ACK)) {
-				Log.d(TAG, "Got gcode ack");
+			if (action.equals(TinyGDriver.THROTTLE)) {
 				synchronized (synctoken) {
-					Log.d(TAG, "unthrottling");
+					throttle = b.getBoolean("state");
+					Log.d(TAG, "Got [un]throttle signal");
 					synctoken.notify();
 				}
 			}
@@ -444,11 +446,11 @@ public class TinyGActivity extends FragmentActivity {
 			try {
 				while (!isCancelled() && (line = in.readLine()) != null) {
 					idx++;
-					Thread.sleep(500);
 					synchronized (synctoken) {
-						Log.d(TAG, "throttling");
-//						synctoken.wait();		
-					}
+						if (throttle) {
+							synctoken.wait();
+						}
+					}					
 					publishProgress(line, Integer.toString(idx));
 				}
 				in.close();
