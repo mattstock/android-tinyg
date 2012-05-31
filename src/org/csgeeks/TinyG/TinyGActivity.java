@@ -101,11 +101,7 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 			restoreState(savedInstanceState);
 		}
 
-		// For the file transfer to TinyG
-		// TODO refactor
-//		mFilename = (EditText) findViewById(R.id.filename);
-//		mFilename.setText(filename);
-//		throttle = false;
+		throttle = false;
 		
 		// Do the initial service binding
 		if (bindDriver(mConnection) == false) {

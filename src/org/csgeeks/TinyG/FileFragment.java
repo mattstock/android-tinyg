@@ -1,6 +1,5 @@
 package org.csgeeks.TinyG;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -11,15 +10,9 @@ import android.widget.EditText;
 
 public class FileFragment extends Fragment {
 	private static final String TAG = "TinyG";
-	private Activity mActivity;
 	private EditText mFilename;
-	
-	@Override
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
-		mActivity = activity;
-	}
-	
+	private String filename;
+		
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -27,6 +20,13 @@ public class FileFragment extends Fragment {
         View v = inflater.inflate(R.layout.gcodefile, container, false);
         
         mFilename = (EditText) v.findViewById(R.id.filename);
+        
+        if (savedInstanceState != null)
+        	filename = savedInstanceState.getString("filename");
+        else 
+        	filename = "/sdcard/test.nc";
+    
+		mFilename.setText(filename);
         return v;
     }
        

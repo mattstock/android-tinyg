@@ -68,16 +68,40 @@ public class ActionFragment extends ListFragment {
 					ft.commit();
 				}
 			} else {
-//				Intent intent = new Intent();
-//				intent.setClass(getActivity(), JogActivity.class);
-//				startActivity(intent);				
+				Intent intent = new Intent();
+				intent.setClass(getActivity(), JogActivity.class);
+				startActivity(intent);				
 			}
 			break;
 		case 1: // File
+			if (mDualPane) {
+				if (f == null || f.getClass() != FileFragment.class) {
+					FragmentTransaction ft = getFragmentManager().beginTransaction();
+					ft.replace(R.id.displayF, new FileFragment());
+					ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+					ft.commit();
+				}
+			} else {
+				Intent intent = new Intent();
+				intent.setClass(getActivity(), FileActivity.class);
+				startActivity(intent);				
+			}
 			break;
 		case 2: // Path
 			break;
 		case 3: // System
+			if (mDualPane) {
+				if (f == null || f.getClass() != MachineFragment.class) {
+					FragmentTransaction ft = getFragmentManager().beginTransaction();
+					ft.replace(R.id.displayF, new MachineFragment());
+					ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+					ft.commit();
+				}
+			} else {
+				Intent intent = new Intent();
+				intent.setClass(getActivity(), MachineActivity.class);
+				startActivity(intent);				
+			}
 			break;
 		case 4: // Motor
 			if (mDualPane) {
@@ -94,6 +118,18 @@ public class ActionFragment extends ListFragment {
 			}
 			break;
 		case 5: // Axis
+			if (mDualPane) {
+				if (f == null || f.getClass() != AxisFragment.class) {
+					FragmentTransaction ft = getFragmentManager().beginTransaction();
+					ft.replace(R.id.displayF, new AxisFragment());
+					ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+					ft.commit();
+				}
+			} else {
+				Intent intent = new Intent();
+				intent.setClass(getActivity(), AxisActivity.class);
+				startActivity(intent);				
+			}
 			break;
 		}
 	}
