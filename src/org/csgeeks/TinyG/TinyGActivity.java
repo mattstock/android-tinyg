@@ -103,9 +103,10 @@ public class TinyGActivity extends FragmentActivity {
 		}
 
 		// For the file transfer to TinyG
-		mFilename = (EditText) findViewById(R.id.filename);
-		mFilename.setText(filename);
-		throttle = false;
+		// TODO refactor
+//		mFilename = (EditText) findViewById(R.id.filename);
+//		mFilename.setText(filename);
+//		throttle = false;
 		
 		// Do the initial service binding
 		if (bindDriver(mConnection) == false) {
@@ -387,14 +388,11 @@ public class TinyGActivity extends FragmentActivity {
 	}
 
 	public void updateState(Bundle b) {
-		((TextView) findViewById(R.id.xloc)).setText(Float.toString(b
-				.getFloat("posx")));
-		((TextView) findViewById(R.id.yloc)).setText(Float.toString(b
-				.getFloat("posy")));
-		((TextView) findViewById(R.id.zloc)).setText(Float.toString(b
-				.getFloat("posz")));
-		((TextView) findViewById(R.id.aloc)).setText(Float.toString(b
-				.getFloat("posa")));
+		// TODO probably move this to status fragment
+		((TextView) findViewById(R.id.loc)).setText(
+				String.format("( %.3f, %.3f, %.3f, %.3f)",
+						b.getFloat("posx"), b.getFloat("posy"),
+						b.getFloat("posz"), b.getFloat("posa")));
 		((TextView) findViewById(R.id.line)).setText(Integer.toString(b
 				.getInt("line")));
 		((TextView) findViewById(R.id.jogval)).setText(Float.toString(jogRate));
