@@ -16,30 +16,33 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.ToggleButton;
-import android.widget.AdapterView.OnItemSelectedListener;
 
-public class MotorActivity extends FragmentActivity {
+public class MotorActivity extends FragmentActivity implements MotorFragment.MotorFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
-	private int motor_pick;
 	private int bindType = 0;
+	private int motor_pick = 0;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.motor);
-		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+  		
+  		Fragment f = new MotorFragment();
+  		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+  		ft.add(android.R.id.content, f).commit();
+  		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+ 		
 		mConnection = new DriverServiceConnection();
 		Context mContext = getApplicationContext();
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -54,21 +57,6 @@ public class MotorActivity extends FragmentActivity {
 					.show();
 		}
 
-		// configure motor picker
-		Spinner s = (Spinner) findViewById(R.id.motorpick);
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-				this, R.array.motorArray, android.R.layout.simple_spinner_item);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		s.setAdapter(adapter);
-		s.setOnItemSelectedListener(new MotorItemSelectedListener());
-
-		// Configure axis picker
-		s = (Spinner) findViewById(R.id.map_axis);
-		adapter = ArrayAdapter.createFromResource(this, R.array.axisArray,
-				android.R.layout.simple_spinner_item);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		s.setAdapter(adapter);
-		s.setOnItemSelectedListener(new AxisItemSelectedListener());
 	}
 
 	private boolean bindDriver(ServiceConnection s) {
@@ -136,32 +124,6 @@ public class MotorActivity extends FragmentActivity {
 		}
 	}
 
-	private class MotorItemSelectedListener implements OnItemSelectedListener {
-
-		public void onItemSelected(AdapterView<?> parent, View view, int pos,
-				long id) {
-			motor_pick = pos+1;
-			if (tinyg == null)
-				return;
-			tinyg.send_command(TinyGDriver.GET_MOTOR, motor_pick);
-		}
-
-		public void onNothingSelected(AdapterView<?> parent) {
-			// Do nothing.
-		}
-	}
-
-	private class AxisItemSelectedListener implements OnItemSelectedListener {
-
-		public void onItemSelected(AdapterView<?> parent, View view, int pos,
-				long id) {
-			// TODO save the change in value in case of save.
-		}
-
-		public void onNothingSelected(AdapterView<?> parent) {
-			// Do nothing.
-		}
-	}
 
 	public void myClickHandler(View view) {
 		// Just in case something happened, though it seems like this shouldn't
@@ -191,5 +153,17 @@ public class MotorActivity extends FragmentActivity {
 		public void onServiceDisconnected(ComponentName className) {
 			tinyg = null;
 		}
+	}
+
+
+	public void onMotorSelected(int m) {
+		motor_pick = m;
+		if (tinyg == null)
+			return;
+		tinyg.send_command(TinyGDriver.GET_MOTOR, m);
+	}
+
+	public void onAxisSelected(int a) {
+		// TODO save the change in value in case of save.
 	}
 }

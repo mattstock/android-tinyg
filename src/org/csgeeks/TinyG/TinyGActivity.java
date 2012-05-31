@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.csgeeks.TinyG.Support.*;
 
@@ -40,7 +39,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class TinyGActivity extends FragmentActivity {
+public class TinyGActivity extends FragmentActivity implements MotorFragment.MotorFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private float jogRate = 10;
@@ -511,5 +510,15 @@ public class TinyGActivity extends FragmentActivity {
 			Toast.makeText(this, R.string.no_filemanager_installed,
 					Toast.LENGTH_SHORT).show();
 		}
+	}
+
+	public void onMotorSelected(int m) {
+		if (tinyg == null)
+			return;
+		tinyg.send_command(TinyGDriver.GET_MOTOR, m);
+	}
+
+	public void onAxisSelected(int a) {
+		// TODO Auto-generated method stub	
 	}
 }
