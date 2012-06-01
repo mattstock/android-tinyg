@@ -1,19 +1,25 @@
 package org.csgeeks.TinyG;
 
+// Copyright 2012 Matthew Stock
+
 import org.csgeeks.TinyG.Support.Parser;
 import org.csgeeks.TinyG.Support.TinyGDriver;
 import org.csgeeks.TinyG.Support.TinyGMessenger;
 import org.csgeeks.TinyG.Support.TinyGNetwork;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.Messenger;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +36,8 @@ public class JogActivity extends FragmentActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.jog_activity);
+		
+		Log.d(TAG, "JogActivity onCreate()");
 		Context mContext = getApplicationContext();
 		SharedPreferences settings = PreferenceManager
 				.getDefaultSharedPreferences(mContext);
@@ -38,10 +46,11 @@ public class JogActivity extends FragmentActivity {
 		if (savedInstanceState != null) {
 			restoreState(savedInstanceState);
 		}
-
+		
 		((TextView) findViewById(R.id.jogval)).setText(Float
 				.toString(jogRate));
 
+		mConnection = new DriverServiceConnection();
 		if (bindDriver(mConnection) == false) {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
 					.show();
@@ -71,16 +80,14 @@ public class JogActivity extends FragmentActivity {
 	private void restoreState(Bundle inState) {
 		bindType = inState.getInt("bindType");
 		jogRate = inState.getFloat("jogRate");
-		((TextView) findViewById(R.id.jogval)).setText(Float
-				.toString(jogRate));
 	}
 
 	@Override
 	public void onResume() {
+		super.onResume();
 		IntentFilter updateFilter = new IntentFilter(TinyGDriver.STATUS);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
-		super.onResume();
 	}
 
 	@Override
@@ -93,6 +100,19 @@ public class JogActivity extends FragmentActivity {
 	public void onDestroy() {
 		unbindService(mConnection);
 		super.onDestroy();
+	}
+
+	// We get a driver binding, and so we create a helper class that interacts
+	// with the Messenger.
+	// We can probably redo this as a subclass.
+	private class DriverServiceConnection implements ServiceConnection {
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			tinyg = new TinyGMessenger(new Messenger(service));
+		}
+
+		public void onServiceDisconnected(ComponentName className) {
+			tinyg = null;
+		}
 	}
 
 	private class TinyGServiceReceiver extends BroadcastReceiver {

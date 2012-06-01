@@ -102,8 +102,8 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 			restoreState(savedInstanceState);
 		}
 
-//		((TextView) findViewById(R.id.jogval)).setText(Float
-//				.toString(jogRate));
+		((TextView) findViewById(R.id.jogval)).setText(Float
+				.toString(jogRate));
 
 		throttle = false;
 		
