@@ -50,8 +50,8 @@
     <string name="cw">cw</string>
     <string name="ccw">ccw</string>
     <string name="invalid">invalid</string>
-    <string name="version">1.1</string>
-    <string name="about">Version 1.1\n\nAndroid app copyright 2012 Matthew Stock.\nTinyG and TgFX copyright Synthetos, LLC.</string>
+    <string name="version">1.2</string>
+    <string name="about">Android app copyright 2012 Matthew Stock.\nTinyG and TgFX copyright Synthetos, LLC.</string>
     <string name="no_usb">USB connectivity only supported in Android 3.1 and above.</string>
     <string name="no_service">TinyG USB Service must be installed for USB support to work.</string>
     <string name="no_filemanager_installed">No filemanager is installed.</string>

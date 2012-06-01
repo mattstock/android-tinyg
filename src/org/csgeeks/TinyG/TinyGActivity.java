@@ -104,7 +104,8 @@ public class TinyGActivity extends FragmentActivity {
 
 		// For the file transfer to TinyG
 		mFilename = (EditText) findViewById(R.id.filename);
-		mFilename.setText(filename);
+		if (mFilename != null)
+			mFilename.setText(filename);
 		throttle = false;
 		
 		// Do the initial service binding
