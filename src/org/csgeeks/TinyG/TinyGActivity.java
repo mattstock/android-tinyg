@@ -138,6 +138,7 @@ public class TinyGActivity extends FragmentActivity {
 			// TODO make this smarter - send us to the store to download the
 			// driver
 			Toast.makeText(this, R.string.no_service, Toast.LENGTH_LONG).show();
+			tinyg = null;
 			return false;
 		default:
 			return false;
@@ -377,7 +378,8 @@ public class TinyGActivity extends FragmentActivity {
 				Log.d(TAG, "Changing binding");
 				bindType = Integer.parseInt(sharedPreferences.getString(
 						"tgfx_driver", "0"));
-				unbindService(mConnection);
+				if (tinyg != null)
+					unbindService(mConnection);
 				if (bindDriver(mConnection) == false) {
 					Toast.makeText(TinyGActivity.this,
 							"Binding service failed", Toast.LENGTH_SHORT)
