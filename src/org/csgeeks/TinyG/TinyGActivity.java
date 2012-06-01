@@ -2,17 +2,12 @@ package org.csgeeks.TinyG;
 
 // Copyright 2012 Matthew Stock
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 
 import org.csgeeks.TinyG.Support.*;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -40,26 +35,20 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class TinyGActivity extends FragmentActivity implements MotorFragment.MotorFragmentListener {
+public class TinyGActivity extends FragmentActivity implements MotorFragment.MotorFragmentListener, ActionFragment.ActionFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private float jogRate = 10;
 	private String filename;
 	private int bindType = 0;
-	private boolean connected = false, download_mode = false;
-	private boolean throttle;
+	private boolean connected = false;
 	private ServiceConnection mConnection;
 	private PrefsListener mPreferencesListener;
-	private EditText mFilename;
+	private Download mDownload;
 	private BroadcastReceiver mIntentReceiver;
-	private ProgressDialog progressDialog;
-	private FileWriteTask mFileTask;
 	private static final int DIALOG_ABOUT = 0;
 	private static final int DIALOG_NO_USB = 1;
 	private static final int DIALOG_NO_SERVICE = 2;
-	private static final int DIALOG_DOWNLOAD = 3;
-	private int numLines;
-	final private Object synctoken = new Object();
 	
 	@Override
 	public void onResume() {
@@ -104,8 +93,6 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 
 		((TextView) findViewById(R.id.jogval)).setText(Float
 				.toString(jogRate));
-
-		throttle = false;
 		
 		// Do the initial service binding
 		if (bindDriver(mConnection) == false) {
@@ -176,11 +163,11 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 					connected = false;
 				}
 			}
-			if (action.equals(TinyGDriver.THROTTLE)) {
-				synchronized (synctoken) {
-					throttle = b.getBoolean("state");
+			if (action.equals(TinyGDriver.THROTTLE) && mDownload != null) {
+				synchronized (mDownload.getSyncToken()) {
+					mDownload.setThrottle(b.getBoolean("state"));
 					Log.d(TAG, "Got [un]throttle signal");
-					synctoken.notify();
+					mDownload.getSyncToken().notify();
 				}
 			}
 		}
@@ -213,7 +200,7 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 			startActivity(new Intent(this, AxisActivity.class));
 			return true;
 		case R.id.refresh:
-			if (download_mode)
+			if (mDownload != null)
 				return true;
 			if (connected) {
 				tinyg.send_command(TinyGDriver.REFRESH);
@@ -237,22 +224,9 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 		case DIALOG_NO_SERVICE:
 			builder.setMessage(R.string.no_service).setTitle(R.string.app_name);
 			return builder.create();
-		case DIALOG_DOWNLOAD:
-			progressDialog = new ProgressDialog(this);
-			progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			progressDialog.setMessage("Transferring...");
-			return progressDialog;
 		}
 		return null;
 	}
-
-    @Override
-    protected void onPrepareDialog(int id, Dialog dialog) {
-        switch(id) {
-        case DIALOG_DOWNLOAD:
-            progressDialog.setProgress(0);
-        }
-    }
     
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
@@ -260,7 +234,6 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 		outState.putFloat("jogRate", jogRate);
 		outState.putInt("bindType", bindType);
 		outState.putBoolean("connected", connected);
-		outState.putBoolean("download_mode", download_mode);
 		outState.putString("filename", filename);
 	}
 
@@ -268,7 +241,6 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 		jogRate = inState.getFloat("jogRate");
 		bindType = inState.getInt("bindType");
 		connected = inState.getBoolean("connected");
-		download_mode = inState.getBoolean("download_mode");
 		filename = inState.getString("filename");
 	}
 
@@ -291,18 +263,17 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 		if (connected) {
 			switch (view.getId()) {
 			case R.id.start:
-				if (download_mode) {
-					// stop downloading
-					if (mFileTask != null) {
-						mFileTask.cancel(true);
-						((Button) findViewById(R.id.start))
-								.setText(R.string.start);
-						// TODO Send interrupt
-						download_mode = false;
-					}
+				// stop downloading
+				if (mDownload != null) {
+					mDownload.cancel();
+					((Button) findViewById(R.id.start))
+							.setText(R.string.start);
+					// TODO Send interrupt
+					mDownload = null;
 				} else {
-					showDialog(DIALOG_DOWNLOAD);
-					openFile(mFilename.getText().toString());
+					mDownload = new Download(this, tinyg);
+					EditText mFilename = (EditText) findViewById(R.id.filename);
+					mDownload.openFile(mFilename.getText().toString());
 				}
 				break;
 			case R.id.pause:
@@ -382,99 +353,21 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 		}
 	}
 
-
-	// Given a filename, start up the file writer task and provide status on
-	// progress dialog
-	private void openFile(String string) {
-		// Count lines
-		try {
-			BufferedReader in = new BufferedReader(new FileReader(string));
-			numLines = 0;
-			while (in.readLine() != null) {
-				numLines++;
-			}
-			in.close();
-		} catch (FileNotFoundException e) {
-			Toast.makeText(this, "Invalid filename", Toast.LENGTH_SHORT).show();
-			return;
-		} catch (IOException e) {
-			Toast.makeText(this, "Gcode file read error", Toast.LENGTH_SHORT).show();
-			return;
-		}
-		Log.d(TAG, "lines = " + numLines);
-		
-		// Now send them!
-		try {
-			BufferedReader in = new BufferedReader(new FileReader(string));
-			mFileTask = new FileWriteTask();
-			mFileTask.execute(in);
-		} catch (FileNotFoundException e) {
-			Toast.makeText(this, "Invalid filename", Toast.LENGTH_SHORT).show();
-			return;
-		}
-	}
-
-	protected class FileWriteTask extends AsyncTask<BufferedReader, String, Void> {
-		@Override
-		protected Void doInBackground(BufferedReader... params) {
-			BufferedReader in = params[0];
-			String line;
-			int idx = 0;
-			
-			try {
-				while (!isCancelled() && (line = in.readLine()) != null) {
-					idx++;
-					try {
-						synchronized (synctoken) {
-							if (throttle) 
-								synctoken.wait();
-						}
-					} catch (InterruptedException e) {
-						// This is probably ok, just proceed.
-					}				
-					publishProgress(line, Integer.toString(idx));
-				}
-				in.close();
-			} catch (IOException e) {
-				Log.e(TAG, "error writing file: " + e.getMessage());
-			} 
-			return null;
-		}
-
-		@Override
-		protected void onProgressUpdate(String... values) {
-			if (values.length > 1) {
-				progressDialog.setProgress((int)(100*(Double.parseDouble(values[1])/numLines)));
-				tinyg.send_gcode(values[0] + "\n");
-			}
-		}
-
-		@Override
-		protected void onCancelled() {
-			Log.i(TAG, "FileWriteTask cancelled");
-			// TODO add a hard stop instruction to TinyG
-			dismissDialog(DIALOG_DOWNLOAD);
-			Toast.makeText(TinyGActivity.this, "Download cancelled", Toast.LENGTH_SHORT).show();			
-		}
-		
-	    protected void onPostExecute() {
-	    	Log.i(TAG, "FileWriteTask complete");
-	        dismissDialog(DIALOG_DOWNLOAD);
-	    }
-
-	}
-
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode != 1)
 			return;
 		if (resultCode == android.app.Activity.RESULT_OK && data != null) {
 			String fileName = data.getData().getPath();
-			if (fileName != null)
-				mFilename.setText(fileName);
+			if (fileName != null) {
+				EditText mFilename = (EditText) findViewById(R.id.filename);
+				if (mFilename != null)
+					mFilename.setText(fileName);
+			}
 		}
 	}
 
 	private void pickFile() {
+		EditText mFilename = (EditText) findViewById(R.id.filename);
 		String fileName = mFilename.getText().toString();
 
 		// TODO write our own
@@ -501,5 +394,9 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 
 	public void onAxisSelected(int a) {
 		// TODO Auto-generated method stub	
+	}
+
+	public boolean connectionState() {
+		return connected;
 	}
 }

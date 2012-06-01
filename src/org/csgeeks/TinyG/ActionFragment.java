@@ -5,6 +5,9 @@ package org.csgeeks.TinyG;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.csgeeks.TinyG.MotorFragment.MotorFragmentListener;
+
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -18,6 +21,7 @@ public class ActionFragment extends ListFragment {
 	ArrayList<String> actions;
 	boolean mDualPane;
 	int actionChoice = 0;
+	ActionFragmentListener mListener;
 	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -41,7 +45,17 @@ public class ActionFragment extends ListFragment {
         	showAction(actionChoice);
         }
 	}
-	
+
+    @Override
+    public void onAttach(Activity activity) {
+    	super.onAttach(activity);
+    	try {
+    		mListener = (ActionFragmentListener) activity;
+    	} catch (ClassCastException e) {
+    		throw new ClassCastException(activity.toString() + " must implement ActionFragmentListener");
+    	}
+    }
+
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		showAction(position);
@@ -84,6 +98,7 @@ public class ActionFragment extends ListFragment {
 			} else {
 				Intent intent = new Intent();
 				intent.setClass(getActivity(), FileActivity.class);
+				intent.putExtra("connection", mListener.connectionState());
 				startActivity(intent);				
 			}
 			break;
@@ -134,4 +149,7 @@ public class ActionFragment extends ListFragment {
 		}
 	}
 
+    public interface ActionFragmentListener {
+    	public boolean connectionState();
+    }
 }
