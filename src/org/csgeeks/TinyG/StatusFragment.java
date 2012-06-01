@@ -5,12 +5,31 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 
 public class StatusFragment extends Fragment {
-    @Override
+	View v;
+
+	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.status, container, false);
+    	v = inflater.inflate(R.layout.status, container, false);
+    	return v;
     }
+    
+	public void updateState(Bundle b) {
+		((TextView) v.findViewById(R.id.loc)).setText(
+				String.format("( %.3f, %.3f, %.3f, %.3f)",
+						b.getFloat("posx"), b.getFloat("posy"),
+						b.getFloat("posz"), b.getFloat("posa")));
+		((TextView) v.findViewById(R.id.line)).setText(Integer.toString(b
+				.getInt("line")));
+		((TextView) v.findViewById(R.id.momo)).setText(b.getString("momo"));
+		((TextView) v.findViewById(R.id.status)).setText(b.getString("status"));
+		((TextView) v.findViewById(R.id.velocity)).setText(Float.toString(b
+				.getFloat("velocity")));
+	}
+
 }

@@ -28,6 +28,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -101,6 +102,9 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 			restoreState(savedInstanceState);
 		}
 
+//		((TextView) findViewById(R.id.jogval)).setText(Float
+//				.toString(jogRate));
+
 		throttle = false;
 		
 		// Do the initial service binding
@@ -156,7 +160,11 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 			Bundle b = intent.getExtras();
 			String action = intent.getAction();
 			if (action.equals(TinyGDriver.STATUS)) {
-				updateState(b);
+				StatusFragment sf = (StatusFragment) getSupportFragmentManager().findFragmentById(R.id.statusF);
+				sf.updateState(b);
+				Fragment f = getSupportFragmentManager().findFragmentById(R.id.displayF);
+				if (f != null && f.getClass() == JogFragment.class)
+					((JogFragment) f).updateState(b);
 			}
 			if (action.equals(TinyGDriver.CONNECTION_STATUS)) {
 				Button conn = ((Button) findViewById(R.id.connect));
@@ -300,36 +308,28 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 			case R.id.pause:
 				break;
 			case R.id.xpos:
-				tinyg.send_gcode("{\"gc\": \"g91g0x" + Double.toString(jogRate)
-						+ "\"}\n");
+				tinyg.short_jog("x", jogRate);
 				break;
 			case R.id.xneg:
-				tinyg.send_gcode("{\"gc\": \"g91g0x"
-						+ Double.toString(-jogRate) + "\"}\n");
+				tinyg.short_jog("x", -jogRate);
 				break;
 			case R.id.ypos:
-				tinyg.send_gcode("{\"gc\": \"g91g0y" + Double.toString(jogRate)
-						+ "\"}\n");
+				tinyg.short_jog("y", jogRate);
 				break;
 			case R.id.yneg:
-				tinyg.send_gcode("{\"gc\": \"g91g0y"
-						+ Double.toString(-jogRate) + "\"}\n");
+				tinyg.short_jog("y", -jogRate);
 				break;
 			case R.id.zpos:
-				tinyg.send_gcode("{\"gc\": \"g91g0z" + Double.toString(jogRate)
-						+ "\"}\n");
+				tinyg.short_jog("z", jogRate);
 				break;
 			case R.id.zneg:
-				tinyg.send_gcode("{\"gc\": \"g91g0z"
-						+ Double.toString(-jogRate) + "\"}\n");
+				tinyg.short_jog("z", -jogRate);
 				break;
 			case R.id.apos:
-				tinyg.send_gcode("{\"gc\": \"g91g0a" + Double.toString(jogRate)
-						+ "\"}\n");
+				tinyg.short_jog("a", jogRate);
 				break;
 			case R.id.aneg:
-				tinyg.send_gcode("{\"gc\": \"g91g0a"
-						+ Double.toString(-jogRate) + "\"}\n");
+				tinyg.short_jog("a", -jogRate);
 				break;
 			case R.id.rpos:
 				jogRate += 1;
@@ -382,21 +382,6 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 		}
 	}
 
-	public void updateState(Bundle b) {
-		// TODO probably move this to status fragment
-		((TextView) findViewById(R.id.loc)).setText(
-				String.format("( %.3f, %.3f, %.3f, %.3f)",
-						b.getFloat("posx"), b.getFloat("posy"),
-						b.getFloat("posz"), b.getFloat("posa")));
-		((TextView) findViewById(R.id.line)).setText(Integer.toString(b
-				.getInt("line")));
-		((TextView) findViewById(R.id.jogval)).setText(Float.toString(jogRate));
-		((TextView) findViewById(R.id.momo)).setText(b.getString("momo"));
-		((TextView) findViewById(R.id.status)).setText(b.getString("status"));
-		((Button) findViewById(R.id.units)).setText(b.getString("units"));
-		((TextView) findViewById(R.id.velocity)).setText(Float.toString(b
-				.getFloat("velocity")));
-	}
 
 	// Given a filename, start up the file writer task and provide status on
 	// progress dialog

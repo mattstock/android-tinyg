@@ -90,7 +90,7 @@ public class ActionFragment extends ListFragment {
 		case 2: // Path
 			break;
 		case 3: // System
-			if (mDualPane) {
+/*			if (mDualPane) {
 				if (f == null || f.getClass() != MachineFragment.class) {
 					FragmentTransaction ft = getFragmentManager().beginTransaction();
 					ft.replace(R.id.displayF, new MachineFragment());
@@ -101,7 +101,7 @@ public class ActionFragment extends ListFragment {
 				Intent intent = new Intent();
 				intent.setClass(getActivity(), MachineActivity.class);
 				startActivity(intent);				
-			}
+			} */
 			break;
 		case 4: // Motor
 			if (mDualPane) {
@@ -118,7 +118,7 @@ public class ActionFragment extends ListFragment {
 			}
 			break;
 		case 5: // Axis
-			if (mDualPane) {
+/*			if (mDualPane) {
 				if (f == null || f.getClass() != AxisFragment.class) {
 					FragmentTransaction ft = getFragmentManager().beginTransaction();
 					ft.replace(R.id.displayF, new AxisFragment());
@@ -130,7 +130,7 @@ public class ActionFragment extends ListFragment {
 				intent.setClass(getActivity(), AxisActivity.class);
 				startActivity(intent);				
 			}
-			break;
+			break; */
 		}
 	}
 

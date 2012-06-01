@@ -27,6 +27,9 @@
             android:windowSoftInputMode="stateHidden" />
         <activity android:name=".AxisActivity"
             android:windowSoftInputMode="stateHidden" />
+        <activity android:name=".JogActivity" />
+        <activity android:name=".FileActivity"
+            android:windowSoftInputMode="stateHidden" />
         <service android:name=".Support.TinyGNetwork">
             <intent-filter>
                 <action android:name="org.csgeeks.TinyG.Support.TinyGNetwork" />
