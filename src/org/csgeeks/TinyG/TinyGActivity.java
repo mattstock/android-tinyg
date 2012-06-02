@@ -18,7 +18,6 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
@@ -32,8 +31,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 public class TinyGActivity extends FragmentActivity implements MotorFragment.MotorFragmentListener, 
 							ActionFragment.ActionFragmentListener, AxisFragment.AxisFragmentListener {
@@ -42,6 +43,7 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 	private float jogRate = 10;
 	private String filename;
 	private int bindType = 0;
+	private int axis_pick = 0, motor_pick = 0;
 	private boolean connected = false;
 	private ServiceConnection mConnection;
 	private PrefsListener mPreferencesListener;
@@ -54,6 +56,8 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 	@Override
 	public void onResume() {
 		IntentFilter updateFilter = new IntentFilter();
+		updateFilter.addAction(TinyGDriver.AXIS_CONFIG);
+		updateFilter.addAction(TinyGDriver.MOTOR_CONFIG);
 		updateFilter.addAction(TinyGDriver.STATUS);
 		updateFilter.addAction(TinyGDriver.CONNECTION_STATUS);
 		updateFilter.addAction(TinyGDriver.THROTTLE);
@@ -92,9 +96,6 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 			restoreState(savedInstanceState);
 		}
 
-		((TextView) findViewById(R.id.jogval)).setText(Float
-				.toString(jogRate));
-		
 		// Do the initial service binding
 		if (bindDriver(mConnection) == false) {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
@@ -149,11 +150,23 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 			String action = intent.getAction();
 			if (action.equals(TinyGDriver.STATUS)) {
 				StatusFragment sf = (StatusFragment) getSupportFragmentManager().findFragmentById(R.id.statusF);
+				b.putFloat("jogRate", jogRate);
 				sf.updateState(b);
 				Fragment f = getSupportFragmentManager().findFragmentById(R.id.displayF);
 				if (f != null && f.getClass() == JogFragment.class)
 					((JogFragment) f).updateState(b);
 			}
+			if (action.equals(TinyGDriver.MOTOR_CONFIG)) {
+				Log.d(TAG, "Got MOTOR_CONFIG broadcast");
+				Fragment f = getSupportFragmentManager().findFragmentById(R.id.displayF);
+				if (f != null && f.getClass() == MotorFragment.class)
+					((MotorFragment) f).updateState(b);				
+			}
+			if (action.equals(TinyGDriver.AXIS_CONFIG)) {
+				Fragment f = getSupportFragmentManager().findFragmentById(R.id.displayF);
+				if (f != null && f.getClass() == AxisFragment.class)
+					((AxisFragment) f).updateState(b);			
+			}			
 			if (action.equals(TinyGDriver.CONNECTION_STATUS)) {
 				Button conn = ((Button) findViewById(R.id.connect));
 				if (b.getBoolean("connection")) {
@@ -388,13 +401,18 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 	}
 
 	public void onMotorSelected(int m) {
+		motor_pick = m;
 		if (tinyg == null)
 			return;
-		tinyg.send_command(TinyGDriver.GET_MOTOR, m);
+		Log.d(TAG, String.format("Sending GET_MOTOR intent %d", motor_pick));
+		tinyg.send_command(TinyGDriver.GET_MOTOR, motor_pick);
 	}
 
 	public void onAxisSelected(int a) {
-		// TODO Auto-generated method stub	
+		axis_pick = a;
+		if (tinyg == null)
+			return;
+		tinyg.send_command(TinyGDriver.GET_AXIS, axis_pick);
 	}
 
 	public boolean connectionState() {

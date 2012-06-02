@@ -26,26 +26,28 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-public class MotorActivity extends FragmentActivity implements MotorFragment.MotorFragmentListener {
+public class MotorActivity extends FragmentActivity implements
+		MotorFragment.MotorFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
 	private int bindType = 0;
 	private int motor_pick = 0;
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-  		
-  		Fragment f = new MotorFragment();
-  		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-  		ft.add(android.R.id.content, f).commit();
-  		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
- 		
+
+		Fragment f = new MotorFragment();
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		ft.add(android.R.id.content, f).commit();
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
 		mConnection = new DriverServiceConnection();
 		Context mContext = getApplicationContext();
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+		SharedPreferences settings = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
 		bindType = Integer.parseInt(settings.getString("tgfx_driver", "0"));
 
 		if (savedInstanceState != null) {
@@ -62,11 +64,11 @@ public class MotorActivity extends FragmentActivity implements MotorFragment.Mot
 	private boolean bindDriver(ServiceConnection s) {
 		switch (bindType) {
 		case 0:
-			return bindService(new Intent(this, TinyGNetwork.class),
-					s, Context.BIND_AUTO_CREATE);
+			return bindService(new Intent(this, TinyGNetwork.class), s,
+					Context.BIND_AUTO_CREATE);
 		case 1:
-			return bindService(new Intent(TinyGDriver.USB_SERVICE),
-					s, Context.BIND_AUTO_CREATE);
+			return bindService(new Intent(TinyGDriver.USB_SERVICE), s,
+					Context.BIND_AUTO_CREATE);
 		default:
 			return false;
 		}
@@ -89,7 +91,7 @@ public class MotorActivity extends FragmentActivity implements MotorFragment.Mot
 		registerReceiver(mIntentReceiver, updateFilter);
 		super.onResume();
 	}
-	
+
 	@Override
 	public void onPause() {
 		unregisterReceiver(mIntentReceiver);
@@ -107,23 +109,12 @@ public class MotorActivity extends FragmentActivity implements MotorFragment.Mot
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
 			Bundle b = intent.getExtras();
-				if (action.equals(TinyGDriver.MOTOR_CONFIG) && b.getInt("motor") == motor_pick) {
-					((EditText) findViewById(R.id.step_angle)).setText(Float
-							.toString(b.getFloat("step_angle")));
-					((EditText) findViewById(R.id.travel_rev)).setText(Float
-							.toString(b.getFloat("travel_rev")));
-					((EditText) findViewById(R.id.microsteps)).setText(Integer
-							.toString(b.getInt("microsteps")));
-					((ToggleButton) findViewById(R.id.polarity))
-							.setChecked(b.getBoolean("polarity"));
-					((ToggleButton) findViewById(R.id.power_management))
-							.setChecked(b.getBoolean("power_management"));
-					((Spinner) findViewById(R.id.map_axis)).setSelection(b
-							.getInt("map_to_axis"));
-				}
+			if (action.equals(TinyGDriver.MOTOR_CONFIG)) {
+				Fragment f = getSupportFragmentManager().findFragmentById(android.R.id.content);
+				((MotorFragment) f).updateState(b);				
+			}
 		}
 	}
-
 
 	public void myClickHandler(View view) {
 		// Just in case something happened, though it seems like this shouldn't
@@ -154,7 +145,6 @@ public class MotorActivity extends FragmentActivity implements MotorFragment.Mot
 			tinyg = null;
 		}
 	}
-
 
 	public void onMotorSelected(int m) {
 		motor_pick = m;

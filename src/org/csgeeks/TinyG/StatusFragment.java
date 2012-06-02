@@ -23,6 +23,8 @@ public class StatusFragment extends Fragment {
     }
     
 	public void updateState(Bundle b) {
+		((TextView) v.findViewById(R.id.jogval)).setText(Float
+				.toString(b.getFloat("jogRate")));
 		((TextView) v.findViewById(R.id.loc)).setText(
 				String.format("( %.3f, %.3f, %.3f, %.3f)",
 						b.getFloat("posx"), b.getFloat("posy"),

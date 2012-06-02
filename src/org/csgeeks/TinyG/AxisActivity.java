@@ -23,24 +23,26 @@ import android.widget.EditText;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-public class AxisActivity extends FragmentActivity implements AxisFragment.AxisFragmentListener {
+public class AxisActivity extends FragmentActivity implements
+		AxisFragment.AxisFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private ServiceConnection mConnection;
 	private BroadcastReceiver mIntentReceiver;
 	private int axis_pick;
 	private int bindType = 0;
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-  		Fragment f = new AxisFragment();
-  		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-  		ft.add(android.R.id.content, f).commit();
+		Fragment f = new AxisFragment();
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		ft.add(android.R.id.content, f).commit();
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		mConnection = new DriverServiceConnection();
 		Context mContext = getApplicationContext();
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+		SharedPreferences settings = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
 		bindType = Integer.parseInt(settings.getString("tgfx_driver", "0"));
 
 		if (savedInstanceState != null) {
@@ -57,16 +59,16 @@ public class AxisActivity extends FragmentActivity implements AxisFragment.AxisF
 	private boolean bindDriver(ServiceConnection s) {
 		switch (bindType) {
 		case 0:
-			return bindService(new Intent(this, TinyGNetwork.class),
-					s, Context.BIND_AUTO_CREATE);
+			return bindService(new Intent(this, TinyGNetwork.class), s,
+					Context.BIND_AUTO_CREATE);
 		case 1:
-			return bindService(new Intent(TinyGDriver.USB_SERVICE),
-					s, Context.BIND_AUTO_CREATE);
+			return bindService(new Intent(TinyGDriver.USB_SERVICE), s,
+					Context.BIND_AUTO_CREATE);
 		default:
 			return false;
 		}
 	}
-	
+
 	@Override
 	public void onDestroy() {
 		unbindService(mConnection);
@@ -90,37 +92,22 @@ public class AxisActivity extends FragmentActivity implements AxisFragment.AxisF
 		registerReceiver(mIntentReceiver, updateFilter);
 		super.onResume();
 	}
-	
+
 	@Override
 	public void onPause() {
 		unregisterReceiver(mIntentReceiver);
 		super.onPause();
 	}
-	
+
 	private class TinyGServiceReceiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
 			Bundle b = intent.getExtras();
-			if (action.equals(TinyGDriver.AXIS_CONFIG) && b.getInt("axis") == axis_pick) {
-				((EditText) findViewById(R.id.feed_rate)).setText(Float
-						.toString(b.getFloat("feed_rate")));
-				((EditText) findViewById(R.id.search_velocity)).setText(Float
-						.toString(b.getFloat("search_velocity")));
-					((EditText) findViewById(R.id.latch_velocity)).setText(Float
-							.toString(b.getFloat("latch_velocity")));
-					((ToggleButton) findViewById(R.id.axis_mode)).setChecked(b.getBoolean("axis_mode"));
-					((EditText) findViewById(R.id.switch_mode)).setText(Integer
-							.toString(b.getInt("switch_mode")));
-					((EditText) findViewById(R.id.velocity_max)).setText(Float
-							.toString(b.getFloat("velocity_max")));
-					((EditText) findViewById(R.id.travel_max)).setText(Float
-							.toString(b.getFloat("travel_max")));
-					((EditText) findViewById(R.id.jerk_max)).setText(Float
-							.toString(b.getFloat("jerk_max")));
-					((EditText) findViewById(R.id.junction_deviation))
-							.setText(Float.toString(b.getFloat("junction_deviation")));
-				}
+			if (action.equals(TinyGDriver.AXIS_CONFIG)) {
+				Fragment f = getSupportFragmentManager().findFragmentById(android.R.id.content);
+				((AxisFragment) f).updateState(b);			
+			}			
 		}
 	}
 
@@ -158,6 +145,6 @@ public class AxisActivity extends FragmentActivity implements AxisFragment.AxisF
 		axis_pick = a;
 		if (tinyg == null)
 			return;
-		tinyg.send_command(TinyGDriver.GET_AXIS, axis_pick);		
+		tinyg.send_command(TinyGDriver.GET_AXIS, axis_pick);
 	}
 }

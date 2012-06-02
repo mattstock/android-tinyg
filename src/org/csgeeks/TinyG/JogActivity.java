@@ -122,6 +122,7 @@ public class JogActivity extends FragmentActivity {
 			Bundle b = intent.getExtras();
 			if (action.equals(TinyGDriver.STATUS)) {
 				StatusFragment sf = (StatusFragment) getSupportFragmentManager().findFragmentById(R.id.statusF);
+				b.putFloat("jogRate", jogRate);
 				sf.updateState(b);
 				JogFragment jf = (JogFragment) getSupportFragmentManager().findFragmentById(R.id.jogF);
 				jf.updateState(b);
