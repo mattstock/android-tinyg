@@ -14,18 +14,16 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-public class AxisActivity extends FragmentActivity {
+public class AxisActivity extends FragmentActivity implements AxisFragment.AxisFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private ServiceConnection mConnection;
@@ -36,7 +34,9 @@ public class AxisActivity extends FragmentActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.axis);
+  		Fragment f = new AxisFragment();
+  		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+  		ft.add(android.R.id.content, f).commit();
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		mConnection = new DriverServiceConnection();
 		Context mContext = getApplicationContext();
@@ -52,12 +52,6 @@ public class AxisActivity extends FragmentActivity {
 					.show();
 		}
 
-		Spinner s = (Spinner) findViewById(R.id.axispick);
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-				this, R.array.axisArray, android.R.layout.simple_spinner_item);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		s.setAdapter(adapter);
-		s.setOnItemSelectedListener(new AxisItemSelectedListener());
 	}
 
 	private boolean bindDriver(ServiceConnection s) {
@@ -130,22 +124,6 @@ public class AxisActivity extends FragmentActivity {
 		}
 	}
 
-	
-	public class AxisItemSelectedListener implements OnItemSelectedListener {
-
-		public void onItemSelected(AdapterView<?> parent, View view, int pos,
-				long id) {
-			axis_pick = pos;
-			if (tinyg == null)
-				return;
-			tinyg.send_command(TinyGDriver.GET_AXIS, axis_pick);
-		}
-
-		public void onNothingSelected(AdapterView<?> parent) {
-			// Do nothing.
-		}
-	}
-
 	public void myClickHandler(View view) {
 		// Just in case something happened, though it seems like this shouldn't
 		// be possible.
@@ -174,5 +152,12 @@ public class AxisActivity extends FragmentActivity {
 		public void onServiceDisconnected(ComponentName className) {
 			tinyg = null;
 		}
+	}
+
+	public void onAxisSelected(int a) {
+		axis_pick = a;
+		if (tinyg == null)
+			return;
+		tinyg.send_command(TinyGDriver.GET_AXIS, axis_pick);		
 	}
 }

@@ -133,7 +133,7 @@ public class ActionFragment extends ListFragment {
 			}
 			break;
 		case 5: // Axis
-/*			if (mDualPane) {
+			if (mDualPane) {
 				if (f == null || f.getClass() != AxisFragment.class) {
 					FragmentTransaction ft = getFragmentManager().beginTransaction();
 					ft.replace(R.id.displayF, new AxisFragment());
@@ -145,7 +145,7 @@ public class ActionFragment extends ListFragment {
 				intent.setClass(getActivity(), AxisActivity.class);
 				startActivity(intent);				
 			}
-			break; */
+			break; 
 		}
 	}
 

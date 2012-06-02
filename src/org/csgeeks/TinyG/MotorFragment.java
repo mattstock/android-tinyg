@@ -2,8 +2,6 @@ package org.csgeeks.TinyG;
 
 // Copyright 2012 Matthew Stock
 
-import org.csgeeks.TinyG.Support.TinyGDriver;
-
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;

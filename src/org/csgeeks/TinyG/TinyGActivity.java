@@ -35,7 +35,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class TinyGActivity extends FragmentActivity implements MotorFragment.MotorFragmentListener, ActionFragment.ActionFragmentListener {
+public class TinyGActivity extends FragmentActivity implements MotorFragment.MotorFragmentListener, 
+							ActionFragment.ActionFragmentListener, AxisFragment.AxisFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private float jogRate = 10;
