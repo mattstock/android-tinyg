@@ -32,6 +32,18 @@
             android:layout_width="75dp"
             android:layout_height="wrap_content"
             android:text="@string/na" />
+
+        <TextView
+            android:id="@+id/labelJogval"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/jogval" />
+
+        <TextView
+            android:id="@+id/jogval"
+            android:layout_width="75dp"
+            android:layout_height="wrap_content"
+            android:text="@string/zeropos" />
     </LinearLayout>
 
     <LinearLayout
@@ -74,24 +86,6 @@
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:text="@string/na" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:id="@+id/labelJogval"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/jogval" />
-
-        <TextView
-            android:id="@+id/jogval"
-            android:layout_width="75dp"
-            android:layout_height="wrap_content"
-            android:text="@string/zeropos" />
     </LinearLayout>
 
 </LinearLayout>
