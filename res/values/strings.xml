@@ -111,4 +111,12 @@
    	    <item>Motor</item>
    	    <item>Axis</item>    
    	</string-array>
+   	<string-array name="actionArray">
+   	    <item>Jog</item>
+   	    <item>File</item>
+   	    <item>Path</item>
+   	    <item>System</item>
+   	    <item>Motor</item>
+   	    <item>Axis</item>    
+   	</string-array>
 </resources>
