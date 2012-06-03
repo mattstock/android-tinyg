@@ -76,12 +76,12 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
 
 		// Force landscape for now, since we don't really handle the loss of the
 		// binding
 		// (and subsequent destruction of the service) very well. Revisit later.
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		setContentView(R.layout.main);
 
 		mConnection = new DriverServiceConnection();
 		Context mContext = getApplicationContext();

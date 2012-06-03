@@ -19,9 +19,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 public class AxisActivity extends FragmentActivity implements
 		AxisFragment.AxisFragmentListener {
