@@ -2,18 +2,12 @@ package org.csgeeks.TinyG;
 
 // Copyright 2012 Matthew Stock
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
 
 import org.csgeeks.TinyG.Support.*;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -24,11 +18,11 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -40,30 +34,28 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class TinyGActivity extends FragmentActivity {
+public class TinyGActivity extends FragmentActivity implements MotorFragment.MotorFragmentListener, 
+							ActionFragment.ActionFragmentListener, AxisFragment.AxisFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private float jogRate = 10;
 	private String filename;
 	private int bindType = 0;
-	private boolean connected = false, download_mode = false;
-	private boolean throttle;
+	private int axis_pick = 0, motor_pick = 0;
+	private boolean connected = false;
 	private ServiceConnection mConnection;
 	private PrefsListener mPreferencesListener;
-	private EditText mFilename;
+	private Download mDownload;
 	private BroadcastReceiver mIntentReceiver;
-	private ProgressDialog progressDialog;
-	private FileWriteTask mFileTask;
 	private static final int DIALOG_ABOUT = 0;
 	private static final int DIALOG_NO_USB = 1;
 	private static final int DIALOG_NO_SERVICE = 2;
-	private static final int DIALOG_DOWNLOAD = 3;
-	private int numLines;
-	final private Object synctoken = new Object();
 	
 	@Override
 	public void onResume() {
 		IntentFilter updateFilter = new IntentFilter();
+		updateFilter.addAction(TinyGDriver.AXIS_CONFIG);
+		updateFilter.addAction(TinyGDriver.MOTOR_CONFIG);
 		updateFilter.addAction(TinyGDriver.STATUS);
 		updateFilter.addAction(TinyGDriver.CONNECTION_STATUS);
 		updateFilter.addAction(TinyGDriver.THROTTLE);
@@ -82,12 +74,12 @@ public class TinyGActivity extends FragmentActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
 
 		// Force landscape for now, since we don't really handle the loss of the
 		// binding
 		// (and subsequent destruction of the service) very well. Revisit later.
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		setContentView(R.layout.main);
 
 		mConnection = new DriverServiceConnection();
 		Context mContext = getApplicationContext();
@@ -102,12 +94,6 @@ public class TinyGActivity extends FragmentActivity {
 			restoreState(savedInstanceState);
 		}
 
-		// For the file transfer to TinyG
-		mFilename = (EditText) findViewById(R.id.filename);
-		if (mFilename != null)
-			mFilename.setText(filename);
-		throttle = false;
-		
 		// Do the initial service binding
 		if (bindDriver(mConnection) == false) {
 			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
@@ -162,8 +148,24 @@ public class TinyGActivity extends FragmentActivity {
 			Bundle b = intent.getExtras();
 			String action = intent.getAction();
 			if (action.equals(TinyGDriver.STATUS)) {
-				updateState(b);
+				StatusFragment sf = (StatusFragment) getSupportFragmentManager().findFragmentById(R.id.statusF);
+				b.putFloat("jogRate", jogRate);
+				sf.updateState(b);
+				Fragment f = getSupportFragmentManager().findFragmentById(R.id.displayF);
+				if (f != null && f.getClass() == JogFragment.class)
+					((JogFragment) f).updateState(b);
 			}
+			if (action.equals(TinyGDriver.MOTOR_CONFIG)) {
+				Log.d(TAG, "Got MOTOR_CONFIG broadcast");
+				Fragment f = getSupportFragmentManager().findFragmentById(R.id.displayF);
+				if (f != null && f.getClass() == MotorFragment.class)
+					((MotorFragment) f).updateState(b);				
+			}
+			if (action.equals(TinyGDriver.AXIS_CONFIG)) {
+				Fragment f = getSupportFragmentManager().findFragmentById(R.id.displayF);
+				if (f != null && f.getClass() == AxisFragment.class)
+					((AxisFragment) f).updateState(b);			
+			}			
 			if (action.equals(TinyGDriver.CONNECTION_STATUS)) {
 				Button conn = ((Button) findViewById(R.id.connect));
 				if (b.getBoolean("connection")) {
@@ -174,11 +176,11 @@ public class TinyGActivity extends FragmentActivity {
 					connected = false;
 				}
 			}
-			if (action.equals(TinyGDriver.THROTTLE)) {
-				synchronized (synctoken) {
-					throttle = b.getBoolean("state");
+			if (action.equals(TinyGDriver.THROTTLE) && mDownload != null) {
+				synchronized (mDownload.getSyncToken()) {
+					mDownload.setThrottle(b.getBoolean("state"));
 					Log.d(TAG, "Got [un]throttle signal");
-					synctoken.notify();
+					mDownload.getSyncToken().notify();
 				}
 			}
 		}
@@ -211,7 +213,7 @@ public class TinyGActivity extends FragmentActivity {
 			startActivity(new Intent(this, AxisActivity.class));
 			return true;
 		case R.id.refresh:
-			if (download_mode)
+			if (mDownload != null)
 				return true;
 			if (connected) {
 				tinyg.send_command(TinyGDriver.REFRESH);
@@ -235,22 +237,9 @@ public class TinyGActivity extends FragmentActivity {
 		case DIALOG_NO_SERVICE:
 			builder.setMessage(R.string.no_service).setTitle(R.string.app_name);
 			return builder.create();
-		case DIALOG_DOWNLOAD:
-			progressDialog = new ProgressDialog(this);
-			progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			progressDialog.setMessage("Transferring...");
-			return progressDialog;
 		}
 		return null;
 	}
-
-    @Override
-    protected void onPrepareDialog(int id, Dialog dialog) {
-        switch(id) {
-        case DIALOG_DOWNLOAD:
-            progressDialog.setProgress(0);
-        }
-    }
     
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
@@ -258,7 +247,6 @@ public class TinyGActivity extends FragmentActivity {
 		outState.putFloat("jogRate", jogRate);
 		outState.putInt("bindType", bindType);
 		outState.putBoolean("connected", connected);
-		outState.putBoolean("download_mode", download_mode);
 		outState.putString("filename", filename);
 	}
 
@@ -266,7 +254,6 @@ public class TinyGActivity extends FragmentActivity {
 		jogRate = inState.getFloat("jogRate");
 		bindType = inState.getInt("bindType");
 		connected = inState.getBoolean("connected");
-		download_mode = inState.getBoolean("download_mode");
 		filename = inState.getString("filename");
 	}
 
@@ -289,53 +276,44 @@ public class TinyGActivity extends FragmentActivity {
 		if (connected) {
 			switch (view.getId()) {
 			case R.id.start:
-				if (download_mode) {
-					// stop downloading
-					if (mFileTask != null) {
-						mFileTask.cancel(true);
-						((Button) findViewById(R.id.start))
-								.setText(R.string.start);
-						// TODO Send interrupt
-						download_mode = false;
-					}
+				// stop downloading
+				if (mDownload != null) {
+					mDownload.cancel();
+					((Button) findViewById(R.id.start))
+							.setText(R.string.start);
+					// TODO Send interrupt
+					mDownload = null;
 				} else {
-					showDialog(DIALOG_DOWNLOAD);
-					openFile(mFilename.getText().toString());
+					mDownload = new Download(this, tinyg);
+					EditText mFilename = (EditText) findViewById(R.id.filename);
+					mDownload.openFile(mFilename.getText().toString());
 				}
 				break;
 			case R.id.pause:
 				break;
 			case R.id.xpos:
-				tinyg.send_gcode("{\"gc\": \"g91g0x" + Double.toString(jogRate)
-						+ "\"}\n");
+				tinyg.short_jog("x", jogRate);
 				break;
 			case R.id.xneg:
-				tinyg.send_gcode("{\"gc\": \"g91g0x"
-						+ Double.toString(-jogRate) + "\"}\n");
+				tinyg.short_jog("x", -jogRate);
 				break;
 			case R.id.ypos:
-				tinyg.send_gcode("{\"gc\": \"g91g0y" + Double.toString(jogRate)
-						+ "\"}\n");
+				tinyg.short_jog("y", jogRate);
 				break;
 			case R.id.yneg:
-				tinyg.send_gcode("{\"gc\": \"g91g0y"
-						+ Double.toString(-jogRate) + "\"}\n");
+				tinyg.short_jog("y", -jogRate);
 				break;
 			case R.id.zpos:
-				tinyg.send_gcode("{\"gc\": \"g91g0z" + Double.toString(jogRate)
-						+ "\"}\n");
+				tinyg.short_jog("z", jogRate);
 				break;
 			case R.id.zneg:
-				tinyg.send_gcode("{\"gc\": \"g91g0z"
-						+ Double.toString(-jogRate) + "\"}\n");
+				tinyg.short_jog("z", -jogRate);
 				break;
 			case R.id.apos:
-				tinyg.send_gcode("{\"gc\": \"g91g0a" + Double.toString(jogRate)
-						+ "\"}\n");
+				tinyg.short_jog("a", jogRate);
 				break;
 			case R.id.aneg:
-				tinyg.send_gcode("{\"gc\": \"g91g0a"
-						+ Double.toString(-jogRate) + "\"}\n");
+				tinyg.short_jog("a", -jogRate);
 				break;
 			case R.id.rpos:
 				jogRate += 1;
@@ -389,117 +367,21 @@ public class TinyGActivity extends FragmentActivity {
 		}
 	}
 
-	public void updateState(Bundle b) {
-		((TextView) findViewById(R.id.xloc)).setText(Float.toString(b
-				.getFloat("posx")));
-		((TextView) findViewById(R.id.yloc)).setText(Float.toString(b
-				.getFloat("posy")));
-		((TextView) findViewById(R.id.zloc)).setText(Float.toString(b
-				.getFloat("posz")));
-		((TextView) findViewById(R.id.aloc)).setText(Float.toString(b
-				.getFloat("posa")));
-		((TextView) findViewById(R.id.line)).setText(Integer.toString(b
-				.getInt("line")));
-		((TextView) findViewById(R.id.jogval)).setText(Float.toString(jogRate));
-		((TextView) findViewById(R.id.momo)).setText(b.getString("momo"));
-		((TextView) findViewById(R.id.status)).setText(b.getString("status"));
-		((Button) findViewById(R.id.units)).setText(b.getString("units"));
-		((TextView) findViewById(R.id.velocity)).setText(Float.toString(b
-				.getFloat("velocity")));
-	}
-
-	// Given a filename, start up the file writer task and provide status on
-	// progress dialog
-	private void openFile(String string) {
-		// Count lines
-		try {
-			BufferedReader in = new BufferedReader(new FileReader(string));
-			numLines = 0;
-			while (in.readLine() != null) {
-				numLines++;
-			}
-			in.close();
-		} catch (FileNotFoundException e) {
-			Toast.makeText(this, "Invalid filename", Toast.LENGTH_SHORT).show();
-			return;
-		} catch (IOException e) {
-			Toast.makeText(this, "Gcode file read error", Toast.LENGTH_SHORT).show();
-			return;
-		}
-		Log.d(TAG, "lines = " + numLines);
-		
-		// Now send them!
-		try {
-			BufferedReader in = new BufferedReader(new FileReader(string));
-			mFileTask = new FileWriteTask();
-			mFileTask.execute(in);
-		} catch (FileNotFoundException e) {
-			Toast.makeText(this, "Invalid filename", Toast.LENGTH_SHORT).show();
-			return;
-		}
-	}
-
-	protected class FileWriteTask extends AsyncTask<BufferedReader, String, Void> {
-		@Override
-		protected Void doInBackground(BufferedReader... params) {
-			BufferedReader in = params[0];
-			String line;
-			int idx = 0;
-			
-			try {
-				while (!isCancelled() && (line = in.readLine()) != null) {
-					idx++;
-					try {
-						synchronized (synctoken) {
-							if (throttle) 
-								synctoken.wait();
-						}
-					} catch (InterruptedException e) {
-						// This is probably ok, just proceed.
-					}				
-					publishProgress(line, Integer.toString(idx));
-				}
-				in.close();
-			} catch (IOException e) {
-				Log.e(TAG, "error writing file: " + e.getMessage());
-			} 
-			return null;
-		}
-
-		@Override
-		protected void onProgressUpdate(String... values) {
-			if (values.length > 1) {
-				progressDialog.setProgress((int)(100*(Double.parseDouble(values[1])/numLines)));
-				tinyg.send_gcode(values[0] + "\n");
-			}
-		}
-
-		@Override
-		protected void onCancelled() {
-			Log.i(TAG, "FileWriteTask cancelled");
-			// TODO add a hard stop instruction to TinyG
-			dismissDialog(DIALOG_DOWNLOAD);
-			Toast.makeText(TinyGActivity.this, "Download cancelled", Toast.LENGTH_SHORT).show();			
-		}
-		
-	    protected void onPostExecute() {
-	    	Log.i(TAG, "FileWriteTask complete");
-	        dismissDialog(DIALOG_DOWNLOAD);
-	    }
-
-	}
-
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode != 1)
 			return;
 		if (resultCode == android.app.Activity.RESULT_OK && data != null) {
 			String fileName = data.getData().getPath();
-			if (fileName != null)
-				mFilename.setText(fileName);
+			if (fileName != null) {
+				EditText mFilename = (EditText) findViewById(R.id.filename);
+				if (mFilename != null)
+					mFilename.setText(fileName);
+			}
 		}
 	}
 
 	private void pickFile() {
+		EditText mFilename = (EditText) findViewById(R.id.filename);
 		String fileName = mFilename.getText().toString();
 
 		// TODO write our own
@@ -516,5 +398,24 @@ public class TinyGActivity extends FragmentActivity {
 			Toast.makeText(this, R.string.no_filemanager_installed,
 					Toast.LENGTH_SHORT).show();
 		}
+	}
+
+	public void onMotorSelected(int m) {
+		motor_pick = m;
+		if (tinyg == null)
+			return;
+		Log.d(TAG, String.format("Sending GET_MOTOR intent %d", motor_pick));
+		tinyg.send_command(TinyGDriver.GET_MOTOR, motor_pick);
+	}
+
+	public void onAxisSelected(int a) {
+		axis_pick = a;
+		if (tinyg == null)
+			return;
+		tinyg.send_command(TinyGDriver.GET_AXIS, axis_pick);
+	}
+
+	public boolean connectionState() {
+		return connected;
 	}
 }

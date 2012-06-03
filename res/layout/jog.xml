@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" >
+
+    <TableRow
+        android:id="@+id/tableRow1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/xpos"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:onClick="myClickHandler"
+            android:text="@string/xpos" />
+
+        <Button
+            android:id="@+id/xneg"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:onClick="myClickHandler"
+            android:text="@string/xneg" />
+
+        <Button
+            android:id="@+id/rpos"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:onClick="myClickHandler"
+            android:text="@string/rpos" />
+
+        <Button
+            android:id="@+id/apos"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:onClick="myClickHandler"
+            android:text="@string/apos" />
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/tableRow2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/ypos"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:onClick="myClickHandler"
+            android:text="@string/ypos" />
+
+        <Button
+            android:id="@+id/yneg"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:onClick="myClickHandler"
+            android:text="@string/yneg" />
+
+        <Button
+            android:id="@+id/rneg"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:onClick="myClickHandler"
+            android:text="@string/rneg" />
+
+        <Button
+            android:id="@+id/aneg"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:onClick="myClickHandler"
+            android:text="@string/aneg" />
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/tableRow3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/zpos"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:onClick="myClickHandler"
+            android:text="@string/zpos" />
+
+        <Button
+            android:id="@+id/zneg"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:onClick="myClickHandler"
+            android:text="@string/zneg" />
+
+        <Button
+            android:id="@+id/zero"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:onClick="myClickHandler"
+            android:text="@string/zero" />
+
+        <Button
+            android:id="@+id/units"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:onClick="myClickHandler"
+            android:text="@string/mm" />
+    </TableRow>
+
+</TableLayout>

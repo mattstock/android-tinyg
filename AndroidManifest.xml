@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.csgeeks.TinyG"
-    android:versionCode="12"
+    android:versionCode="13"
     android:versionName="@string/version" >
 
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="8"/>
@@ -26,6 +26,9 @@
         <activity android:name=".MotorActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity android:name=".AxisActivity"
+            android:windowSoftInputMode="stateHidden" />
+        <activity android:name=".JogActivity" />
+        <activity android:name=".FileActivity"
             android:windowSoftInputMode="stateHidden" />
         <service android:name=".Support.TinyGNetwork">
             <intent-filter>
