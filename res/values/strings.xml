@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TinyG for Android</string>
+    <string name="app_name">TinyG Console</string>
     <string name="local_service_started">Local service has started</string>
     <string name="local_service_stopped">Local service has stopped</string>
     <string name="local_service_connected">Local Service Connected</string>
@@ -52,8 +52,8 @@
     <string name="cw">cw</string>
     <string name="ccw">ccw</string>
     <string name="invalid">invalid</string>
-    <string name="version">1.3</string>
-    <string name="about">Android app copyright 2012 Matthew Stock.\nTinyG and TgFX copyright Synthetos, LLC.</string>
+    <string name="version">1.4</string>
+    <string name="about">Android app copyright 2012 Bexkat Systems LLC.\nTinyG and TgFX copyright Synthetos, LLC.</string>
     <string name="no_usb">USB connectivity only supported in Android 3.1 and above.</string>
     <string name="no_service">TinyG USB Service must be installed for USB support to work.</string>
     <string name="no_filemanager_installed">No filemanager is installed.</string>

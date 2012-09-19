@@ -4,6 +4,8 @@ package org.csgeeks.TinyG;
 
 import org.csgeeks.TinyG.Support.*;
 
+import com.google.android.apps.analytics.easytracking.TrackedFragmentActivity;
+
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -26,7 +28,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-public class MotorActivity extends FragmentActivity implements
+public class MotorActivity extends TrackedFragmentActivity implements
 		MotorFragment.MotorFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;

@@ -6,6 +6,8 @@ import java.io.File;
 
 import org.csgeeks.TinyG.Support.*;
 
+import com.google.android.apps.analytics.easytracking.TrackedFragmentActivity;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
@@ -34,7 +36,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class TinyGActivity extends FragmentActivity implements MotorFragment.MotorFragmentListener, 
+public class TinyGActivity extends TrackedFragmentActivity implements MotorFragment.MotorFragmentListener, 
 							ActionFragment.ActionFragmentListener, AxisFragment.AxisFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
@@ -43,7 +45,7 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 	private int bindType = 0;
 	private int axis_pick = 0, motor_pick = 0;
 	private boolean connected = false;
-	private ServiceConnection mConnection;
+	private ServiceConnection mConnection = new DriverServiceConnection();
 	private PrefsListener mPreferencesListener;
 	private Download mDownload;
 	private BroadcastReceiver mIntentReceiver;
@@ -106,7 +108,7 @@ public class TinyGActivity extends FragmentActivity implements MotorFragment.Mot
 	private boolean bindDriver(ServiceConnection s) {
 		switch (bindType) {
 		case 0:
-			return bindService(new Intent(this, TinyGNetwork.class), s,
+			return bindService(new Intent(getApplicationContext(), TinyGNetwork.class), s,
 					Context.BIND_AUTO_CREATE);
 		case 1:
 			// Check to see if the platform supports USB

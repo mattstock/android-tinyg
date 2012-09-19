@@ -6,6 +6,8 @@ import java.io.File;
 
 import org.csgeeks.TinyG.Support.*;
 
+import com.google.android.apps.analytics.easytracking.TrackedFragmentActivity;
+
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -27,7 +29,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class FileActivity extends FragmentActivity {
+public class FileActivity extends TrackedFragmentActivity {
 	private static final String TAG = "TinyG";
 	private BroadcastReceiver mIntentReceiver;
 	private int bindType = 0;

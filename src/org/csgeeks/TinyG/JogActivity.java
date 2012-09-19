@@ -7,6 +7,8 @@ import org.csgeeks.TinyG.Support.TinyGDriver;
 import org.csgeeks.TinyG.Support.TinyGMessenger;
 import org.csgeeks.TinyG.Support.TinyGNetwork;
 
+import com.google.android.apps.analytics.easytracking.TrackedFragmentActivity;
+
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -24,7 +26,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class JogActivity extends FragmentActivity {
+public class JogActivity extends TrackedFragmentActivity {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private ServiceConnection mConnection;

@@ -2,6 +2,8 @@ package org.csgeeks.TinyG;
 
 import org.csgeeks.TinyG.Support.*;
 
+import com.google.android.apps.analytics.easytracking.TrackedFragmentActivity;
+
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -21,7 +23,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-public class AxisActivity extends FragmentActivity implements
+public class AxisActivity extends TrackedFragmentActivity implements
 		AxisFragment.AxisFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
