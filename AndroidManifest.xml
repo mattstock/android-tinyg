@@ -4,7 +4,8 @@
     android:versionCode="14"
     android:versionName="@string/version" >
 
-    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="16"/>
+    <uses-sdk android:minSdkVersion="12" android:targetSdkVersion="16"/>
+    <uses-feature android:name="android.hardware.usb.host"/>
     <uses-permission android:name="android.permission.INTERNET"/>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	
@@ -36,6 +37,16 @@
                 <action android:name="org.csgeeks.TinyG.Support.TinyGNetwork" />
             </intent-filter>
         </service>
-    </application>
+        <service android:name=".USB.USBService">
+             <intent-filter>
+                 <action android:name="org.csgeeks.TinyG.USB.USBService" />
+             </intent-filter>
+             <intent-filter>
+                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+             </intent-filter>
+             <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                     android:resource="@xml/usb_device_filter" />
+         </service>
+        </application>
 
 </manifest>
