@@ -1,52 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.csgeeks.TinyG"
-    android:versionCode="14"
+    android:versionCode="15"
     android:versionName="@string/version" >
 
-    <uses-sdk android:minSdkVersion="12" android:targetSdkVersion="16"/>
-    <uses-feature android:name="android.hardware.usb.host"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-	
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="16" />
+
+    <uses-feature
+        android:name="android.hardware.usb.host"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.usb.accessory"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
-        android:icon="@drawable/launcher_icon"
+        android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
         <activity
-            android:name=".TinyGActivity"
-            android:windowSoftInputMode="stateHidden"
-            android:label="@string/app_name" >
+            android:name=".BaseActivity"
+            android:label="@string/app_name"
+            android:windowSoftInputMode="stateHidden" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ShowSettingsActivity"
+        <activity
+            android:name=".ShowSettingsActivity"
             android:windowSoftInputMode="stateHidden" />
-        <activity android:name=".MachineActivity"
+        <activity
+            android:name=".MachineActivity"
             android:windowSoftInputMode="stateHidden" />
-        <activity android:name=".MotorActivity"
+        <activity
+            android:name=".MotorActivity"
             android:windowSoftInputMode="stateHidden" />
-        <activity android:name=".AxisActivity"
+        <activity
+            android:name=".AxisActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity android:name=".JogActivity" />
-        <activity android:name=".FileActivity"
+        <activity
+            android:name=".FileActivity"
             android:windowSoftInputMode="stateHidden" />
-        <service android:name=".Support.TinyGNetwork">
+
+        <service android:name=".Support.TinyGNetwork" >
             <intent-filter>
                 <action android:name="org.csgeeks.TinyG.Support.TinyGNetwork" />
             </intent-filter>
         </service>
-        <service android:name=".USB.USBService">
-             <intent-filter>
-                 <action android:name="org.csgeeks.TinyG.USB.USBService" />
-             </intent-filter>
-             <intent-filter>
-                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-             </intent-filter>
-             <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                     android:resource="@xml/usb_device_filter" />
-         </service>
-        </application>
+        <service android:name=".USB.USBService" >
+            <intent-filter>
+                <action android:name="org.csgeeks.TinyG.USB.USBService" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/usb_device_filter" />
+        </service>
+        <service
+            android:name=".USB.USBAccessoryService"
+            android:label="@string/app_name"
+            android:taskAffinity="" >
+            <intent-filter>
+                <action android:name="org.csgeeks.TinyG.USB.USBAccessoryService" />
+            </intent-filter>
+        </service>
+
+        <activity android:name=".USBAccessoryActivity" >
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
+                android:resource="@xml/usb_accessory_filter" />
+        </activity>
+    </application>
 
 </manifest>

@@ -20,6 +20,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
@@ -36,7 +37,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class TinyGActivity extends TrackedFragmentActivity implements MotorFragment.MotorFragmentListener, 
+public class BaseActivity extends TrackedFragmentActivity implements MotorFragment.MotorFragmentListener, 
 							ActionFragment.ActionFragmentListener, AxisFragment.AxisFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
@@ -115,7 +116,7 @@ public class TinyGActivity extends TrackedFragmentActivity implements MotorFragm
 			// Pop up a dialog if it doesn't.
 			// If the binding fails, pop up a dialog with link
 			// to service apk.
-			if (android.os.Build.VERSION.SDK_INT < 12) {
+			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR1) {
 				Toast.makeText(this, R.string.no_usb, Toast.LENGTH_SHORT)
 						.show();
 				return false;
@@ -361,7 +362,7 @@ public class TinyGActivity extends TrackedFragmentActivity implements MotorFragm
 				if (tinyg != null)
 					unbindService(mConnection);
 				if (bindDriver(mConnection) == false) {
-					Toast.makeText(TinyGActivity.this,
+					Toast.makeText(BaseActivity.this,
 							"Binding service failed", Toast.LENGTH_SHORT)
 							.show();
 				}

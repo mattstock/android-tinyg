@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ga_api_key">UA-34888244-2</string>
+	<bool name="ga_debug">true</bool>
+</resources>
