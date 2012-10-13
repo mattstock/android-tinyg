@@ -1,4 +1,4 @@
-package org.csgeeks.TinyG.USB;
+package org.csgeeks.TinyG.Support;
 
 // Most of this ported from libftdi http://www.intra2net.com/en/developer/libftdi/.
 

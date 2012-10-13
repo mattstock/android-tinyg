@@ -4,7 +4,7 @@ package org.csgeeks.TinyG;
 
 import org.csgeeks.TinyG.Support.*;
 
-import com.google.android.apps.analytics.easytracking.TrackedFragmentActivity;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -18,14 +18,13 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Messenger;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MachineActivity extends TrackedFragmentActivity {
+public class MachineActivity extends SherlockFragmentActivity {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private ServiceConnection mConnection;
@@ -58,7 +57,7 @@ public class MachineActivity extends TrackedFragmentActivity {
 			return bindService(new Intent(this, TinyGNetwork.class),
 					s, Context.BIND_AUTO_CREATE);
 		case 1:
-			return bindService(new Intent(TinyGDriver.USB_SERVICE),
+			return bindService(new Intent(ServiceWrapper.USB_SERVICE),
 					s, Context.BIND_AUTO_CREATE);
 		default:
 			return false;
@@ -73,7 +72,7 @@ public class MachineActivity extends TrackedFragmentActivity {
 
 	@Override
 	public void onResume() {
-		IntentFilter updateFilter = new IntentFilter(TinyGDriver.MACHINE_CONFIG);
+		IntentFilter updateFilter = new IntentFilter(ServiceWrapper.MACHINE_CONFIG);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
 		super.onResume();
@@ -99,7 +98,7 @@ public class MachineActivity extends TrackedFragmentActivity {
 		// Just in case something happened, though it seems like this shouldn't
 		// be possible.
 		if (tinyg == null) {
-			if (bindService(new Intent(this, TinyGDriver.class),
+			if (bindService(new Intent(this, ServiceWrapper.class),
 					mConnection, Context.BIND_AUTO_CREATE)) {
 			} else {
 				Toast.makeText(this, "Binding service failed",
@@ -117,7 +116,7 @@ public class MachineActivity extends TrackedFragmentActivity {
 	private class DriverServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			tinyg = new TinyGMessenger(new Messenger(service));
-			tinyg.send_command(TinyGDriver.GET_MACHINE);
+			tinyg.send_command(ServiceWrapper.GET_MACHINE);
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
@@ -131,7 +130,7 @@ public class MachineActivity extends TrackedFragmentActivity {
 			String action = intent.getAction();
 			Bundle b = intent.getExtras();
 			
-			if (action.equals(TinyGDriver.MACHINE_CONFIG)) {
+			if (action.equals(ServiceWrapper.MACHINE_CONFIG)) {
 				Log.d(TAG, "MachineActivity got an intent");
 				((TextView) findViewById(R.id.firmware_build)).setText(Float.toString(b.getFloat("firmware_build")));
 				((TextView) findViewById(R.id.firmware_version)).setText(Float.toString(b.getFloat("firmware_version")));

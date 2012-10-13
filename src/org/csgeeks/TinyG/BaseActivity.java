@@ -6,7 +6,12 @@ import java.io.File;
 
 import org.csgeeks.TinyG.Support.*;
 
-import com.google.android.apps.analytics.easytracking.TrackedFragmentActivity;
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar.Tab;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -19,6 +24,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,18 +33,16 @@ import android.os.Messenger;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BaseActivity extends TrackedFragmentActivity implements MotorFragment.MotorFragmentListener, 
-							ActionFragment.ActionFragmentListener, AxisFragment.AxisFragmentListener {
+public class BaseActivity extends SherlockFragmentActivity implements MotorFragment.MotorFragmentListener, AxisFragment.AxisFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private float jogRate = 10;
@@ -51,17 +55,17 @@ public class BaseActivity extends TrackedFragmentActivity implements MotorFragme
 	private Download mDownload;
 	private BroadcastReceiver mIntentReceiver;
 	private static final int DIALOG_ABOUT = 0;
-	private static final int DIALOG_NO_USB = 1;
 	private static final int DIALOG_NO_SERVICE = 2;
+	private Context mCtx;
 	
 	@Override
 	public void onResume() {
 		IntentFilter updateFilter = new IntentFilter();
-		updateFilter.addAction(TinyGDriver.AXIS_CONFIG);
-		updateFilter.addAction(TinyGDriver.MOTOR_CONFIG);
-		updateFilter.addAction(TinyGDriver.STATUS);
-		updateFilter.addAction(TinyGDriver.CONNECTION_STATUS);
-		updateFilter.addAction(TinyGDriver.THROTTLE);
+		updateFilter.addAction(ServiceWrapper.AXIS_CONFIG);
+		updateFilter.addAction(ServiceWrapper.MOTOR_CONFIG);
+		updateFilter.addAction(ServiceWrapper.STATUS);
+		updateFilter.addAction(ServiceWrapper.CONNECTION_STATUS);
+		updateFilter.addAction(ServiceWrapper.THROTTLE);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
 
@@ -77,6 +81,22 @@ public class BaseActivity extends TrackedFragmentActivity implements MotorFragme
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		mCtx = this;
+		
+		final ActionBar actionBar = getSupportActionBar();
+
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+		Resources res = getResources();
+		String[] tabs = res.getStringArray(R.array.tabArray);
+		MyTabListener tabListener = new MyTabListener();
+		for (int i=0; i < tabs.length; i++) {
+			Tab tab = actionBar.newTab();
+			tab.setText(tabs[i]);
+			tab.setTag(tabs[i]);
+			tab.setTabListener(tabListener);
+			actionBar.addTab(tab);			
+		}
 
 		// Force landscape for now, since we don't really handle the loss of the
 		// binding
@@ -121,7 +141,7 @@ public class BaseActivity extends TrackedFragmentActivity implements MotorFragme
 						.show();
 				return false;
 			}
-			if (bindService(new Intent(TinyGDriver.USB_SERVICE), s,
+			if (bindService(new Intent(ServiceWrapper.USB_SERVICE), s,
 					Context.BIND_AUTO_CREATE))
 				return true;
 			// TODO make this smarter - send us to the store to download the
@@ -150,36 +170,30 @@ public class BaseActivity extends TrackedFragmentActivity implements MotorFragme
 		public void onReceive(Context context, Intent intent) {
 			Bundle b = intent.getExtras();
 			String action = intent.getAction();
-			if (action.equals(TinyGDriver.STATUS)) {
+			if (action.equals(ServiceWrapper.STATUS)) {
 				StatusFragment sf = (StatusFragment) getSupportFragmentManager().findFragmentById(R.id.statusF);
 				b.putFloat("jogRate", jogRate);
 				sf.updateState(b);
-				Fragment f = getSupportFragmentManager().findFragmentById(R.id.displayF);
+				Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
 				if (f != null && f.getClass() == JogFragment.class)
 					((JogFragment) f).updateState(b);
 			}
-			if (action.equals(TinyGDriver.MOTOR_CONFIG)) {
+			if (action.equals(ServiceWrapper.MOTOR_CONFIG)) {
 				Log.d(TAG, "Got MOTOR_CONFIG broadcast");
-				Fragment f = getSupportFragmentManager().findFragmentById(R.id.displayF);
+				Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
 				if (f != null && f.getClass() == MotorFragment.class)
 					((MotorFragment) f).updateState(b);				
 			}
-			if (action.equals(TinyGDriver.AXIS_CONFIG)) {
-				Fragment f = getSupportFragmentManager().findFragmentById(R.id.displayF);
+			if (action.equals(ServiceWrapper.AXIS_CONFIG)) {
+				Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
 				if (f != null && f.getClass() == AxisFragment.class)
 					((AxisFragment) f).updateState(b);			
 			}			
-			if (action.equals(TinyGDriver.CONNECTION_STATUS)) {
-				Button conn = ((Button) findViewById(R.id.connect));
-				if (b.getBoolean("connection")) {
-					conn.setText(R.string.disconnect);
-					connected = true;
-				} else {
-					conn.setText(R.string.connect);
-					connected = false;
-				}
+			if (action.equals(ServiceWrapper.CONNECTION_STATUS)) {
+				connected = b.getBoolean("connection");
+				invalidateOptionsMenu();
 			}
-			if (action.equals(TinyGDriver.THROTTLE) && mDownload != null) {
+			if (action.equals(ServiceWrapper.THROTTLE) && mDownload != null) {
 				synchronized (mDownload.getSyncToken()) {
 					mDownload.setThrottle(b.getBoolean("state"));
 					Log.d(TAG, "Got [un]throttle signal");
@@ -191,35 +205,43 @@ public class BaseActivity extends TrackedFragmentActivity implements MotorFragme
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getMenuInflater();
+		MenuInflater inflater = getSupportMenuInflater();
 		inflater.inflate(R.menu.options, menu);
 		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		MenuItem menuConnect = menu.findItem(R.id.connect);
+		if (connected)
+			menuConnect.setTitle(R.string.disconnect);
+		else
+			menuConnect.setTitle(R.string.connect);
+		return super.onPrepareOptionsMenu(menu);
+	}
+	
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
+		case R.id.connect:
+			if (connected && tinyg != null) {
+				tinyg.send_command(ServiceWrapper.DISCONNECT);
+			} else {
+				tinyg.send_command(ServiceWrapper.CONNECT);
+			}
+			return true;
 		case R.id.settings:
 			startActivity(new Intent(this, ShowSettingsActivity.class));
 			return true;
 		case R.id.about:
 			showDialog(DIALOG_ABOUT);
 			return true;
-		case R.id.machine:
-			startActivity(new Intent(this, MachineActivity.class));
-			return true;
-		case R.id.motors:
-			startActivity(new Intent(this, MotorActivity.class));
-			return true;
-		case R.id.axis:
-			startActivity(new Intent(this, AxisActivity.class));
-			return true;
 		case R.id.refresh:
 			if (mDownload != null)
 				return true;
 			if (connected) {
-				tinyg.send_command(TinyGDriver.REFRESH);
+				tinyg.send_command(ServiceWrapper.REFRESH);
 			} else {
 				Toast.makeText(this, "Not connected!", Toast.LENGTH_SHORT)
 						.show();
@@ -264,13 +286,6 @@ public class BaseActivity extends TrackedFragmentActivity implements MotorFragme
 		if (tinyg == null)
 			return;
 		switch (view.getId()) {
-		case R.id.connect:
-			if (connected) {
-				tinyg.send_command(TinyGDriver.DISCONNECT);
-			} else {
-				tinyg.send_command(TinyGDriver.CONNECT);
-			}
-			break;
 		case R.id.filepick:
 			pickFile();
 			break;
@@ -331,7 +346,7 @@ public class BaseActivity extends TrackedFragmentActivity implements MotorFragme
 			case R.id.units:
 				break;
 			case R.id.zero:
-				tinyg.send_gcode(Parser.CMD_ZERO_ALL_AXIS);
+				tinyg.send_gcode(JSONParser.CMD_ZERO_ALL_AXIS);
 				break;
 			}
 		}
@@ -408,17 +423,55 @@ public class BaseActivity extends TrackedFragmentActivity implements MotorFragme
 		if (tinyg == null)
 			return;
 		Log.d(TAG, String.format("Sending GET_MOTOR intent %d", motor_pick));
-		tinyg.send_command(TinyGDriver.GET_MOTOR, motor_pick);
+		tinyg.send_command(ServiceWrapper.GET_MOTOR, motor_pick);
 	}
 
 	public void onAxisSelected(int a) {
 		axis_pick = a;
 		if (tinyg == null)
 			return;
-		tinyg.send_command(TinyGDriver.GET_AXIS, axis_pick);
+		tinyg.send_command(ServiceWrapper.GET_AXIS, axis_pick);
 	}
 
 	public boolean connectionState() {
 		return connected;
+	}
+	
+	private class MyTabListener implements ActionBar.TabListener {
+		
+		
+		public void onTabSelected(Tab tab, FragmentTransaction ft) {
+			Fragment f;
+			FragmentManager fm = getSupportFragmentManager();
+			f = fm.findFragmentByTag((String) tab.getText());
+
+			if (f == null) {
+				if (tab.getText().equals("File"))
+					f = new FileFragment();
+				else if (tab.getText().equals("Motor"))
+					f = new MotorFragment();
+				else if (tab.getText().equals("Axis"))
+					f = new AxisFragment();
+				else // Jog
+					f = new JogFragment();
+				ft.add(R.id.tabview, f, (String) tab.getText());
+			} else {
+				if (f.isDetached())
+					ft.attach(f);
+			}
+		}
+
+		public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+			FragmentManager fm = getSupportFragmentManager();
+			Fragment f = fm.findFragmentByTag((String) tab.getText());
+			if (f != null) {
+				ft.detach(f);
+			}
+		}
+
+		public void onTabReselected(Tab tab, FragmentTransaction ft) {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 }

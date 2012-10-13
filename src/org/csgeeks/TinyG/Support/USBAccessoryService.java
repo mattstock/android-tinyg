@@ -1,4 +1,4 @@
-package org.csgeeks.TinyG.USB;
+package org.csgeeks.TinyG.Support;
 
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -6,9 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.csgeeks.TinyG.Support.Machine;
-import org.csgeeks.TinyG.Support.Parser;
-import org.csgeeks.TinyG.Support.TinyGDriver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -21,7 +18,7 @@ import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
-public class USBAccessoryService extends TinyGDriver {
+public class USBAccessoryService extends ServiceWrapper {
 	private static final String LOG_TAG = "USBAccessoryService";
 	private UsbManager mUSBManager;
 	private UsbAccessory mAccessory;
@@ -167,7 +164,7 @@ public class USBAccessoryService extends TinyGDriver {
 		protected void onProgressUpdate(String... values) {
 			Bundle b;
 			if (values.length > 0) {
-				if ((b = Parser.processJSON(values[0], machine)) != null) {
+				if ((b = JSONParser.processJSON(values[0], machine)) != null) {
 					String json = b.getString("json");
 					if (json.equals("sr")) {
 						Intent i = new Intent(STATUS);
@@ -186,8 +183,8 @@ public class USBAccessoryService extends TinyGDriver {
 
 	@Override
 	public void refresh() {
-		write(Parser.CMD_DISABLE_LOCAL_ECHO);
-		write(Parser.CMD_SET_STATUS_UPDATE_INTERVAL);
-		write(Parser.CMD_GET_STATUS_REPORT);
+		write(JSONParser.CMD_DISABLE_LOCAL_ECHO);
+		write(JSONParser.CMD_SET_STATUS_UPDATE_INTERVAL);
+		write(JSONParser.CMD_GET_STATUS_REPORT);
 	}
 }

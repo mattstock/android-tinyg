@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:id="@+id/connect" android:title="Connect"></item>
     <item android:id="@+id/settings" android:title="Settings"></item>
     <item android:id="@+id/about" android:title="About"></item>
-    <item android:id="@+id/machine" android:title="Machine Info"></item>
-    <item android:id="@+id/motors" android:title="Motors"></item>
-    <item android:id="@+id/axis" android:title="Axis"></item>
     <item android:id="@+id/refresh" android:title="Refresh"></item>
-    
-
 </menu>

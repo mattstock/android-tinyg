@@ -1,4 +1,4 @@
-package org.csgeeks.TinyG.USB;
+package org.csgeeks.TinyG.Support;
 
 // Copyright 2012 Matthew Stock
 
@@ -21,7 +21,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 // This is only a bound service at the moment.
-public class USBService extends TinyGDriver {
+public class USBService extends ServiceWrapper {
 	private static final String TAG = "TinyG-USB";
 	private static final String ACTION_USB_PERMISSION =
 			"org.csgeeks.TinyG.USB_PERMISSION";
@@ -195,7 +195,7 @@ public class USBService extends TinyGDriver {
 		protected void onProgressUpdate(String... values) {
 			Bundle b;
 			if (values.length > 0) {
-				if ((b = Parser.processJSON(values[0], machine)) != null) {
+				if ((b = JSONParser.processJSON(values[0], machine)) != null) {
 					if (b != null) {
 						String json = b.getString("json");
 						if (json != null && json.equals("sr")) {
