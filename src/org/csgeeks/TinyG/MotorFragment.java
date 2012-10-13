@@ -20,37 +20,6 @@ import android.widget.AdapterView.OnItemSelectedListener;
 public class MotorFragment extends SherlockFragment {
 	private static final String TAG = "TinyG";
 	private MotorFragmentListener mListener;
-	private Activity mActivity;
-
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-		Log.d(TAG, "Creating MotorFragment");
-		// Inflate the layout for this fragment
-		View v = inflater.inflate(R.layout.motor, container, false);
-
-		// configure motor picker
-		mActivity = getActivity();
-
-		Spinner s = (Spinner) v.findViewById(R.id.motorpick);
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-				mActivity, R.array.motorArray,
-				android.R.layout.simple_spinner_item);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		s.setAdapter(adapter);
-		s.setOnItemSelectedListener(new MotorItemSelectedListener());
-
-		
-		// Configure axis picker
-		s = (Spinner) v.findViewById(R.id.map_axis);
-		adapter = ArrayAdapter.createFromResource(mActivity, R.array.axisArray,
-				android.R.layout.simple_spinner_item);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		s.setAdapter(adapter);
-		s.setOnItemSelectedListener(new AxisItemSelectedListener());
-
-		return v;
-	}
 
 	@Override
 	public void onAttach(Activity activity) {
@@ -61,6 +30,33 @@ public class MotorFragment extends SherlockFragment {
 			throw new ClassCastException(activity.toString()
 					+ " must implement MotorFragmentListener");
 		}
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		Log.d(TAG, "Creating MotorFragment");
+		// Inflate the layout for this fragment
+		View v = inflater.inflate(R.layout.motor, container, false);
+
+		Spinner s = (Spinner) v.findViewById(R.id.motorpick);
+		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+				getActivity(), R.array.motorArray,
+				android.R.layout.simple_spinner_item);
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		s.setAdapter(adapter);
+		s.setOnItemSelectedListener(new MotorItemSelectedListener());
+
+		
+		// Configure axis picker
+		s = (Spinner) v.findViewById(R.id.map_axis);
+		adapter = ArrayAdapter.createFromResource(getActivity(), R.array.axisArray,
+				android.R.layout.simple_spinner_item);
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		s.setAdapter(adapter);
+		s.setOnItemSelectedListener(new AxisItemSelectedListener());
+
+		return v;
 	}
 
 	public interface MotorFragmentListener {
@@ -92,20 +88,24 @@ public class MotorFragment extends SherlockFragment {
 		}
 	}
 
+	public void myClickHandler(View view) {
+	}
+	
 	public void updateState(Bundle b) {
-		Spinner s = (Spinner) mActivity.findViewById(R.id.motorpick);
+		Activity a = getActivity();
+		Spinner s = (Spinner) a.findViewById(R.id.motorpick);
 		if (s.getSelectedItemId() == b.getInt("motor")-1) {
-			((EditText) mActivity.findViewById(R.id.step_angle)).setText(Float
+			((EditText) a.findViewById(R.id.step_angle)).setText(Float
 					.toString(b.getFloat("step_angle")));
-			((EditText) mActivity.findViewById(R.id.travel_rev)).setText(Float
+			((EditText) a.findViewById(R.id.travel_rev)).setText(Float
 					.toString(b.getFloat("travel_rev")));
-			((EditText) mActivity.findViewById(R.id.microsteps))
+			((EditText) a.findViewById(R.id.microsteps))
 					.setText(Integer.toString(b.getInt("microsteps")));
-			((ToggleButton) mActivity.findViewById(R.id.polarity)).setChecked(b
+			((ToggleButton) a.findViewById(R.id.polarity)).setChecked(b
 					.getBoolean("polarity"));
-			((ToggleButton) mActivity.findViewById(R.id.power_management))
+			((ToggleButton) a.findViewById(R.id.power_management))
 					.setChecked(b.getBoolean("power_management"));
-			((Spinner) mActivity.findViewById(R.id.map_axis)).setSelection(b
+			((Spinner) a.findViewById(R.id.map_axis)).setSelection(b
 					.getInt("map_to_axis"));
 		}
 	}

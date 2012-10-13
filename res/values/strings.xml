@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">TinyG Console</string>
     <string name="local_service_started">Local service has started</string>
     <string name="local_service_stopped">Local service has stopped</string>
@@ -21,7 +22,7 @@
     <string name="rneg">R-</string>
     <string name="apos">A+</string>
     <string name="aneg">A-</string>
-    <string name="zero">Zero</string>    
+    <string name="zero">Zero</string>
     <string name="zeropos">0.000</string>
     <string name="zeroloc">(0.0, 0.0, 0.0, 0.0)</string>
     <string name="xloc">X: </string>
@@ -36,7 +37,6 @@
     <string name="end">end</string>
     <string name="hold">hold</string>
     <string name="homing">homing</string>
-    <color name="red">#ff0000</color>
     <string name="aloc">A: </string>
     <string name="position">Position: </string>
     <string name="status">Status: </string>
@@ -54,7 +54,8 @@
     <string name="invalid">invalid</string>
     <string name="version">1.4</string>
     <string name="about">Android app copyright 2012 Bexkat Systems LLC.\nTinyG and TgFX copyright Synthetos, LLC.</string>
-    <string name="no_usb">USB connectivity only supported in Android 3.1 and above.</string>
+    <string name="no_usb_host">USB host connectivity only supported in Android 3.1 and above.</string>
+    <string name="no_usb_accessory">USB accessory connectivity only supported in Android 2.3.4 and above.</string>
     <string name="no_service">TinyG USB Service must be installed for USB support to work.</string>
     <string name="no_filemanager_installed">No filemanager is installed.</string>
     <string name="fb">Firmware build: </string>
@@ -75,12 +76,18 @@
     <string name="mi">Microsteps: </string>
     <string name="po">Polarity: </string>
     <string name="pm">Power mgmt: </string>
+    <string name="fileLabel">File</string>
     <string name="save">Save</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="pause">Pause</string>
     <string name="cancel">Cancel</string>
     <string name="resume">Resume</string>
+    <string name="preferences_summary">General preferences</string>
+    <string name="preferences_title">General</string>
+    <string name="preferences_net_summary">Network preferences</string>
+    <string name="preferences_net_title">Network</string>
+
     <string-array name="axisArray">
         <item>Axis X</item>
         <item>Axis Y</item>
@@ -99,17 +106,18 @@
         <item>Network</item>
         <item>USB (Host)</item>
         <item>USB (Accessory)</item>
-   	</string-array>
-   	<string-array name="driverArrayValues">
-   	    <item>0</item>
-   	    <item>1</item>
-   	    <item>2</item>
-   	</string-array>
-   	<string-array name="tabArray">
-   	    <item>Jog</item>
-   	    <item>File</item>
-   	    <item>System</item>
-   	    <item>Motor</item>
-   	    <item>Axis</item>    
-   	</string-array>
+    </string-array>
+    <string-array name="driverArrayValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string-array name="tabArray">
+        <item>Jog</item>
+        <item>File</item>
+        <item>System</item>
+        <item>Motor</item>
+        <item>Axis</item>
+    </string-array>
+
 </resources>

@@ -65,6 +65,10 @@ public class AxisFragment extends SherlockFragment {
 		}
 	}
 
+	public void myClickHandler(View view) {
+
+	}
+	
 	public void updateState(Bundle b) {
 		Spinner s = (Spinner) mActivity.findViewById(R.id.axispick);
 		if (s.getSelectedItemId() == b.getInt("axis")) {

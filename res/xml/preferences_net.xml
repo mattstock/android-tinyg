@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <EditTextPreference
+        android:dialogMessage="Hostname of tgFX server"
+        android:dialogTitle="Hostname"
+        android:key="tgfx_hostname"
+        android:summary="The hostname of the machine running tgFX"
+        android:title="Hostname" />
+    <EditTextPreference
+        android:defaultValue="4444"
+        android:dialogMessage="Server port"
+        android:dialogTitle="Port"
+        android:key="tgfx_port"
+        android:summary="Network port of tgFX server"
+        android:title="Port" />
+
+</PreferenceScreen>

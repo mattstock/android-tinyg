@@ -141,24 +141,6 @@ public class Machine {
 			return motor[m - 1];
 	}
 
-	private String axisIndexToName(int i) {
-		switch (i) {
-		case 0:
-			return "x";
-		case 1:
-			return "y";
-		case 2:
-			return "z";
-		case 3:
-			return "a";
-		case 4:
-			return "b";
-		case 5:
-			return "c";
-		}
-		return "x";
-	}
-
 	private int axisNameToIndex(String string) {
 		if (string.equals("x")) {
 			return 0;

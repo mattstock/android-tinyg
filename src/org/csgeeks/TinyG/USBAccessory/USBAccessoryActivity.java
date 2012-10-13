@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.csgeeks.TinyG.Support;
+package org.csgeeks.TinyG.USBAccessory;
 
 import org.csgeeks.TinyG.BaseActivity;
 

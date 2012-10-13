@@ -11,42 +11,23 @@
 
         <Button
             android:id="@+id/filepick"
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:onClick="myClickHandler"
-            android:text="File" />
+            android:text="@string/fileLabel" />
 
         <EditText
             android:id="@+id/filename"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:inputType="text" />
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-
-        <Button
-            android:id="@+id/start"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
-            android:onClick="myClickHandler"
-            android:text="@string/start" />
-
-        <Button
-            android:id="@+id/pause"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
-            android:onClick="myClickHandler"
-            android:text="@string/pause" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/filedisplay"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Lorem ipsum" />
+    <Button
+        android:id="@+id/start"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:onClick="myClickHandler"
+        android:text="@string/start" />
 
 </LinearLayout>

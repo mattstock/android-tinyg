@@ -1,4 +1,4 @@
-package org.csgeeks.TinyG.Support;
+package org.csgeeks.TinyG.Net;
 
 // Copyright 2012 Matthew Stock
 
@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+
+import org.csgeeks.TinyG.Support.JSONParser;
+import org.csgeeks.TinyG.Support.TinyGService;
 
 import android.content.Context;
 import android.content.Intent;
@@ -16,7 +19,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
-public class TinyGNetwork extends ServiceWrapper {
+public class TinyGNetwork extends TinyGService {
 	private String tgfx_hostname;
 	private int tgfx_port;
 	private Socket socket;

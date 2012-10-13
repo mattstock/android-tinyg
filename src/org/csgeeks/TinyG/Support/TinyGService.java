@@ -11,15 +11,13 @@ import android.os.Message;
 import android.os.Messenger;
 import android.util.Log;
 
-abstract public class ServiceWrapper extends Service {
+abstract public class TinyGService extends Service {
 	public static final String MACHINE_CONFIG = "org.csgeeks.TinyG.MACHINE_CONFIG";
 	public static final String AXIS_CONFIG = "org.csgeeks.TinyG.AXIS_CONFIG";
 	public static final String MOTOR_CONFIG = "org.csgeeks.TinyG.MOTOR_CONFIG";
 	public static final String STATUS = "org.csgeeks.TinyG.STATUS";
 	public static final String THROTTLE = "org.csgeeks.TinyG.THROTTLE";
 	public static final String CONNECTION_STATUS = "org.csgeeks.TinyG.CONNECTION_STATUS";
-	public static final String USB_SERVICE = "org.csgeeks.TinyG.USB.USBService";
-	public static final String NETWORK_SERVICE = "org.csgeeks.TinyG.Support.TinyGNetwork";
 	public static final int GET_MOTOR = 0;
 	public static final int GET_AXIS = 1;
 	public static final int GET_MACHINE = 2;

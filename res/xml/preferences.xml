@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
-    <PreferenceCategory android:title="Network Options" android:key="net">
-        <EditTextPreference android:key="tgfx_hostname" android:summary="The hostname of the machine running tgFX" android:title="Hostname" android:dialogTitle="Hostname" android:dialogMessage="Hostname of tgFX server"/>
-        <EditTextPreference android:key="tgfx_port" android:summary="Network port of tgFX server" android:defaultValue="4444" android:title="Port" android:dialogTitle="Port" android:dialogMessage="Server port"/>
-    </PreferenceCategory>
-    <ListPreference android:key="tgfx_driver" android:summary="The driver to use to connect to TinyG" android:title="Driver" android:dialogTitle="Driver" android:entries="@array/driverArrayLabels" android:entryValues="@array/driverArrayValues" android:defaultValue="0" />
+   <ListPreference
+        android:defaultValue="0"
+        android:dialogTitle="Driver"
+        android:entries="@array/driverArrayLabels"
+        android:entryValues="@array/driverArrayValues"
+        android:key="tgfx_driver"
+        android:summary="The driver to use to connect to TinyG"
+        android:title="Driver" />
+
 </PreferenceScreen>

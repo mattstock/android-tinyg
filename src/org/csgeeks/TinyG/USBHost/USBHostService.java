@@ -1,8 +1,9 @@
-package org.csgeeks.TinyG.Support;
+package org.csgeeks.TinyG.USBHost;
 
 // Copyright 2012 Matthew Stock
 
-import org.csgeeks.TinyG.Support.*;
+import org.csgeeks.TinyG.Support.JSONParser;
+import org.csgeeks.TinyG.Support.TinyGService;
 
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -21,7 +22,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 // This is only a bound service at the moment.
-public class USBService extends ServiceWrapper {
+public class USBHostService extends TinyGService {
 	private static final String TAG = "TinyG-USB";
 	private static final String ACTION_USB_PERMISSION =
 			"org.csgeeks.TinyG.USB_PERMISSION";
@@ -43,7 +44,7 @@ public class USBService extends ServiceWrapper {
 		mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
         registerReceiver(mUsbReceiver, filter);
-        deviceFTDI = USBSupport.loadFTDI(mUsbManager);
+        deviceFTDI = USBHostSupport.loadFTDI(mUsbManager);
 	}
 
 	@Override
@@ -71,11 +72,11 @@ public class USBService extends ServiceWrapper {
 					// Do all of the setup and call the listener AsyncTask
 					conn = mUsbManager.openDevice(deviceFTDI);
 					if (!conn.claimInterface(deviceFTDI.getInterface(0), true)) {
-						Toast.makeText(USBService.this, "TinyG USB device locked", Toast.LENGTH_SHORT).show();
+						Toast.makeText(USBHostService.this, "TinyG USB device locked", Toast.LENGTH_SHORT).show();
 						Log.e(TAG, "Can't claim USB interface");
 					}
 					// Configure for TinyG serial settings - 115200, 8N1
-					USBSupport.ftdi_settings(conn);
+					USBHostSupport.ftdi_settings(conn);
 					epIN = null;
 					epOUT = null;
 					
@@ -99,7 +100,7 @@ public class USBService extends ServiceWrapper {
 					sendBroadcast(i, null);
 					refresh();
 				} else {
-					Toast.makeText(USBService.this, "USB permission denied", Toast.LENGTH_SHORT).show();
+					Toast.makeText(USBHostService.this, "USB permission denied", Toast.LENGTH_SHORT).show();
 				}
 			}
 		}
@@ -141,7 +142,7 @@ public class USBService extends ServiceWrapper {
 	@Override
 	public void connect() {
 		if (deviceFTDI == null) {
-			Toast.makeText(this, "No TinyG USB devices attached!", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "No TinyG USB host devices attached!", Toast.LENGTH_SHORT).show();
 		} else {
 			PendingIntent mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION),0);
 			mUsbManager.requestPermission(deviceFTDI, mPermissionIntent);

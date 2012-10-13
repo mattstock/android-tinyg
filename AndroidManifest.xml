@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.csgeeks.TinyG"
-    android:versionCode="15"
+    android:versionCode="14"
     android:versionName="@string/version" >
 
     <uses-sdk
@@ -33,7 +33,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ShowSettingsActivity"
+            android:name=".EditPreferencesActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".MachineActivity"
@@ -49,14 +49,14 @@
             android:name=".FileActivity"
             android:windowSoftInputMode="stateHidden" />
 
-        <service android:name=".Support.TinyGNetwork" >
+        <service android:name=".Net.TinyGNetwork" >
             <intent-filter>
-                <action android:name="org.csgeeks.TinyG.Support.TinyGNetwork" />
+                <action android:name="org.csgeeks.TinyG.Net.TinyGNetwork" />
             </intent-filter>
         </service>
-        <service android:name=".Support.USBService" >
+        <service android:name=".USBHost.USBHostService" >
             <intent-filter>
-                <action android:name="org.csgeeks.TinyG.USB.USBService" />
+                <action android:name="org.csgeeks.TinyG.USBHost.USBService" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
@@ -67,23 +67,13 @@
                 android:resource="@xml/usb_device_filter" />
         </service>
         <service
-            android:name=".Support.USBAccessoryService"
+            android:name=".USBAccessory.USBAccessoryService"
             android:label="@string/app_name"
             android:taskAffinity="" >
             <intent-filter>
-                <action android:name="org.csgeeks.TinyG.USB.USBAccessoryService" />
+                <action android:name="org.csgeeks.TinyG.USBAccessory.USBAccessoryService" />
             </intent-filter>
         </service>
-
-        <activity android:name=".USBAccessoryActivity" >
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
-                android:resource="@xml/usb_accessory_filter" />
-        </activity>
     </application>
 
 </manifest>

@@ -23,18 +23,24 @@ public class StatusFragment extends SherlockFragment {
     }
     
 	public void updateState(Bundle b) {
-		((TextView) v.findViewById(R.id.jogval)).setText(Float
-				.toString(b.getFloat("jogRate")));
-		((TextView) v.findViewById(R.id.loc)).setText(
-				String.format("( %.3f, %.3f, %.3f, %.3f)",
-						b.getFloat("posx"), b.getFloat("posy"),
-						b.getFloat("posz"), b.getFloat("posa")));
-		((TextView) v.findViewById(R.id.line)).setText(Integer.toString(b
-				.getInt("line")));
-		((TextView) v.findViewById(R.id.momo)).setText(b.getString("momo"));
-		((TextView) v.findViewById(R.id.status)).setText(b.getString("status"));
-		((TextView) v.findViewById(R.id.velocity)).setText(Float.toString(b
-				.getFloat("velocity")));
+		if (b.containsKey("jogRate"))
+			((TextView) v.findViewById(R.id.jogval)).setText(Float
+					.toString(b.getFloat("jogRate")));
+		if (b.containsKey("posx"))
+			((TextView) v.findViewById(R.id.loc)).setText(
+					String.format("( %.3f, %.3f, %.3f, %.3f)",
+							b.getFloat("posx"), b.getFloat("posy"),
+							b.getFloat("posz"), b.getFloat("posa")));
+		if (b.containsKey("line"))
+			((TextView) v.findViewById(R.id.line)).setText(Integer.toString(b
+					.getInt("line")));
+		if (b.containsKey("momo"))
+			((TextView) v.findViewById(R.id.momo)).setText(b.getString("momo"));
+		if (b.containsKey("status"))
+			((TextView) v.findViewById(R.id.status)).setText(b.getString("status"));
+		if (b.containsKey("velocity"))
+			((TextView) v.findViewById(R.id.velocity)).setText(Float.toString(b
+					.getFloat("velocity")));
 	}
 
 }

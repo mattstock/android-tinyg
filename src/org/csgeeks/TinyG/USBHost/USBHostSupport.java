@@ -1,4 +1,4 @@
-package org.csgeeks.TinyG.Support;
+package org.csgeeks.TinyG.USBHost;
 
 // Most of this ported from libftdi http://www.intra2net.com/en/developer/libftdi/.
 
@@ -11,7 +11,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
 
-public class USBSupport {
+public class USBHostSupport {
 	private static final String TAG = "TinyG-USB";
 	public static final int USB_VENDOR_ID = 0x0403;
 	public static final int USB_PRODUCT_ID = 0x6001;

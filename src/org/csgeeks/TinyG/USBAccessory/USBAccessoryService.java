@@ -1,4 +1,4 @@
-package org.csgeeks.TinyG.Support;
+package org.csgeeks.TinyG.USBAccessory;
 
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -6,7 +6,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.csgeeks.TinyG.Support.JSONParser;
+import org.csgeeks.TinyG.Support.TinyGService;
 
+import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -17,9 +20,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.widget.Toast;
 
-public class USBAccessoryService extends ServiceWrapper {
+@TargetApi(12)
+public class USBAccessoryService extends TinyGService {
 	private static final String LOG_TAG = "USBAccessoryService";
+	private BroadcastReceiver mUsbReceiver = new UsbReceiver();
 	private UsbManager mUSBManager;
 	private UsbAccessory mAccessory;
 	private FileInputStream mInputStream;
@@ -28,6 +34,25 @@ public class USBAccessoryService extends ServiceWrapper {
 	protected ListenerTask mListener;
 	private static final String ACTION_USB_PERMISSION = "org.csgeeks.TinyG.Operator.action.USB_PERMISSION";
 
+	
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		Log.d(TAG, "USB service onCreate()");
+		mUSBManager = (UsbManager) getSystemService(Context.USB_SERVICE);		
+		
+		// So we know when it's disconnected
+		IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
+		registerReceiver(mUsbReceiver, filter);		
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		unregisterReceiver(mUsbReceiver);
+		Log.d(TAG, "USB service onDestroy()");
+	}
 	
 	public void write(String cmd) {
 		Log.d(LOG_TAG, "Writing |" + cmd + "| to USB");
@@ -46,13 +71,15 @@ public class USBAccessoryService extends ServiceWrapper {
 			return;
 		}
 
-		mUSBManager = (UsbManager) getSystemService(Context.USB_SERVICE);		
 		UsbAccessory[] accessories = mUSBManager.getAccessoryList();
-		UsbAccessory accessory = (accessories == null ? null
+		mAccessory = (accessories == null ? null
 				: accessories[0]);
-		mFileDescriptor = mUSBManager.openAccessory(accessory);
+		if (mAccessory == null) {
+			Toast.makeText(this, "No TinyG USB accessory devices attached!", Toast.LENGTH_SHORT).show();
+			return;
+		}
+		mFileDescriptor = mUSBManager.openAccessory(mAccessory);
 		if (mFileDescriptor != null) {
-			mAccessory = accessory;
 			FileDescriptor fd = mFileDescriptor.getFileDescriptor();
 			if (fd.valid()) {
 				mInputStream = new FileInputStream(fd);
@@ -63,28 +90,18 @@ public class USBAccessoryService extends ServiceWrapper {
 		} else {
 			Log.d(TAG,"openAccessory failed!");
 		}
-		
-		// So we know when it's disconnected
-		IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-		registerReceiver(mUsbReceiver, filter);
-		
+
 		// Watch and parse content from device
 		mListener = new ListenerTask();
 		mListener.execute(new InputStream[] { mInputStream });
-		
-		// Let everyone know we are connected
-		Bundle b = new Bundle();
-		b.putBoolean("connection", true);
-		Intent i = new Intent(CONNECTION_STATUS);
-		i.putExtras(b);
-		sendBroadcast(i, null);
-		refresh();
-		Log.i(TAG, "Listener started, connection_status intent sent");
 	}
 
 	public void disconnect() {
 		super.disconnect();
+
+		if (mListener != null)
+			mListener.cancel(true);	
+
 		try {
 			if (mInputStream != null)
 				mInputStream.close();
@@ -102,10 +119,9 @@ public class USBAccessoryService extends ServiceWrapper {
 			} catch (IOException e) {
 			}
 		}
-		unregisterReceiver(mUsbReceiver);
 	}
 	
-	private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+	private class UsbReceiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();

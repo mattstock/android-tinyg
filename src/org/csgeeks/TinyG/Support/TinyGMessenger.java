@@ -17,8 +17,8 @@ public class TinyGMessenger {
 		messenger = m;
 	}
 	
-	public void short_jog (String axis, double step) {
-		send_gcode(String.format("g91g0%s%f", axis, step));
+	public static String short_jog (String axis, double step) {
+		return String.format("g91g0%s%f", axis, step);
 	}
 	
 	public void send_gcode(String gcode) {
@@ -31,7 +31,7 @@ public class TinyGMessenger {
 			Log.d(TAG, "Messenger uninitialized");
 			return;
 		}
-        Message msg = Message.obtain(null, ServiceWrapper.GCODE, 0, 0, null);
+        Message msg = Message.obtain(null, TinyGService.GCODE, 0, 0, null);
         Bundle b = new Bundle();
         b.putString("gcode", gcode);
         msg.setData(b);
