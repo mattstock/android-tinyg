@@ -13,8 +13,6 @@ import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -32,7 +30,6 @@ import android.os.IBinder;
 import android.os.Messenger;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
@@ -42,7 +39,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BaseActivity extends SherlockFragmentActivity implements MotorFragment.MotorFragmentListener, AxisFragment.AxisFragmentListener {
+public class BaseActivity extends SherlockFragmentActivity implements MotorFragment.MotorFragmentListener, AxisFragment.AxisFragmentListener, SystemFragment.SystemFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGMessenger tinyg;
 	private float jogRate = 10;
@@ -54,8 +51,6 @@ public class BaseActivity extends SherlockFragmentActivity implements MotorFragm
 	private PrefsListener mPreferencesListener;
 	private Download mDownload;
 	private BroadcastReceiver mIntentReceiver;
-	private static final int DIALOG_ABOUT = 0;
-	private static final int DIALOG_NO_SERVICE = 2;
 	private Context mCtx;
 	
 	@Override
@@ -171,6 +166,12 @@ public class BaseActivity extends SherlockFragmentActivity implements MotorFragm
 		public void onReceive(Context context, Intent intent) {
 			Bundle b = intent.getExtras();
 			String action = intent.getAction();
+			Fragment ft = getSupportFragmentManager().findFragmentById(R.id.tabview);
+			if (ft != null) {
+				Log.d(TAG, "onReceive() tabview class is " + ft.getClass().toString());
+			} else {
+				Log.d(TAG, "tabview fragment is null!?");
+			}
 			if (action.equals(ServiceWrapper.STATUS)) {
 				StatusFragment sf = (StatusFragment) getSupportFragmentManager().findFragmentById(R.id.statusF);
 				b.putFloat("jogRate", jogRate);
@@ -186,15 +187,18 @@ public class BaseActivity extends SherlockFragmentActivity implements MotorFragm
 					((MotorFragment) f).updateState(b);				
 			}
 			if (action.equals(ServiceWrapper.AXIS_CONFIG)) {
+				Log.d(TAG, "Got AXIS_CONFIG broadcast");
 				Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
 				if (f != null && f.getClass() == AxisFragment.class)
 					((AxisFragment) f).updateState(b);			
 			}			
 			if (action.equals(ServiceWrapper.CONNECTION_STATUS)) {
+				Log.d(TAG, "Got CONNECTION_STATUS broadcast");
 				connected = b.getBoolean("connection");
 				invalidateOptionsMenu();
 			}
 			if (action.equals(ServiceWrapper.MACHINE_CONFIG)) {
+				Log.d(TAG, "Got MACHINE_CONFIG broadcast");
 				Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
 				if (f != null && f.getClass() == SystemFragment.class)
 					((SystemFragment) f).updateState(b);			
@@ -242,7 +246,9 @@ public class BaseActivity extends SherlockFragmentActivity implements MotorFragm
 			startActivity(new Intent(this, ShowSettingsActivity.class));
 			return true;
 		case R.id.about:
-			showDialog(DIALOG_ABOUT);
+	        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+	        AboutFragment af = new AboutFragment();
+	        af.show(ft, "about");
 			return true;
 		case R.id.refresh:
 			if (mDownload != null)
@@ -259,20 +265,6 @@ public class BaseActivity extends SherlockFragmentActivity implements MotorFragm
 		}
 	}
 
-	@Override
-	public Dialog onCreateDialog(int arg) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		switch (arg) {
-		case DIALOG_ABOUT:
-			builder.setMessage(R.string.about).setTitle(R.string.app_name);
-			return builder.create();
-		case DIALOG_NO_SERVICE:
-			builder.setMessage(R.string.no_service).setTitle(R.string.app_name);
-			return builder.create();
-		}
-		return null;
-	}
-    
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
@@ -425,11 +417,18 @@ public class BaseActivity extends SherlockFragmentActivity implements MotorFragm
 		}
 	}
 
+	public void onSystemSelected() {
+		if (tinyg == null)
+			return;
+		Log.d(TAG, "Sending GET_MACHINE message");
+		tinyg.send_command(ServiceWrapper.GET_MACHINE);
+		
+	}
 	public void onMotorSelected(int m) {
 		motor_pick = m;
 		if (tinyg == null)
 			return;
-		Log.d(TAG, String.format("Sending GET_MOTOR intent %d", motor_pick));
+		Log.d(TAG, String.format("Sending GET_MOTOR message %d", motor_pick));
 		tinyg.send_command(ServiceWrapper.GET_MOTOR, motor_pick);
 	}
 
@@ -479,8 +478,7 @@ public class BaseActivity extends SherlockFragmentActivity implements MotorFragm
 		}
 
 		public void onTabReselected(Tab tab, FragmentTransaction ft) {
-			// TODO Auto-generated method stub
-			
 		}
 	}
+
 }

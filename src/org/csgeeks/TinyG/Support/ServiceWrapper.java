@@ -99,6 +99,7 @@ abstract public class ServiceWrapper extends Service {
 				if (b == null)
 					break;
 				Log.d(TAG, "sending axis config intent");
+				Log.d(TAG, b.toString());
 				i = new Intent(AXIS_CONFIG);
 				i.putExtras(b);
 				sendBroadcast(i, null);
