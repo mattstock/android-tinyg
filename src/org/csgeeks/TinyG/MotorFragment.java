@@ -2,9 +2,10 @@ package org.csgeeks.TinyG;
 
 // Copyright 2012 Matthew Stock
 
+import com.actionbarsherlock.app.SherlockFragment;
+
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,7 +17,7 @@ import android.widget.Spinner;
 import android.widget.ToggleButton;
 import android.widget.AdapterView.OnItemSelectedListener;
 
-public class MotorFragment extends Fragment {
+public class MotorFragment extends SherlockFragment {
 	private static final String TAG = "TinyG";
 	private MotorFragmentListener mListener;
 	private Activity mActivity;

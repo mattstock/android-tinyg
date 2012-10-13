@@ -65,6 +65,7 @@ public class BaseActivity extends SherlockFragmentActivity implements MotorFragm
 		updateFilter.addAction(ServiceWrapper.MOTOR_CONFIG);
 		updateFilter.addAction(ServiceWrapper.STATUS);
 		updateFilter.addAction(ServiceWrapper.CONNECTION_STATUS);
+		updateFilter.addAction(ServiceWrapper.MACHINE_CONFIG);
 		updateFilter.addAction(ServiceWrapper.THROTTLE);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
@@ -192,6 +193,12 @@ public class BaseActivity extends SherlockFragmentActivity implements MotorFragm
 			if (action.equals(ServiceWrapper.CONNECTION_STATUS)) {
 				connected = b.getBoolean("connection");
 				invalidateOptionsMenu();
+			}
+			if (action.equals(ServiceWrapper.MACHINE_CONFIG)) {
+				Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
+				if (f != null && f.getClass() == SystemFragment.class)
+					((SystemFragment) f).updateState(b);			
+				
 			}
 			if (action.equals(ServiceWrapper.THROTTLE) && mDownload != null) {
 				synchronized (mDownload.getSyncToken()) {
@@ -452,6 +459,8 @@ public class BaseActivity extends SherlockFragmentActivity implements MotorFragm
 					f = new MotorFragment();
 				else if (tab.getText().equals("Axis"))
 					f = new AxisFragment();
+				else if (tab.getText().equals("System"))
+					f = new SystemFragment();
 				else // Jog
 					f = new JogFragment();
 				ft.add(R.id.tabview, f, (String) tab.getText());

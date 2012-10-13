@@ -97,11 +97,13 @@
     </string-array>
     <string-array name="driverArrayLabels">
         <item>Network</item>
-        <item>USB</item>
+        <item>USB (Host)</item>
+        <item>USB (Accessory)</item>
    	</string-array>
    	<string-array name="driverArrayValues">
    	    <item>0</item>
    	    <item>1</item>
+   	    <item>2</item>
    	</string-array>
    	<string-array name="tabArray">
    	    <item>Jog</item>
