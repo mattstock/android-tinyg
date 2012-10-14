@@ -159,12 +159,6 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		public void onReceive(Context context, Intent intent) {
 			Bundle b = intent.getExtras();
 			String action = intent.getAction();
-			Fragment ft = getSupportFragmentManager().findFragmentById(R.id.tabview);
-			if (ft != null) {
-				Log.d(TAG, "onReceive() tabview class is " + ft.getClass().toString());
-			} else {
-				Log.d(TAG, "tabview fragment is null!?");
-			}
 			if (action.equals(TinyGService.STATUS)) {
 				StatusFragment sf = (StatusFragment) getSupportFragmentManager().findFragmentById(R.id.statusF);
 				sf.updateState(b);
@@ -273,7 +267,7 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 
 	public void myClickHandler(View view) {
 		Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
-		if (tinyg == null || !connected || f == null)
+		if (f == null)
 			return;
 
 		// Ugly!
@@ -395,6 +389,9 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	}
 
 	public void toggleDownload(String filename) {
+		if (tinyg == null || !connected)
+			return;
+		
 		// stop downloading
 		if (mDownload != null) {
 			FileFragment ff = (FileFragment) getSupportFragmentManager().findFragmentById(R.id.tabview);
@@ -413,6 +410,8 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	}
 
 	public void sendGcode(String cmd) {
+		if (tinyg == null || !connected)
+			return;
 		tinyg.send_gcode(cmd);
 	}
 

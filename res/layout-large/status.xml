@@ -13,7 +13,7 @@
             android:id="@+id/labelPosition"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/position" />
+            android:text="@string/position_entry_label" />
 
         <TextView
             android:id="@+id/loc"
