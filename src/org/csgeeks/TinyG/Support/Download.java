@@ -24,13 +24,12 @@ public class Download {
 	private FileWriteTask mFileTask;
 	private Dialog mDialog;
 	private TinyGMessenger mTinyG;
-	private final Object synctoken;
+	private static final Object synctoken = new Object();
 	private boolean throttle;
 
 	public Download(Activity a, TinyGMessenger m) {
 		mActivity = a;
 		mTinyG = m;
-		synctoken = new Object();
 		throttle = false;
 	}
 
@@ -115,7 +114,7 @@ public class Download {
 							while (throttle)
 								synctoken.wait();
 						}
-						Thread.sleep(10);
+						Thread.sleep(50);
 					} catch (InterruptedException e) {
 						// This is probably ok, just proceed.
 					}

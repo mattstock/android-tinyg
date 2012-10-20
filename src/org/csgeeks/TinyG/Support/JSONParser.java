@@ -40,8 +40,7 @@ public class JSONParser {
 			return processBodyObject(json, machine);
 		} catch (JSONException e) {
 			Log.e(TAG,
-					"Received malformed JSON: " + string + ": "
-							+ e.getMessage());
+					"JSON: " + e.getMessage());
 		}
 		return null;
 	}

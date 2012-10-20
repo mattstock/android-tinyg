@@ -193,7 +193,6 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 			if (action.equals(TinyGService.THROTTLE) && mDownload != null) {
 				synchronized (mDownload.getSyncToken()) {
 					mDownload.setThrottle(b.getBoolean("state"));
-					Log.d(TAG, "Got [un]throttle signal");
 					mDownload.getSyncToken().notify();
 				}
 			}

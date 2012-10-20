@@ -93,7 +93,7 @@ public class USBAccessoryService extends TinyGService {
 
 		// Watch and parse content from device
 		mListener = new ListenerTask();
-		mListener.execute(new InputStream[] { mInputStream });
+		mListener.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new InputStream[] { mInputStream });
 	}
 
 	public void disconnect() {

@@ -95,7 +95,7 @@ public class USBHostService extends TinyGService {
 					}
 					Log.d(TAG, "Got endpoints");
 					mListener = new ListenerTask();
-					mListener.execute(0);
+					mListener.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 					// Let everyone know we are connected
 					Bundle b = new Bundle();
 					b.putBoolean("connection", true);
@@ -136,7 +136,7 @@ public class USBHostService extends TinyGService {
 				tmp[to_idx++] = b[from_idx++];
 			}
 
-			if ((res = conn.bulkTransfer(epOUT, tmp, to_idx, 5000)) != to_idx) {
+			if ((res = conn.bulkTransfer(epOUT, tmp, to_idx, 0)) != to_idx) {
 				Log.e(TAG, "USB send failed with code " + res);
 			}
 		}
@@ -160,16 +160,20 @@ public class USBHostService extends TinyGService {
 	protected class ListenerTask extends AsyncTask<Integer, String, Void> {
 		@Override
 		protected Void doInBackground(Integer... params) {
-			byte[] inbuffer = new byte[64];
+			byte[] inbuffer = new byte[256];
 			byte[] linebuffer = new byte[1024];
 			int cnt, idx = 0;
 			try {
 				while (!isCancelled()) {
-					if ((cnt = conn.bulkTransfer(epIN, inbuffer, 64, 0)) < 2) {
+					if ((cnt = conn.bulkTransfer(epIN, inbuffer, 256, 0)) < 2) {
 						Log.e(TAG, "Bulk read failed");
 						break;
 					}
-					for (int i = 2; i < cnt; i++) {
+					for (int i = 0; i < cnt; i++) {
+						if (i % 64 == 0) { // Skip the two FTDI bytes that are spaced every 64 bytes
+							i++;
+							continue;
+						}		
 						linebuffer[idx++] = inbuffer[i];
 						if (inbuffer[i] == 0x13) {
 							Log.d(TAG, "Found XOFF!");
