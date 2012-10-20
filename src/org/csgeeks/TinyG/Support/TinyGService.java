@@ -11,8 +11,9 @@ import android.util.Log;
 
 abstract public class TinyGService extends Service {
 	public static final String STATUS = "org.csgeeks.TinyG.STATUS";
-	public static final String THROTTLE = "org.csgeeks.TinyG.THROTTLE";
 	public static final String CONNECTION_STATUS = "org.csgeeks.TinyG.CONNECTION_STATUS";
+	private static final Object synctoken = new Object();
+	private static boolean throttle = false;
 	protected static final String TAG = "TinyG";
 	protected Machine machine;
 	private final IBinder mBinder = new TinyGBinder();
@@ -67,9 +68,25 @@ abstract public class TinyGService extends Service {
 	
 	// Sends a command to the service
 	public void send_raw_gcode(String gcode) {
+		try {
+			synchronized (synctoken) {
+				while (throttle)
+					synctoken.wait();
+			}
+			Thread.sleep(50);
+		} catch (InterruptedException e) {
+			// This is probably ok, just proceed.
+		}
 		write(gcode);
 	}
 
+	public static void setThrottle(boolean t) {
+		synchronized (synctoken) {
+			throttle = t;
+			synctoken.notify();
+		}
+	}
+	
 	public Bundle getMotor(int m) {
 		return machine.getMotorBundle(m);
 	}

@@ -135,7 +135,7 @@ public class USBHostService extends TinyGService {
 				tmp[to_idx++] = b[from_idx++];
 			}
 
-			if ((res = conn.bulkTransfer(epOUT, tmp, to_idx, 0)) != to_idx) {
+			if ((res = conn.bulkTransfer(epOUT, tmp, to_idx, 500)) != to_idx) {
 				Log.e(TAG, "USB send failed with code " + res);
 			}
 		}
@@ -159,12 +159,12 @@ public class USBHostService extends TinyGService {
 	protected class ListenerTask extends AsyncTask<Integer, String, Void> {
 		@Override
 		protected Void doInBackground(Integer... params) {
-			byte[] inbuffer = new byte[256];
+			byte[] inbuffer = new byte[2048];
 			byte[] linebuffer = new byte[1024];
 			int cnt, idx = 0;
 			try {
 				while (!isCancelled()) {
-					if ((cnt = conn.bulkTransfer(epIN, inbuffer, 256, 0)) < 2) {
+					if ((cnt = conn.bulkTransfer(epIN, inbuffer, 2048, 0)) < 2) {
 						Log.e(TAG, "Bulk read failed");
 						break;
 					}
@@ -177,16 +177,12 @@ public class USBHostService extends TinyGService {
 						if (inbuffer[i] == 0x13) {
 							Log.d(TAG, "Found XOFF!");
 							idx--;
-							Intent intent = new Intent(THROTTLE);
-							intent.putExtra("state", true);
-							sendBroadcast(intent, null);
+							setThrottle(true);
 						}
 						if (inbuffer[i] == 0x11) {
 							Log.d(TAG, "Found XON!");
 							idx--;
-							Intent intent = new Intent(THROTTLE);
-							intent.putExtra("state", false);
-							sendBroadcast(intent, null);
+							setThrottle(false);
 						}
 						if (inbuffer[i] == '\n') {
 							publishProgress(new String(linebuffer, 0, idx));

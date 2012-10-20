@@ -51,7 +51,6 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		IntentFilter updateFilter = new IntentFilter();
 		updateFilter.addAction(TinyGService.STATUS);
 		updateFilter.addAction(TinyGService.CONNECTION_STATUS);
-		updateFilter.addAction(TinyGService.THROTTLE);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
 
@@ -167,12 +166,6 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 				Log.d(TAG, "Got CONNECTION_STATUS broadcast");
 				connected = b.getBoolean("connection");
 				invalidateOptionsMenu();
-			}
-			if (action.equals(TinyGService.THROTTLE) && mDownload != null) {
-				synchronized (mDownload.getSyncToken()) {
-					mDownload.setThrottle(b.getBoolean("state"));
-					mDownload.getSyncToken().notify();
-				}
 			}
 		}
 	}

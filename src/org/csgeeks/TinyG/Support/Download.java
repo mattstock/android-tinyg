@@ -24,25 +24,10 @@ public class Download {
 	private FileWriteTask mFileTask;
 	private Dialog mDialog;
 	private TinyGService mTinyG;
-	private static final Object synctoken = new Object();
-	private boolean throttle;
 
 	public Download(Activity a, TinyGService s) {
 		mActivity = a;
 		mTinyG = s;
-		throttle = false;
-	}
-
-	public Object getSyncToken() {
-		return synctoken;
-	}
-
-	public boolean isThrottled() {
-		return throttle;
-	}
-
-	public void setThrottle(boolean t) {
-		throttle = t;
 	}
 
 	// Given a filename, start up the file writer task and provide status on
@@ -109,15 +94,7 @@ public class Download {
 				BufferedReader in = new BufferedReader(new FileReader(filename));
 				while (!isCancelled() && (line = in.readLine()) != null) {
 					idx++;
-					try {
-						synchronized (synctoken) {
-							while (throttle)
-								synctoken.wait();
-						}
-						Thread.sleep(50);
-					} catch (InterruptedException e) {
-						// This is probably ok, just proceed.
-					}
+					mTinyG.send_gcode(line);
 					publishProgress(line, Integer.toString(idx));
 				}
 				in.close();
@@ -136,7 +113,6 @@ public class Download {
 				((TextView) mDialog.findViewById(R.id.line)).setText(values[0]);
 				((TextView) mDialog.findViewById(R.id.current))
 						.setText(values[1]);
-				mTinyG.send_gcode(values[0]);
 			}
 		}
 

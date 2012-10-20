@@ -130,16 +130,12 @@ public class TinyGNetwork extends TinyGService {
 					if (b == 0x13) {
 						Log.d(TAG, "Found XOFF!");
 						idx--;
-						Intent i = new Intent(THROTTLE);
-						i.putExtra("state", true);
-						sendBroadcast(i,null);
+						setThrottle(true);
 					}
 					if (b == 0x11) {
 						Log.d(TAG, "Found XON!");
 						idx--;
-						Intent i = new Intent(THROTTLE);
-						i.putExtra("state", false);
-						sendBroadcast(i,null);
+						setThrottle(false);
 					}
 
 					if (b == '\n') {
