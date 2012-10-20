@@ -7,11 +7,13 @@ import java.io.IOException;
 
 import org.csgeeks.TinyG.R;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.app.Dialog;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -46,6 +48,7 @@ public class Download {
 
 	// Given a filename, start up the file writer task and provide status on
 	// progress dialog
+	@SuppressLint("NewApi")
 	public void openFile(String string) {
 		// Count lines
 		try {
@@ -78,7 +81,10 @@ public class Download {
 		// Now send them!
 
 		mFileTask = new FileWriteTask();
-		mFileTask.execute(string);
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB)
+			mFileTask.execute(string);
+		else
+			mFileTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, string);
 	}
 
 	public void cancel() {
@@ -106,10 +112,10 @@ public class Download {
 					idx++;
 					try {
 						synchronized (synctoken) {
-							if (throttle)
+							while (throttle)
 								synctoken.wait();
 						}
-						Thread.sleep(500);
+						Thread.sleep(10);
 					} catch (InterruptedException e) {
 						// This is probably ok, just proceed.
 					}
@@ -131,7 +137,7 @@ public class Download {
 				((TextView) mDialog.findViewById(R.id.line)).setText(values[0]);
 				((TextView) mDialog.findViewById(R.id.current))
 						.setText(values[1]);
-				mTinyG.send_gcode(values[0] + "\n");
+				mTinyG.send_gcode(values[0]);
 			}
 		}
 

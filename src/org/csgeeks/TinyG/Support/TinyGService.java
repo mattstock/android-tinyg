@@ -80,7 +80,6 @@ abstract public class TinyGService extends Service {
 				disconnect();
 				break;
 			case GCODE:
-				Log.d(TAG, "got gcode message");
 				b = msg.getData();
 				write(b.getString("gcode"));
 				break;

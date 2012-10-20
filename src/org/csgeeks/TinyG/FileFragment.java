@@ -106,8 +106,8 @@ public class FileFragment extends SherlockFragment {
 	
 	public void updateState(boolean download) {
 		if (download)
-			((Button) mView.findViewById(R.id.start)).setText(R.string.start);
-		else
 			((Button) mView.findViewById(R.id.start)).setText(R.string.stop);
+		else
+			((Button) mView.findViewById(R.id.start)).setText(R.string.start);
 	}
 }
