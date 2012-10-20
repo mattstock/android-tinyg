@@ -4,6 +4,7 @@ package org.csgeeks.TinyG;
 
 import org.csgeeks.TinyG.Net.TinyGNetwork;
 import org.csgeeks.TinyG.Support.*;
+import org.csgeeks.TinyG.Support.TinyGService.TinyGBinder;
 import org.csgeeks.TinyG.USBAccessory.USBAccessoryService;
 import org.csgeeks.TinyG.USBHost.USBHostService;
 
@@ -26,7 +27,6 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Messenger;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -37,7 +37,7 @@ import android.widget.Toast;
 
 public class BaseActivity extends SherlockFragmentActivity implements FileFragment.FileFragmentListener, JogFragment.JogFragmentListener, MotorFragment.MotorFragmentListener, AxisFragment.AxisFragmentListener, SystemFragment.SystemFragmentListener {
 	private static final String TAG = "TinyG";
-	private TinyGMessenger tinyg;
+	private TinyGService tinyg;
 	private int bindType = 0;
 	private boolean connected = false;
 	private boolean mBound;
@@ -49,11 +49,8 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	@Override
 	public void onResume() {
 		IntentFilter updateFilter = new IntentFilter();
-		updateFilter.addAction(TinyGService.AXIS_CONFIG);
-		updateFilter.addAction(TinyGService.MOTOR_CONFIG);
 		updateFilter.addAction(TinyGService.STATUS);
 		updateFilter.addAction(TinyGService.CONNECTION_STATUS);
-		updateFilter.addAction(TinyGService.MACHINE_CONFIG);
 		updateFilter.addAction(TinyGService.THROTTLE);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
@@ -166,29 +163,10 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 				if (f != null && f.getClass() == JogFragment.class)
 					((JogFragment) f).updateState(b);
 			}
-			if (action.equals(TinyGService.MOTOR_CONFIG)) {
-				Log.d(TAG, "Got MOTOR_CONFIG broadcast");
-				Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
-				if (f != null && f.getClass() == MotorFragment.class)
-					((MotorFragment) f).updateState(b);				
-			}
-			if (action.equals(TinyGService.AXIS_CONFIG)) {
-				Log.d(TAG, "Got AXIS_CONFIG broadcast");
-				Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
-				if (f != null && f.getClass() == AxisFragment.class)
-					((AxisFragment) f).updateState(b);			
-			}			
 			if (action.equals(TinyGService.CONNECTION_STATUS)) {
 				Log.d(TAG, "Got CONNECTION_STATUS broadcast");
 				connected = b.getBoolean("connection");
 				invalidateOptionsMenu();
-			}
-			if (action.equals(TinyGService.MACHINE_CONFIG)) {
-				Log.d(TAG, "Got MACHINE_CONFIG broadcast");
-				Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
-				if (f != null && f.getClass() == SystemFragment.class)
-					((SystemFragment) f).updateState(b);			
-				
 			}
 			if (action.equals(TinyGService.THROTTLE) && mDownload != null) {
 				synchronized (mDownload.getSyncToken()) {
@@ -224,9 +202,9 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 			if (tinyg == null)
 				return true;
 			if (connected) {
-				tinyg.send_command(TinyGService.DISCONNECT);
+				tinyg.disconnect();
 			} else {
-				tinyg.send_command(TinyGService.CONNECT);
+				tinyg.connect();
 			}
 			return true;
 		case R.id.settings:
@@ -241,7 +219,7 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 			if (mDownload != null)
 				return true;
 			if (connected) {
-				tinyg.send_command(TinyGService.REFRESH);
+				tinyg.refresh();
 			} else {
 				Toast.makeText(this, "Not connected!", Toast.LENGTH_SHORT)
 						.show();
@@ -287,7 +265,8 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	// We can probably redo this as a subclass.
 	private class DriverServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
-			tinyg = new TinyGMessenger(new Messenger(service));
+			TinyGBinder binder = (TinyGBinder) service;
+			tinyg = binder.getService();
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
@@ -322,20 +301,28 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		if (tinyg == null)
 			return;
 		Log.d(TAG, "Sending GET_MACHINE message");
-		tinyg.send_command(TinyGService.GET_MACHINE);
-		
+		Bundle b = tinyg.getMachineStatus();
+		Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
+		if (f != null && f.getClass() == SystemFragment.class)
+			((SystemFragment) f).updateState(b);	
 	}
 	public void onMotorSelected(int m) {
 		if (tinyg == null)
 			return;
 		Log.d(TAG, String.format("Sending GET_MOTOR message %d", m));
-		tinyg.send_command(TinyGService.GET_MOTOR, m);
+		Bundle b = tinyg.getMotor(m);
+		Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
+		if (f != null && f.getClass() == MotorFragment.class)
+			((MotorFragment) f).updateState(b);				
 	}
 
 	public void onAxisSelected(int a) {
 		if (tinyg == null)
 			return;
-		tinyg.send_command(TinyGService.GET_AXIS, a);
+		Bundle b = tinyg.getAxis(a);
+		Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
+		if (f != null && f.getClass() == AxisFragment.class)
+			((AxisFragment) f).updateState(b);			
 	}
 
 	public boolean connectionState() {

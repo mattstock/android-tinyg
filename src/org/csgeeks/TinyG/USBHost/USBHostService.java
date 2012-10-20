@@ -113,7 +113,6 @@ public class USBHostService extends TinyGService {
 
 	public void disconnect() {
 		super.disconnect();
-
 		if (mListener != null) {
 			mListener.cancel(true);
 		}

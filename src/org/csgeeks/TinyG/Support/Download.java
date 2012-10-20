@@ -23,13 +23,13 @@ public class Download {
 	private Activity mActivity;
 	private FileWriteTask mFileTask;
 	private Dialog mDialog;
-	private TinyGMessenger mTinyG;
+	private TinyGService mTinyG;
 	private static final Object synctoken = new Object();
 	private boolean throttle;
 
-	public Download(Activity a, TinyGMessenger m) {
+	public Download(Activity a, TinyGService s) {
 		mActivity = a;
-		mTinyG = m;
+		mTinyG = s;
 		throttle = false;
 	}
 
