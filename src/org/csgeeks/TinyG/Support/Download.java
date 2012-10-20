@@ -31,19 +31,19 @@ public class Download {
 		synctoken = new Object();
 		throttle = false;
 	}
-	
+
 	public Object getSyncToken() {
 		return synctoken;
 	}
-	
+
 	public boolean isThrottled() {
 		return throttle;
 	}
-	
+
 	public void setThrottle(boolean t) {
 		throttle = t;
 	}
-	
+
 	// Given a filename, start up the file writer task and provide status on
 	// progress dialog
 	public void openFile(String string) {
@@ -56,70 +56,69 @@ public class Download {
 			}
 			in.close();
 		} catch (FileNotFoundException e) {
-			Toast.makeText(mActivity, "Invalid filename", Toast.LENGTH_SHORT).show();
+			Toast.makeText(mActivity, "Invalid filename", Toast.LENGTH_SHORT)
+					.show();
 			return;
 		} catch (IOException e) {
-			Toast.makeText(mActivity, "Gcode file read error", Toast.LENGTH_SHORT).show();
+			Toast.makeText(mActivity, "Gcode file read error",
+					Toast.LENGTH_SHORT).show();
 			return;
 		}
 		Log.d(TAG, "lines = " + numLines);
-		
+
 		mDialog = new Dialog(mActivity);
 		mDialog.setContentView(R.layout.download_dialog);
 		mDialog.setTitle("Download");
 		((TextView) mDialog.findViewById(R.id.current)).setText("0");
 		((TextView) mDialog.findViewById(R.id.filename)).setText(string);
-		((TextView) mDialog.findViewById(R.id.total)).setText(Integer.toString(numLines));
+		((TextView) mDialog.findViewById(R.id.total)).setText(Integer
+				.toString(numLines));
 		((ProgressBar) mDialog.findViewById(R.id.progressBar)).setProgress(0);
 
 		// Now send them!
-		try {
-			BufferedReader in = new BufferedReader(new FileReader(string));
-			mFileTask = new FileWriteTask();
-			mFileTask.execute(in);
-		} catch (FileNotFoundException e) {
-			Toast.makeText(mActivity, "Invalid filename", Toast.LENGTH_SHORT).show();
-			return;
-		}
+
+		mFileTask = new FileWriteTask();
+		mFileTask.execute(string);
 	}
 
 	public void cancel() {
 		if (mFileTask != null)
 			mFileTask.cancel(true);
 	}
-	
-	protected class FileWriteTask extends AsyncTask<BufferedReader, String, Void> {
-		
+
+	protected class FileWriteTask extends AsyncTask<String, String, Void> {
+
 		@Override
 		protected void onPreExecute() {
 			mActivity.findViewById(android.R.id.content).setKeepScreenOn(true);
 			mDialog.show();
 		}
-		
+
 		@Override
-		protected Void doInBackground(BufferedReader... params) {
-			BufferedReader in = params[0];
+		protected Void doInBackground(String... params) {
+			String filename = params[0];
 			String line;
 			int idx = 0;
-			
+
 			try {
+				BufferedReader in = new BufferedReader(new FileReader(filename));
 				while (!isCancelled() && (line = in.readLine()) != null) {
 					idx++;
 					try {
 						synchronized (synctoken) {
-							if (throttle) 
+							if (throttle)
 								synctoken.wait();
 						}
 						Thread.sleep(500);
 					} catch (InterruptedException e) {
 						// This is probably ok, just proceed.
-					}				
+					}
 					publishProgress(line, Integer.toString(idx));
 				}
 				in.close();
 			} catch (IOException e) {
-				Log.e(TAG, "error writing file: " + e.getMessage());
-			} 
+				Log.e(TAG, "error reading file: " + e.getMessage());
+			}
 			return null;
 		}
 
@@ -127,9 +126,11 @@ public class Download {
 		protected void onProgressUpdate(String... values) {
 			if (values.length > 1) {
 				((ProgressBar) mDialog.findViewById(R.id.progressBar))
-					.setProgress((int)(100*(Double.parseDouble(values[1])/numLines)));
+						.setProgress((int) (100 * (Double
+								.parseDouble(values[1]) / numLines)));
 				((TextView) mDialog.findViewById(R.id.line)).setText(values[0]);
-				((TextView) mDialog.findViewById(R.id.current)).setText(values[1]);
+				((TextView) mDialog.findViewById(R.id.current))
+						.setText(values[1]);
 				mTinyG.send_gcode(values[0] + "\n");
 			}
 		}
@@ -139,14 +140,15 @@ public class Download {
 			Log.i(TAG, "FileWriteTask cancelled");
 			// TODO add a hard stop instruction to TinyG
 			mDialog.dismiss();
-			Toast.makeText(mActivity, "Download cancelled", Toast.LENGTH_SHORT).show();			
+			Toast.makeText(mActivity, "Download cancelled", Toast.LENGTH_SHORT)
+					.show();
 		}
-		
+
 		@Override
-	    protected void onPostExecute(Void v) {
-	    	Log.i(TAG, "FileWriteTask complete");
-	        mDialog.dismiss();
-	    }
+		protected void onPostExecute(Void v) {
+			Log.i(TAG, "FileWriteTask complete");
+			mDialog.dismiss();
+		}
 
 	}
 }
