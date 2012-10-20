@@ -191,7 +191,10 @@ public class JogFragment extends SherlockFragment {
 			v.setText(Float.toString(b.getFloat("posz")));
 		}
 		if (b.containsKey("status"))
-			mEnabled = b.getString("status").equals("stop");
+			mEnabled = b.getString("status").equals("stop") ||
+				b.getString("status").equals("end") ||
+				b.getString("status").equals("init") ||
+				b.getString("status").equals("reset");
 
 //		((Button) mView.findViewById(R.id.units)).setText(b.getString("units"));
     }

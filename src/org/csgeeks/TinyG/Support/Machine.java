@@ -23,10 +23,14 @@ public class Machine {
 	}
 
 	public void setStatus(JSONObject sr) throws JSONException {
-		state.putFloat("posx", (float) sr.getDouble("posx"));
-		state.putFloat("posy", (float) sr.getDouble("posy"));
-		state.putFloat("posz", (float) sr.getDouble("posz"));
-		state.putFloat("posa", (float) sr.getDouble("posa"));
+		if (sr.has("posx"))
+			state.putFloat("posx", (float) sr.getDouble("posx"));
+		if (sr.has("posy"))		
+			state.putFloat("posy", (float) sr.getDouble("posy"));
+		if (sr.has("posz"))
+			state.putFloat("posz", (float) sr.getDouble("posz"));
+		if (sr.has("posa"))
+			state.putFloat("posa", (float) sr.getDouble("posa"));
 		state.putFloat("velocity", (float) sr.getDouble("vel"));
 		state.putInt("line", sr.getInt("line"));
 
@@ -50,25 +54,31 @@ public class Machine {
 
 		switch (sr.getInt("stat")) {
 		case 0:
-			state.putString("status", "reset");
+			state.putString("status", "init");
 			break;
 		case 1:
-			state.putString("status", "nop");
+			state.putString("status", "reset");
 			break;
 		case 2:
-			state.putString("status", "stop");
+			state.putString("status", "cycle");
 			break;
 		case 3:
-			state.putString("status", "end");
+			state.putString("status", "stop");
 			break;
 		case 4:
-			state.putString("status", "run");
+			state.putString("status", "end");
 			break;
 		case 5:
-			state.putString("status", "hold");
+			state.putString("status", "run");
 			break;
 		case 6:
+			state.putString("status", "hold");
+			break;
+		case 7:
 			state.putString("status", "homing");
+			break;
+		case 8:
+			state.putString("status", "jog");
 			break;
 		}
 		switch (sr.getInt("unit")) {
