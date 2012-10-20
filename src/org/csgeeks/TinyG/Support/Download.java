@@ -96,6 +96,11 @@ public class Download {
 					idx++;
 					mTinyG.send_gcode(line);
 					publishProgress(line, Integer.toString(idx));
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 				}
 				in.close();
 			} catch (IOException e) {

@@ -73,7 +73,6 @@ abstract public class TinyGService extends Service {
 				while (throttle)
 					synctoken.wait();
 			}
-			Thread.sleep(50);
 		} catch (InterruptedException e) {
 			// This is probably ok, just proceed.
 		}
