@@ -82,7 +82,8 @@ abstract public class TinyGService extends Service {
 	public static void setThrottle(boolean t) {
 		synchronized (synctoken) {
 			throttle = t;
-			synctoken.notify();
+			if (!throttle)
+				synctoken.notify();
 		}
 	}
 	
