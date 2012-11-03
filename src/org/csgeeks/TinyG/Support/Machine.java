@@ -2,12 +2,18 @@ package org.csgeeks.TinyG.Support;
 
 // Copyright 2012 Matthew Stock
 
+import java.util.Iterator;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
+import android.util.Log;
 
 public class Machine {
+	private static final String TAG = "TinyG";
+
 	private Bundle state;
 	private Bundle axis[] = new Bundle[6];
 	private Bundle motor[] = new Bundle[4];
@@ -20,6 +26,13 @@ public class Machine {
 			axis[i] = new Bundle();
 		}
 		state = new Bundle();
+	}
+
+	public void setQueue(JSONObject qr) throws JSONException {
+		if (qr.has("lix"))
+			state.putInt("lix", qr.getInt("lix"));
+		if (qr.has("pba"))
+			state.putInt("pba", qr.getInt("pba"));
 	}
 
 	public void setStatus(JSONObject sr) throws JSONException {
@@ -60,24 +73,27 @@ public class Machine {
 			state.putString("status", "reset");
 			break;
 		case 2:
-			state.putString("status", "cycle");
-			break;
-		case 3:
 			state.putString("status", "stop");
 			break;
-		case 4:
+		case 3:
 			state.putString("status", "end");
 			break;
-		case 5:
+		case 4:
 			state.putString("status", "run");
 			break;
-		case 6:
+		case 5:
 			state.putString("status", "hold");
 			break;
+		case 6:
+			state.putString("status", "probe");
+			break;
 		case 7:
-			state.putString("status", "homing");
+			state.putString("status", "cycle");
 			break;
 		case 8:
+			state.putString("status", "homing");
+			break;
+		case 9:
 			state.putString("status", "jog");
 			break;
 		}
@@ -173,4 +189,102 @@ public class Machine {
 		return 0;
 	}
 
+	public Bundle processJSON(String string) {
+		Bundle bResult, fResult;
+		try {
+			JSONObject json = new JSONObject(string);
+
+			if (json.has("b")) {
+				bResult = processBody(json.getJSONObject("b"));
+				fResult = processFooter(json.getJSONArray("f"));
+				return bResult;
+			} else {
+				// To preserve compatibility with the older firmware
+				return processBody(json);
+			}
+		} catch (JSONException e) {
+			Log.e(TAG,
+					"JSON: " + e.getMessage());
+		}
+		return null;
+	}
+
+	private Bundle processFooter(JSONArray json) throws JSONException {
+		// TODO need to figure out how to handle failure, either of parsing or of 
+		return null;
+	}
+	
+	private Bundle processBody(JSONObject json) throws JSONException {
+		if (json.has("sr"))
+			return processStatusReport(json.getJSONObject("sr"));
+		if (json.has("qr"))
+			return processQueueReport(json.getJSONObject("qr"));
+		if (json.has("sys"))
+			return processSys(json.getJSONObject("sys"));
+		if (json.has("1"))
+			return processMotor(1, json.getJSONObject("1"));
+		if (json.has("2"))
+			return processMotor(2, json.getJSONObject("2"));
+		if (json.has("3"))
+			return processMotor(3, json.getJSONObject("3"));
+		if (json.has("4"))
+			return processMotor(4, json.getJSONObject("4"));
+		if (json.has("a"))
+			return processAxis("a", json.getJSONObject("a"));
+		if (json.has("b"))
+			return processAxis("b", json.getJSONObject("b"));
+		if (json.has("c"))
+			return processAxis("c", json.getJSONObject("c"));
+		if (json.has("x"))
+			return processAxis("x", json.getJSONObject("x"));
+		if (json.has("y"))
+			return processAxis("y", json.getJSONObject("y"));
+		if (json.has("z"))
+			return processAxis("z", json.getJSONObject("z"));
+		// Anything else doesn't change the state of the machine.
+		// Just get the block type so that we can check ACK status later.
+		Bundle b = new Bundle();
+		for (Iterator<String> it = json.keys(); it.hasNext();) {
+			String reply = it.next();
+			Log.d(TAG, "Storing misc response type " + reply);
+			b.putString("json", reply);
+		}
+		Log.d(TAG, "Done with processing");
+		return b;
+	}
+
+	private Bundle processStatusReport(JSONObject sr) throws JSONException {
+		setStatus(sr);
+		Bundle b = getStatusBundle();
+		b.putString("json", "sr");
+		return b;
+	}
+
+	private Bundle processQueueReport(JSONObject qr) throws JSONException {
+		setQueue(qr);
+		Bundle b = getStatusBundle();
+		b.putString("json", "qr");
+		return b;
+	}
+
+	private Bundle processSys(JSONObject sys) throws JSONException {
+		putSys(sys);
+		Bundle b = getStatusBundle();
+		b.putString("json", "sys");
+		return b;
+	}
+
+	private Bundle processMotor(int num, JSONObject motor) throws JSONException {
+		putMotor(motor, num);
+		Bundle b = getMotorBundle(num);
+		b.putString("json", Integer.toString(num));
+		return b;
+	}
+
+	private Bundle processAxis(String axisName, JSONObject axis) throws JSONException {
+		putAxis(axis, axisName);
+		Bundle b = getAxisBundle(axisName);
+		b.putString("json", axisName);
+		return b;
+	}
 }

@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-import org.csgeeks.TinyG.Support.JSONParser;
 import org.csgeeks.TinyG.Support.TinyGService;
 
 import android.content.Context;
@@ -128,14 +127,10 @@ public class TinyGNetwork extends TinyGService {
 					}
 					buffer[idx++] = (byte) b;
 					if (b == 0x13) {
-						Log.d(TAG, "Found XOFF!");
 						idx--;
-						setThrottle(true);
 					}
 					if (b == 0x11) {
-						Log.d(TAG, "Found XON!");
 						idx--;
-						setThrottle(false);
 					}
 
 					if (b == '\n') {
@@ -153,14 +148,9 @@ public class TinyGNetwork extends TinyGService {
 		protected void onProgressUpdate(String... values) {
 			Bundle b;
 			if (values.length > 0) {
-				if ((b = JSONParser.processJSON(values[0], machine)) != null) {
-					String json = b.getString("json");
-					if (json.equals("sr")) {
-						Intent i = new Intent(STATUS);
-						i.putExtras(b);
-						sendBroadcast(i, null);
-					}
-				}
+				if ((b = machine.processJSON(values[0])) == null)
+					return;
+				updateInfo(b);
 			}
 		}
 

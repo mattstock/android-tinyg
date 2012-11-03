@@ -2,7 +2,6 @@ package org.csgeeks.TinyG.USBHost;
 
 // Copyright 2012 Matthew Stock
 
-import org.csgeeks.TinyG.Support.JSONParser;
 import org.csgeeks.TinyG.Support.TinyGService;
 
 import android.annotation.TargetApi;
@@ -174,16 +173,6 @@ public class USBHostService extends TinyGService {
 							continue;
 						}		
 						linebuffer[idx++] = inbuffer[i];
-						if (inbuffer[i] == 0x13) {
-							Log.d(TAG, "Found XOFF!");
-							idx--;
-							setThrottle(true);
-						}
-						if (inbuffer[i] == 0x11) {
-							Log.d(TAG, "Found XON!");
-							idx--;
-							setThrottle(false);
-						}
 						if (inbuffer[i] == '\n') {
 							publishProgress(new String(linebuffer, 0, idx));
 							idx = 0;
@@ -203,14 +192,9 @@ public class USBHostService extends TinyGService {
 			Bundle b;
 			if (values.length <= 0)
 				return;
-			if ((b = JSONParser.processJSON(values[0], machine)) == null)
+			if ((b = machine.processJSON(values[0])) == null)
 				return;
-			String json = b.getString("json");
-			if (json != null && json.equals("sr")) {
-				Intent i = new Intent(STATUS);
-				i.putExtras(b);
-				sendBroadcast(i, null);
-			}
+			updateInfo(b);
 		}
 
 		@Override

@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.csgeeks.TinyG.Support.JSONParser;
 import org.csgeeks.TinyG.Support.TinyGService;
 
 import android.annotation.TargetApi;
@@ -180,7 +179,7 @@ public class USBAccessoryService extends TinyGService {
 		protected void onProgressUpdate(String... values) {
 			Bundle b;
 			if (values.length > 0) {
-				if ((b = JSONParser.processJSON(values[0], machine)) != null) {
+				if ((b = machine.processJSON(values[0])) != null) {
 					String json = b.getString("json");
 					if (json.equals("sr")) {
 						Intent i = new Intent(STATUS);
@@ -195,12 +194,5 @@ public class USBAccessoryService extends TinyGService {
 		protected void onCancelled() {
 			Log.i(TAG, "ListenerTask cancelled");
 		}
-	}
-
-	@Override
-	public void refresh() {
-		write(JSONParser.CMD_DISABLE_LOCAL_ECHO);
-		write(JSONParser.CMD_SET_STATUS_UPDATE_INTERVAL);
-		write(JSONParser.CMD_GET_STATUS_REPORT);
 	}
 }
