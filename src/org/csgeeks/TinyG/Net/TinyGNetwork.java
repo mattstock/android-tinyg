@@ -19,6 +19,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 public class TinyGNetwork extends TinyGService {
+	private static final int NETWORK_BUFFER_SIZE = 16 * 1024;
 	private String tgfx_hostname;
 	private int tgfx_port;
 	private Socket socket;
@@ -40,7 +41,7 @@ public class TinyGNetwork extends TinyGService {
 		os = null;
 
 		if (mListener != null) {
-			mListener.cancel(true);	
+			mListener.cancel(true);
 		}
 		if (socket != null) {
 			try {
@@ -60,29 +61,29 @@ public class TinyGNetwork extends TinyGService {
 			Log.e(TAG, "write to network attempted without socket established.");
 		}
 	}
-	
+
 	// We call the initialize function to configure any local variables, pulling
 	// preferences in for example.
 	public void connect() {
 		initialize();
-		
+
 		new ConnectTask().execute(0);
 		Toast.makeText(this, "Connecting...", Toast.LENGTH_SHORT).show();
 	}
-	
-	// This AsyncTask runs the client-specific connection code. 
+
+	// This AsyncTask runs the client-specific connection code.
 	private class ConnectTask extends AsyncTask<Integer, Integer, Boolean> {
 		@Override
 		protected Boolean doInBackground(Integer... params) {
 			Log.d(TAG, "Starting connect in background");
-		
+
 			try {
 				socket = new Socket(tgfx_hostname, tgfx_port);
 				os = socket.getOutputStream();
 				is = socket.getInputStream();
 			} catch (Exception e) {
 				socket = null;
-				Log.e(TAG,"Socket: " + e.getMessage());
+				Log.e(TAG, "Socket: " + e.getMessage());
 				return false;
 			}
 			return true;
@@ -101,38 +102,44 @@ public class TinyGNetwork extends TinyGService {
 				refresh();
 				Log.i(TAG, "Listener started, connection_status intent sent");
 			} else {
-				Toast.makeText(TinyGNetwork.this, "Connection failed", Toast.LENGTH_SHORT).show();			
+				Toast.makeText(TinyGNetwork.this, "Connection failed",
+						Toast.LENGTH_SHORT).show();
 			}
 		}
 	}
 
 	protected void initialize() {
 		Context mContext = getApplicationContext();
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+		SharedPreferences settings = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
 		tgfx_hostname = settings.getString("tgfx_hostname", "127.0.0.1");
-		tgfx_port = Integer.parseInt(settings.getString("tgfx_port", "4444"));	
+		tgfx_port = Integer.parseInt(settings.getString("tgfx_port", "4444"));
 	}
-	
+
 	protected class ListenerTask extends AsyncTask<InputStream, String, Void> {
 		@Override
 		protected Void doInBackground(InputStream... params) {
-			byte[] buffer = new byte[1024];
+			byte[] inbuffer = new byte[NETWORK_BUFFER_SIZE];
+			byte[] linebuffer = new byte[1024];
 			InputStream lis = params[0];
-			int b;
-			int idx = 0;
+			int cnt, idx = 0;
 			try {
 				while (!isCancelled()) {
-					if ((b = lis.read()) == -1) {
+					if ((cnt = lis.read(inbuffer, 0, NETWORK_BUFFER_SIZE)) < 0) {
+						Log.e(TAG, "network read failure");
 						break;
 					}
-					buffer[idx++] = (byte) b;
-					if (b == '\n') {
-						publishProgress(new String(buffer, 0, idx));
-						idx = 0;
-					}
+					for (int i = 0; i < cnt; i++)
+						if (inbuffer[i] == '\n') {
+							String foo = new String(linebuffer, 0, idx);
+							Log.d(TAG, "string inside listenertask: " + foo);
+							publishProgress(foo);
+							idx = 0;
+						} else
+							linebuffer[idx++] = inbuffer[i];
 				}
 			} catch (IOException e) {
-				Log.e(TAG, "listener read: " + e.getMessage());
+				Log.e(TAG, "listener read exception: " + e.getMessage());
 			}
 			return null;
 		}
@@ -140,11 +147,12 @@ public class TinyGNetwork extends TinyGService {
 		@Override
 		protected void onProgressUpdate(String... values) {
 			Bundle b;
-			if (values.length > 0) {
-				if ((b = machine.processJSON(values[0])) == null)
-					return;
-				updateInfo(values[0], b);
-			}
+			if (values.length <= 0)
+				return;
+			Log.d(TAG, "read = " + values[0]);
+			if ((b = machine.processJSON(values[0])) == null)
+				return;
+			updateInfo(values[0], b);
 		}
 
 		@Override
@@ -154,4 +162,3 @@ public class TinyGNetwork extends TinyGService {
 	}
 
 }
-
