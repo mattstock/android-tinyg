@@ -26,6 +26,7 @@ import android.widget.Toast;
 public class USBHostService extends TinyGService {
 	private static final String TAG = "TinyG-USB";
 	private static final String ACTION_USB_PERMISSION = "org.csgeeks.TinyG.USB_PERMISSION";
+	private static final int USB_BUFFER_SIZE = 16*1024;
 
 	// USB IDs for the TinyG hardware.
 	// TODO make them parameters.
@@ -158,12 +159,12 @@ public class USBHostService extends TinyGService {
 	protected class ListenerTask extends AsyncTask<Integer, String, Void> {
 		@Override
 		protected Void doInBackground(Integer... params) {
-			byte[] inbuffer = new byte[2048];
+			byte[] inbuffer = new byte[USB_BUFFER_SIZE];
 			byte[] linebuffer = new byte[1024];
 			int cnt, idx = 0;
 			try {
 				while (!isCancelled()) {
-					if ((cnt = conn.bulkTransfer(epIN, inbuffer, 2048, 0)) < 2) {
+					if ((cnt = conn.bulkTransfer(epIN, inbuffer, USB_BUFFER_SIZE, 0)) < 2) {
 						Log.e(TAG, "Bulk read failed");
 						break;
 					}
@@ -172,11 +173,11 @@ public class USBHostService extends TinyGService {
 							i++;
 							continue;
 						}		
-						linebuffer[idx++] = inbuffer[i];
 						if (inbuffer[i] == '\n') {
 							publishProgress(new String(linebuffer, 0, idx));
 							idx = 0;
-						}
+						} else
+							linebuffer[idx++] = inbuffer[i];
 					}
 				}
 			} catch (Exception e) {
@@ -192,9 +193,10 @@ public class USBHostService extends TinyGService {
 			Bundle b;
 			if (values.length <= 0)
 				return;
+			Log.d(TAG, "read = " + values[0]);
 			if ((b = machine.processJSON(values[0])) == null)
 				return;
-			updateInfo(b);
+			updateInfo(values[0], b);
 		}
 
 		@Override

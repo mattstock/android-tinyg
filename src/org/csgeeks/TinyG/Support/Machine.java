@@ -38,7 +38,7 @@ public class Machine {
 	public void setStatus(JSONObject sr) throws JSONException {
 		if (sr.has("posx"))
 			state.putFloat("posx", (float) sr.getDouble("posx"));
-		if (sr.has("posy"))		
+		if (sr.has("posy"))
 			state.putFloat("posy", (float) sr.getDouble("posy"));
 		if (sr.has("posz"))
 			state.putFloat("posz", (float) sr.getDouble("posz"));
@@ -195,25 +195,51 @@ public class Machine {
 			JSONObject json = new JSONObject(string);
 
 			if (json.has("b")) {
-				bResult = processBody(json.getJSONObject("b"));
 				fResult = processFooter(json.getJSONArray("f"));
+
+				// Check checksum
+				int pos = string.lastIndexOf(",");
+				if (pos == -1) // Shouldn't be possible!
+					return null;
+				String subval = string.substring(0, pos);
+				int check = Integer.parseInt(string.substring(pos+1, pos+5));
+				long y = (subval.hashCode() & 0x00000000ffffffffL) % 9999;
+				Log.d(TAG, "val = " + check);
+				if (y != check) {
+					Log.e(TAG, "Checksum error for: " + string + " (" + y + ")");
+					return null;
+				}
+				switch (fResult.getInt("status")) {
+				case 0: // OK
+				case 3: // NOOP
+				case 60: // NULL move
+					break;
+				default:
+					Log.e(TAG, "Status code error: " + string);
+					return null;
+				}
+				bResult = processBody(json.getJSONObject("b"));
 				return bResult;
 			} else {
 				// To preserve compatibility with the older firmware
 				return processBody(json);
 			}
-		} catch (JSONException e) {
-			Log.e(TAG,
-					"JSON: " + e.getMessage());
+		} catch (Exception e) {
+			Log.e(TAG, e.getMessage() + " : " + string);
 		}
 		return null;
 	}
 
-	private Bundle processFooter(JSONArray json) throws JSONException {
-		// TODO need to figure out how to handle failure, either of parsing or of 
-		return null;
+	// [<protocol_version>, <status_code>, <input_available>, <checksum>]
+	private Bundle processFooter(JSONArray json) throws JSONException, NumberFormatException {
+		Bundle b = new Bundle();
+		b.putInt("protocol", json.getInt(0));
+		b.putInt("status", json.getInt(1));
+		b.putInt("buffer", json.getInt(2));
+//		b.putInt("checksum", Integer.parseInt(json.getString(3)));
+		return b;
 	}
-	
+
 	private Bundle processBody(JSONObject json) throws JSONException {
 		if (json.has("sr"))
 			return processStatusReport(json.getJSONObject("sr"));
@@ -281,7 +307,8 @@ public class Machine {
 		return b;
 	}
 
-	private Bundle processAxis(String axisName, JSONObject axis) throws JSONException {
+	private Bundle processAxis(String axisName, JSONObject axis)
+			throws JSONException {
 		putAxis(axis, axisName);
 		Bundle b = getAxisBundle(axisName);
 		b.putString("json", axisName);

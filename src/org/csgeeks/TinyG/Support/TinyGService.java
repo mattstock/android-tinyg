@@ -20,7 +20,7 @@ abstract public class TinyGService extends Service {
 	public static final String CMD_ZERO_ALL_AXIS = "{\"gc\":\"g92x0y0z0a0\"}\n";
 	public static final String CMD_DISABLE_LOCAL_ECHO = "{\"ee\":0}\n";
 	public static final String CMD_DISABLE_XON_XOFF = "{\"ex\":0}\n";
-	public static final String CMD_SET_STATUS_UPDATE_INTERVAL = "{\"si\":150}\n";
+	public static final String CMD_SET_STATUS_UPDATE_INTERVAL = "{\"si\":0}\n";
 	public static final String CMD_GET_MACHINE_SETTINGS = "{\"sys\":null}\n";
 	public static final String CMD_SET_UNIT_MM = "{\"gc\":\"g21\"}\n";
 	public static final String CMD_SET_UNIT_INCHES = "{\"gc\":\"g20\"}\n";
@@ -120,7 +120,7 @@ abstract public class TinyGService extends Service {
 		return machine.getStatusBundle();
 	}
 
-	protected void updateInfo(Bundle b) {
+	protected void updateInfo(String line, Bundle b) {
 		String json = b.getString("json");
 		if (json == null)
 			return;
@@ -129,10 +129,8 @@ abstract public class TinyGService extends Service {
 			i.putExtras(b);
 			sendBroadcast(i, null);
 		}
-		if (json.equals(waitFor)) {
-			Log.d(TAG, "Releasing the hounds");
+		if (json.equals(waitFor))
 			available.release();
-		}
 	}
 
 	// Asks for the service to send a full update of all state.
@@ -159,9 +157,8 @@ abstract public class TinyGService extends Service {
 			try {
 				while (true) {
 					available.acquire();
-					Log.d(TAG, "Got OK to send");
 					String[] cmd = queue.take();
-					Log.d(TAG, "Got line off queue, going to wait for " + cmd[0]);
+					Log.d(TAG, "send: " + cmd[1]);
 					waitFor = cmd[0];
 					write(cmd[1]);
 				}

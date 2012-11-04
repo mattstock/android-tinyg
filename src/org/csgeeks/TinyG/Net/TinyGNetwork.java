@@ -126,13 +126,6 @@ public class TinyGNetwork extends TinyGService {
 						break;
 					}
 					buffer[idx++] = (byte) b;
-					if (b == 0x13) {
-						idx--;
-					}
-					if (b == 0x11) {
-						idx--;
-					}
-
 					if (b == '\n') {
 						publishProgress(new String(buffer, 0, idx));
 						idx = 0;
@@ -150,7 +143,7 @@ public class TinyGNetwork extends TinyGService {
 			if (values.length > 0) {
 				if ((b = machine.processJSON(values[0])) == null)
 					return;
-				updateInfo(b);
+				updateInfo(values[0], b);
 			}
 		}
 
