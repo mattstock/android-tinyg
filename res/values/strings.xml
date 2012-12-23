@@ -81,7 +81,10 @@
     <string name="tm">Travel max: </string>
     <string name="jm">Jerk max: </string>
     <string name="jd">Junction deviation: </string>
-    <string name="sm">Switch mode: </string>
+    <string name="sn">Switch min: </string>
+    <string name="sx">Switch max: </string>
+    <string name="lb">Latch backoff: </string>
+    <string name="zb">Zero backoff: </string>
     <string name="ma">Map to axis: </string>
     <string name="tr">Travel/rev: </string>
     <string name="mi">Microsteps: </string>

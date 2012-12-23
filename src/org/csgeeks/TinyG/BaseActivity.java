@@ -40,7 +40,7 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	private TinyGService tinyg;
 	private int bindType = 0;
 	private boolean connected = false;
-	private boolean mBound;
+	private boolean isServiceBound;
 	private ServiceConnection mConnection = new DriverServiceConnection();
 	private PrefsListener mPreferencesListener;
 	private Download mDownload;
@@ -99,13 +99,6 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		if (savedInstanceState != null) {
 			restoreState(savedInstanceState);
 		}
-
-		// Do the initial service binding
-		mBound = bindDriver(mConnection);
-		if (!mBound) {
-			Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
-					.show();
-		}
 	}
 
 	private boolean bindDriver(ServiceConnection s) {
@@ -138,9 +131,9 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 
 	@Override
 	public void onDestroy() {
-		if (mBound) {
+		if (isServiceBound) {
 			unbindService(mConnection);
-			mBound = false;
+			isServiceBound = false;
 		}
 		super.onDestroy();
 	}
@@ -192,11 +185,19 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		// Handle item selection
 		switch (item.getItemId()) {
 		case R.id.connect:
-			if (tinyg == null)
+			if (tinyg == null) {
+				bindDriver(mConnection);
 				return true;
+			}
 			if (connected) {
 				tinyg.disconnect();
 			} else {
+				// Do the initial service binding
+				isServiceBound = bindDriver(mConnection);
+				if (!isServiceBound) {
+					Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
+							.show();
+				}
 				tinyg.connect();
 			}
 			return true;
@@ -260,6 +261,7 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			TinyGBinder binder = (TinyGBinder) service;
 			tinyg = binder.getService();
+			tinyg.connect();
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
@@ -276,12 +278,12 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 				Log.d(TAG, "Changing binding");
 				bindType = Integer.parseInt(sharedPreferences.getString(
 						"tgfx_driver", "0"));
-				if (mBound) {
+				if (isServiceBound) {
 					unbindService(mConnection);
-					mBound = false;
+					isServiceBound = false;
 				}
-				mBound = bindDriver(mConnection);
-				if (!mBound) {
+				isServiceBound = bindDriver(mConnection);
+				if (!isServiceBound) {
 					Toast.makeText(BaseActivity.this,
 							"Binding service failed", Toast.LENGTH_SHORT)
 							.show();

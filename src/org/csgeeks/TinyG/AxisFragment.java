@@ -68,7 +68,7 @@ public class AxisFragment extends SherlockFragment {
 	public void myClickHandler(View view) {
 
 	}
-	
+
 	public void updateState(Bundle b) {
 		Spinner s = (Spinner) mActivity.findViewById(R.id.axispick);
 		if (s.getSelectedItemId() == b.getInt("axis")) {
@@ -80,8 +80,14 @@ public class AxisFragment extends SherlockFragment {
 					.setText(Float.toString(b.getFloat("latch_velocity")));
 			((ToggleButton) mActivity.findViewById(R.id.axis_mode))
 					.setChecked(b.getBoolean("axis_mode"));
-			((EditText) mActivity.findViewById(R.id.switch_mode))
-					.setText(Integer.toString(b.getInt("switch_mode")));
+			((EditText) mActivity.findViewById(R.id.switch_min))
+					.setText(Integer.toString(b.getInt("switch_min")));
+			((EditText) mActivity.findViewById(R.id.switch_max))
+					.setText(Integer.toString(b.getInt("switch_max")));
+			((EditText) mActivity.findViewById(R.id.latch_backoff))
+					.setText(Integer.toString(b.getInt("latch_backoff")));
+			((EditText) mActivity.findViewById(R.id.zero_backoff))
+					.setText(Integer.toString(b.getInt("zero_backoff")));
 			((EditText) mActivity.findViewById(R.id.velocity_max))
 					.setText(Float.toString(b.getFloat("velocity_max")));
 			((EditText) mActivity.findViewById(R.id.travel_max)).setText(Float

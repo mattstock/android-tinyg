@@ -28,11 +28,8 @@ public class Machine {
 		state = new Bundle();
 	}
 
-	public void setQueue(JSONObject qr) throws JSONException {
-		if (qr.has("lix"))
-			state.putInt("lix", qr.getInt("lix"));
-		if (qr.has("pba"))
-			state.putInt("pba", qr.getInt("pba"));
+	public void setQueue(int qr) {
+		state.putInt("qr", qr);
 	}
 
 	public void setStatus(JSONObject sr) throws JSONException {
@@ -97,13 +94,16 @@ public class Machine {
 			state.putString("status", "jog");
 			break;
 		}
-		switch (sr.getInt("unit")) {
-		case 0:
-			state.putString("units", "inches");
-			break;
-		case 2:
-			state.putString("units", "mm");
-			break;
+
+		if (sr.has("unit")) {
+			switch (sr.getInt("unit")) {
+			case 0:
+				state.putString("units", "inches");
+				break;
+			case 2:
+				state.putString("units", "mm");
+				break;
+			}
 		}
 	}
 
@@ -125,11 +125,20 @@ public class Machine {
 		a.putFloat("jerk_max", (float) axisjson.getDouble("jm"));
 		a.putFloat("junction_deviation", (float) axisjson.getDouble("jd"));
 		a.putFloat("feed_rate", (float) axisjson.getDouble("fr"));
-		a.putFloat("search_velocity", (float) axisjson.getDouble("sv"));
-		a.putFloat("latch_velocity", (float) axisjson.getDouble("lv"));
 		a.putBoolean("axis_mode", axisjson.getInt("am") == 1);
-		a.putInt("switch_mode", axisjson.getInt("sm"));
 		a.putInt("axis", axisNameToIndex(name));
+		if (axisjson.has("sv"))
+			a.putFloat("search_velocity", (float) axisjson.getDouble("sv"));
+		if (axisjson.has("lv"))
+			a.putFloat("latch_velocity", (float) axisjson.getDouble("lv"));
+		if (axisjson.has("sn"))
+			a.putInt("switch_min", axisjson.getInt("sn"));
+		if (axisjson.has("sx"))
+			a.putInt("switch_max", axisjson.getInt("sx"));
+		if (axisjson.has("lb"))
+			a.putFloat("latch_backoff", (float) axisjson.getDouble("lb"));
+		if (axisjson.has("zb"))
+			a.putFloat("zero_backoff", (float) axisjson.getDouble("zb"));
 	}
 
 	public Bundle getAxisBundle(int idx) {
@@ -194,7 +203,7 @@ public class Machine {
 		try {
 			JSONObject json = new JSONObject(string);
 
-			if (json.has("b")) {
+			if (json.has("f")) { // qr and sr don't!
 				fResult = processFooter(json.getJSONArray("f"));
 
 				// Check checksum
@@ -202,7 +211,7 @@ public class Machine {
 				if (pos == -1) // Shouldn't be possible!
 					return null;
 				String subval = string.substring(0, pos);
-				int check = Integer.parseInt(string.substring(pos+1, pos+5));
+				int check = fResult.getInt("checksum");
 				long y = (subval.hashCode() & 0x00000000ffffffffL) % 9999;
 				Log.d(TAG, "val = " + check);
 				if (y != check) {
@@ -218,11 +227,10 @@ public class Machine {
 					Log.e(TAG, "Status code error: " + string);
 					return null;
 				}
-				bResult = processBody(json.getJSONObject("b"));
+			}
+			if (json.has("r")) {
+				bResult = processBody(json.getJSONObject("r"));
 				return bResult;
-			} else {
-				// To preserve compatibility with the older firmware
-				return processBody(json);
 			}
 		} catch (Exception e) {
 			Log.e(TAG, e.getMessage() + " : " + string);
@@ -231,12 +239,13 @@ public class Machine {
 	}
 
 	// [<protocol_version>, <status_code>, <input_available>, <checksum>]
-	private Bundle processFooter(JSONArray json) throws JSONException, NumberFormatException {
+	private Bundle processFooter(JSONArray json) throws JSONException,
+			NumberFormatException {
 		Bundle b = new Bundle();
 		b.putInt("protocol", json.getInt(0));
 		b.putInt("status", json.getInt(1));
 		b.putInt("buffer", json.getInt(2));
-//		b.putInt("checksum", Integer.parseInt(json.getString(3)));
+		b.putInt("checksum", Integer.parseInt(json.getString(3)));
 		return b;
 	}
 
@@ -244,7 +253,7 @@ public class Machine {
 		if (json.has("sr"))
 			return processStatusReport(json.getJSONObject("sr"));
 		if (json.has("qr"))
-			return processQueueReport(json.getJSONObject("qr"));
+			return processQueueReport(json.getInt("qr"));
 		if (json.has("sys"))
 			return processSys(json.getJSONObject("sys"));
 		if (json.has("1"))
@@ -286,7 +295,7 @@ public class Machine {
 		return b;
 	}
 
-	private Bundle processQueueReport(JSONObject qr) throws JSONException {
+	private Bundle processQueueReport(int qr) {
 		setQueue(qr);
 		Bundle b = getStatusBundle();
 		b.putString("json", "qr");

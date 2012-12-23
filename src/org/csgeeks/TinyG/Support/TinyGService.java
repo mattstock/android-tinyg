@@ -138,7 +138,6 @@ abstract public class TinyGService extends Service {
 		send_message("ee", CMD_DISABLE_LOCAL_ECHO);
 		send_message("si", CMD_SET_STATUS_UPDATE_INTERVAL);
 		send_message("sr", CMD_GET_STATUS_REPORT);
-		send_message("qr", CMD_GET_QUEUE_REPORT);
 		send_message("x", CMD_GET_X_AXIS);
 		send_message("y", CMD_GET_Y_AXIS);
 		send_message("z", CMD_GET_Z_AXIS);
