@@ -23,7 +23,7 @@ import android.widget.Toast;
 
 @TargetApi(12)
 public class USBAccessoryService extends TinyGService {
-	private static final String LOG_TAG = "USBAccessoryService";
+	private static final String TAG = "TinyG-USBAccessory";
 	private BroadcastReceiver mUsbReceiver = new UsbReceiver();
 	private UsbManager mUSBManager;
 	private UsbAccessory mAccessory;
@@ -50,11 +50,11 @@ public class USBAccessoryService extends TinyGService {
 	public void onDestroy() {
 		super.onDestroy();
 		unregisterReceiver(mUsbReceiver);
-		Log.d(TAG, "USB service onDestroy()");
+		Log.d(TAG, "onDestroy()");
 	}
 	
 	public void write(String cmd) {
-		Log.d(LOG_TAG, "Writing |" + cmd + "| to USB");
+		Log.d(TAG, "Writing |" + cmd + "| to USB");
 		try {
 			mOutputStream.write(cmd.getBytes());
 		} catch (IOException e) {
@@ -64,9 +64,9 @@ public class USBAccessoryService extends TinyGService {
 
 	@Override
 	public void connect() {
-		Log.d(LOG_TAG, "connect()");
+		Log.d(TAG, "connect()");
 		if (mInputStream != null || mOutputStream != null) {
-			Log.d(LOG_TAG, "already connected");
+			Log.d(TAG, "already connected");
 			return;
 		}
 

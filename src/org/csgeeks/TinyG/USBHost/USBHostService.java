@@ -24,7 +24,7 @@ import android.widget.Toast;
 // This is only a bound service at the moment.
 @TargetApi(12)
 public class USBHostService extends TinyGService {
-	private static final String TAG = "TinyG-USB";
+	private static final String TAG = "TinyG-USBHost";
 	private static final String ACTION_USB_PERMISSION = "org.csgeeks.TinyG.USB_PERMISSION";
 	private static final int USB_BUFFER_SIZE = 16*1024;
 
@@ -52,7 +52,7 @@ public class USBHostService extends TinyGService {
 	public void onDestroy() {
 		super.onDestroy();
 		unregisterReceiver(mUsbReceiver);
-		Log.d(TAG, "USB service onDestroy()");
+		Log.d(TAG, "onDestroy()");
 	}
 
 	// When we get permission, open up the FTDI/TinyG device and

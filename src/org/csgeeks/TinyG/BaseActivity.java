@@ -38,10 +38,11 @@ import android.widget.Toast;
 
 public class BaseActivity extends SherlockFragmentActivity implements FileFragment.FileFragmentListener, JogFragment.JogFragmentListener, MotorFragment.MotorFragmentListener, AxisFragment.AxisFragmentListener, SystemFragment.SystemFragmentListener {
 	private static final String TAG = "TinyG";
-	private TinyGService tinyg;
+	private TinyGService tinyg = null;
 	private int bindType = 0;
 	private boolean connected = false;
-	private ServiceConnection mConnection = new DriverServiceConnection();
+	private boolean pendingConnect = false;
+	private ServiceConnection currentServiceConnection;
 	private PrefsListener mPreferencesListener;
 	private Download mDownload;
 	private BroadcastReceiver mIntentReceiver;
@@ -87,7 +88,6 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		setContentView(R.layout.main);
 
-		mConnection = new DriverServiceConnection();
 		Context mContext = getApplicationContext();
 		SharedPreferences settings = PreferenceManager
 				.getDefaultSharedPreferences(mContext);
@@ -132,7 +132,7 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	@Override
 	public void onDestroy() {
 		if (tinyg != null)
-			unbindService(mConnection);
+			unbindService(currentServiceConnection);
 		super.onDestroy();
 	}
 
@@ -184,12 +184,17 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		// Handle item selection
 		switch (item.getItemId()) {
 		case R.id.connect:
-			if (tinyg == null)
-				bindDriver(mConnection);
+			if (tinyg == null) {
+				currentServiceConnection = new DriverServiceConnection();
+				bindDriver(currentServiceConnection);
+				// We can't call connect until we know we have a binding.
+				pendingConnect = true; 
+			}
 			if (connected)
 				tinyg.disconnect();
-			else
+			else if (!pendingConnect)
 				tinyg.connect();
+				
 			return true;
 		case R.id.settings:
 			startActivity(new Intent(this, EditPreferencesActivity.class));
@@ -252,10 +257,16 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	private class DriverServiceConnection implements ServiceConnection {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			TinyGBinder binder = (TinyGBinder) service;
+			Log.d(TAG, "Service connected");
 			tinyg = binder.getService();
+			if (pendingConnect) {
+				tinyg.connect();
+				pendingConnect = false;
+			}
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
+			Log.d(TAG, "Service disconnected");
 			tinyg = null;
 		}
 	}
@@ -270,17 +281,15 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 				bindType = Integer.parseInt(sharedPreferences.getString(
 						"tgfx_driver", "0"));
 				if (tinyg != null) {
-					if (connected) {
-						Log.d(TAG, "in prefslistener, connected = " + connected);
-						tinyg.disconnect();
-					}
+					tinyg = null;
 					try {
-						unbindService(mConnection);
+						unbindService(currentServiceConnection);
 					} catch (IllegalArgumentException e) {
 						Log.w(TAG, "trying to unbind a non-bound service");
 					}
 				}
-				bindDriver(mConnection);
+				currentServiceConnection = new DriverServiceConnection();
+				bindDriver(currentServiceConnection);
 			}
 		}
 	}

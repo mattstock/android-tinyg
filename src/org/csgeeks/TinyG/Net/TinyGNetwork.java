@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 public class TinyGNetwork extends TinyGService {
 	private static final int NETWORK_BUFFER_SIZE = 16 * 1024;
+	private static final String TAG = "TinyG-Network";
 	private String tgfx_hostname;
 	private int tgfx_port;
 	private Socket socket;
@@ -106,6 +107,12 @@ public class TinyGNetwork extends TinyGService {
 						Toast.LENGTH_SHORT).show();
 			}
 		}
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		Log.d(TAG, "onDestroy()");
 	}
 
 	protected void initialize() {
