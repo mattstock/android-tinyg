@@ -14,6 +14,8 @@ import com.actionbarsherlock.app.SherlockFragment;
 public class SystemFragment extends SherlockFragment {
 	private static final String TAG = "TinyG";
 	private SystemFragmentListener mListener;
+	private TextView fb,fv;
+	private EditText si;
 	
 	@Override
 	public void onAttach(Activity activity) {
@@ -29,13 +31,20 @@ public class SystemFragment extends SherlockFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
+		View v;
+		
 		Log.d(TAG, "Creating MachineFragment");
 
-		// Asked for state update
+		// Inflate the layout for this fragment
+		v = inflater.inflate(R.layout.system, container, false);
+		fb = ((TextView) v.findViewById(R.id.firmware_build));
+		fv = ((TextView) v.findViewById(R.id.firmware_version));
+		si = ((EditText) v.findViewById(R.id.system_interval));
+
+		// Ask for state update
 		mListener.onSystemSelected();
 		
-		// Inflate the layout for this fragment
-		return inflater.inflate(R.layout.system, container, false);
+		return v;
 	}
 	
 	public void myClickHandler(View view) {
@@ -51,10 +60,10 @@ public class SystemFragment extends SherlockFragment {
 	}
 	
 	public void updateState(Bundle b) {
-		Activity a = getActivity();
-		((TextView) a.findViewById(R.id.firmware_build)).setText(Float.toString(b.getFloat("firmware_build")));
-		((TextView) a.findViewById(R.id.firmware_version)).setText(Float.toString(b.getFloat("firmware_version")));
-		((EditText) a.findViewById(R.id.system_interval)).setText(Integer.toString(b.getInt("system_interval")));
+		Activity a = getSherlockActivity();
+		fb.setText(Float.toString(b.getFloat("firmware_build")));
+		fv.setText(Float.toString(b.getFloat("firmware_version")));
+		si.setText(Integer.toString(b.getInt("system_interval")));
 	}
 
 }

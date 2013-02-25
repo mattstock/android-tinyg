@@ -41,59 +41,62 @@ public class Machine {
 			state.putFloat("posz", (float) sr.getDouble("posz"));
 		if (sr.has("posa"))
 			state.putFloat("posa", (float) sr.getDouble("posa"));
-		state.putFloat("velocity", (float) sr.getDouble("vel"));
-		state.putInt("line", sr.getInt("line"));
+		if (sr.has("vel"))
+			state.putFloat("velocity", (float) sr.getDouble("vel"));
+		if (sr.has("line"))
+			state.putInt("line", sr.getInt("line"));
+		if (sr.has("momo"))
+			switch (sr.getInt("momo")) {
+			case 0:
+				state.putString("momo", "traverse");
+				break;
+			case 1:
+				state.putString("momo", "straight");
+				break;
+			case 2:
+				state.putString("momo", "cw_arc");
+				break;
+			case 3:
+				state.putString("momo", "ccw_arc");
+				break;
+			case 4:
+				state.putString("momo", "invalid");
+				break;
+			}
 
-		switch (sr.getInt("momo")) {
-		case 0:
-			state.putString("momo", "traverse");
-			break;
-		case 1:
-			state.putString("momo", "straight");
-			break;
-		case 2:
-			state.putString("momo", "cw_arc");
-			break;
-		case 3:
-			state.putString("momo", "ccw_arc");
-			break;
-		case 4:
-			state.putString("momo", "invalid");
-			break;
-		}
-
-		switch (sr.getInt("stat")) {
-		case 0:
-			state.putString("status", "init");
-			break;
-		case 1:
-			state.putString("status", "reset");
-			break;
-		case 2:
-			state.putString("status", "stop");
-			break;
-		case 3:
-			state.putString("status", "end");
-			break;
-		case 4:
-			state.putString("status", "run");
-			break;
-		case 5:
-			state.putString("status", "hold");
-			break;
-		case 6:
-			state.putString("status", "probe");
-			break;
-		case 7:
-			state.putString("status", "cycle");
-			break;
-		case 8:
-			state.putString("status", "homing");
-			break;
-		case 9:
-			state.putString("status", "jog");
-			break;
-		}
+		if (sr.has("stat"))
+			switch (sr.getInt("stat")) {
+			case 0:
+				state.putString("status", "init");
+				break;
+			case 1:
+				state.putString("status", "reset");
+				break;
+			case 2:
+				state.putString("status", "stop");
+				break;
+			case 3:
+				state.putString("status", "end");
+				break;
+			case 4:
+				state.putString("status", "run");
+				break;
+			case 5:
+				state.putString("status", "hold");
+				break;
+			case 6:
+				state.putString("status", "probe");
+				break;
+			case 7:
+				state.putString("status", "cycle");
+				break;
+			case 8:
+				state.putString("status", "homing");
+				break;
+			case 9:
+				state.putString("status", "jog");
+				break;
+			}
 
 		if (sr.has("unit")) {
 			switch (sr.getInt("unit")) {
@@ -114,6 +117,8 @@ public class Machine {
 	public void putSys(JSONObject sysjson) throws JSONException {
 		state.putFloat("firmware_build", (float) sysjson.getDouble("fb"));
 		state.putFloat("firmware_version", (float) sysjson.getDouble("fv"));
+		state.putFloat("hardware_version", (float) sysjson.getDouble("hv"));
+		state.putFloat("json_verbosity", (float) sysjson.getDouble("jv"));
 		state.putInt("system_interval", sysjson.getInt("si"));
 	}
 

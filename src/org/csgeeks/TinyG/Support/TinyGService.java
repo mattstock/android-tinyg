@@ -6,6 +6,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -18,6 +19,9 @@ abstract public class TinyGService extends Service {
 	public static final String CMD_GET_STATUS_REPORT = "{\"sr\":null}\n";
 	public static final String CMD_GET_QUEUE_REPORT = "{\"qr\":null}\n";
 	public static final String CMD_ZERO_ALL_AXIS = "{\"gc\":\"g92x0y0z0a0\"}\n";
+	public static final String CMD_ENABLE_JSON_MODE = "{\"ej\":1}\n";
+	public static final String CMD_SET_HARDWARE_VERSION = "{\"hv\": 6}\n";
+	public static final String CMD_JSON_VERBOSITY = "{\"jv\": 3}\n";
 	public static final String CMD_DISABLE_LOCAL_ECHO = "{\"ee\":0}\n";
 	public static final String CMD_DISABLE_XON_XOFF = "{\"ex\":0}\n";
 	public static final String CMD_SET_STATUS_UPDATE_INTERVAL = "{\"si\":0}\n";
@@ -89,12 +93,13 @@ abstract public class TinyGService extends Service {
 		}
 	}
 
+	@SuppressLint("DefaultLocale")
 	public static String short_jog(String axis, double step) {
 		return String.format("g91g0%s%f", axis, step);
 	}
 
 	public void send_gcode(String gcode) {
-		send_message("gc", "{\"gc\": \"" + gcode + "\"}\n");
+		send_message("f", "{\"gc\": \"" + gcode + "\"}\n"); // In verbose mode 2, only the f is returned for gc
 	}
 
 	// Enqueue a command
@@ -136,19 +141,10 @@ abstract public class TinyGService extends Service {
 	// Asks for the service to send a full update of all state.
 	public void refresh() {
 		send_message("ee", CMD_DISABLE_LOCAL_ECHO);
+		send_message("jv", CMD_JSON_VERBOSITY);
 		send_message("si", CMD_SET_STATUS_UPDATE_INTERVAL);
+		send_message("hv", CMD_SET_HARDWARE_VERSION);
 		send_message("sr", CMD_GET_STATUS_REPORT);
-		send_message("x", CMD_GET_X_AXIS);
-		send_message("y", CMD_GET_Y_AXIS);
-		send_message("z", CMD_GET_Z_AXIS);
-		send_message("a", CMD_GET_A_AXIS);
-		send_message("b", CMD_GET_B_AXIS);
-		send_message("c", CMD_GET_C_AXIS);
-		send_message("1", CMD_GET_MOTOR_1_SETTINGS);
-		send_message("2", CMD_GET_MOTOR_2_SETTINGS);
-		send_message("3", CMD_GET_MOTOR_3_SETTINGS);
-		send_message("4", CMD_GET_MOTOR_4_SETTINGS);
-		send_message("sys", CMD_GET_MACHINE_SETTINGS);
 	}
 
 	private class QueueProcessor implements Runnable {

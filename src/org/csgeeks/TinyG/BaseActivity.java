@@ -15,6 +15,7 @@ import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -40,7 +41,6 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	private TinyGService tinyg;
 	private int bindType = 0;
 	private boolean connected = false;
-	private boolean isServiceBound;
 	private ServiceConnection mConnection = new DriverServiceConnection();
 	private PrefsListener mPreferencesListener;
 	private Download mDownload;
@@ -131,10 +131,8 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 
 	@Override
 	public void onDestroy() {
-		if (isServiceBound) {
+		if (tinyg != null)
 			unbindService(mConnection);
-			isServiceBound = false;
-		}
 		super.onDestroy();
 	}
 
@@ -144,6 +142,7 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	// know if the service is connected
 	// to the USB or network port.
 	public class TinyGServiceReceiver extends BroadcastReceiver {
+		@SuppressLint("NewApi")
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			Bundle b = intent.getExtras();
@@ -185,21 +184,12 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		// Handle item selection
 		switch (item.getItemId()) {
 		case R.id.connect:
-			if (tinyg == null) {
+			if (tinyg == null)
 				bindDriver(mConnection);
-				return true;
-			}
-			if (connected) {
+			if (connected)
 				tinyg.disconnect();
-			} else {
-				// Do the initial service binding
-				isServiceBound = bindDriver(mConnection);
-				if (!isServiceBound) {
-					Toast.makeText(this, "Binding service failed", Toast.LENGTH_SHORT)
-							.show();
-				}
+			else
 				tinyg.connect();
-			}
 			return true;
 		case R.id.settings:
 			startActivity(new Intent(this, EditPreferencesActivity.class));
@@ -229,11 +219,13 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		super.onSaveInstanceState(outState);
 		outState.putInt("bindType", bindType);
 		outState.putBoolean("connected", connected);
+		Log.d(TAG, "onSaveInstanceState() connected state is " + connected);
 	}
 
 	private void restoreState(Bundle inState) {
 		bindType = inState.getInt("bindType");
 		connected = inState.getBoolean("connected");
+		Log.d(TAG, "restoreState() connected state is " + connected);
 	}
 
 	public void myClickHandler(View view) {
@@ -261,7 +253,6 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			TinyGBinder binder = (TinyGBinder) service;
 			tinyg = binder.getService();
-			tinyg.connect();
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
@@ -278,16 +269,18 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 				Log.d(TAG, "Changing binding");
 				bindType = Integer.parseInt(sharedPreferences.getString(
 						"tgfx_driver", "0"));
-				if (isServiceBound) {
-					unbindService(mConnection);
-					isServiceBound = false;
+				if (tinyg != null) {
+					if (connected) {
+						Log.d(TAG, "in prefslistener, connected = " + connected);
+						tinyg.disconnect();
+					}
+					try {
+						unbindService(mConnection);
+					} catch (IllegalArgumentException e) {
+						Log.w(TAG, "trying to unbind a non-bound service");
+					}
 				}
-				isServiceBound = bindDriver(mConnection);
-				if (!isServiceBound) {
-					Toast.makeText(BaseActivity.this,
-							"Binding service failed", Toast.LENGTH_SHORT)
-							.show();
-				}
+				bindDriver(mConnection);
 			}
 		}
 	}
