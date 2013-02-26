@@ -150,6 +150,7 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 			Bundle b = intent.getExtras();
 			String action = intent.getAction();
 			if (action.equals(TinyGService.STATUS)) {
+				Log.d(TAG, "Got status update");
 				StatusFragment sf = (StatusFragment) getSupportFragmentManager().findFragmentById(R.id.statusF);
 				sf.updateState(b);
 				Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);

@@ -237,6 +237,10 @@ public class Machine {
 				bResult = processBody(json.getJSONObject("r"));
 				return bResult;
 			}
+			if (json.has("sr")) {
+				bResult = processStatusReport(json.getJSONObject("sr"));
+				return bResult;
+			}
 		} catch (Exception e) {
 			Log.e(TAG, e.getMessage() + " : " + string);
 		}
