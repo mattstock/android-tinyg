@@ -131,8 +131,10 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 
 	@Override
 	public void onDestroy() {
-		if (tinyg != null)
+		if (tinyg != null) {
 			unbindService(currentServiceConnection);
+			tinyg = null;
+		}
 		super.onDestroy();
 	}
 
@@ -281,9 +283,9 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 				bindType = Integer.parseInt(sharedPreferences.getString(
 						"tgfx_driver", "0"));
 				if (tinyg != null) {
-					tinyg = null;
 					try {
 						unbindService(currentServiceConnection);
+						tinyg = null;
 					} catch (IllegalArgumentException e) {
 						Log.w(TAG, "trying to unbind a non-bound service");
 					}

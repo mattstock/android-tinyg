@@ -23,9 +23,9 @@ import android.widget.Toast;
 
 @TargetApi(12)
 public class USBAccessoryService extends TinyGService {
-	private static final String TAG = "TinyG-USBAccessory";
-	private BroadcastReceiver mUsbReceiver = new UsbReceiver();
-	private UsbManager mUSBManager;
+	private String TAG = "TinyG-USBAccessory";
+	private BroadcastReceiver receiver;
+	private UsbManager usbManager;
 	private UsbAccessory mAccessory;
 	private FileInputStream mInputStream;
 	private FileOutputStream mOutputStream;
@@ -38,18 +38,19 @@ public class USBAccessoryService extends TinyGService {
 	public void onCreate() {
 		super.onCreate();
 		Log.d(TAG, "USB service onCreate()");
-		mUSBManager = (UsbManager) getSystemService(Context.USB_SERVICE);		
+		usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);		
 		
+		receiver = new UsbReceiver();
 		// So we know when it's disconnected
 		IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
 		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-		registerReceiver(mUsbReceiver, filter);		
+		registerReceiver(receiver, filter);		
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		unregisterReceiver(mUsbReceiver);
+		unregisterReceiver(receiver);
 		Log.d(TAG, "onDestroy()");
 	}
 	
@@ -70,14 +71,14 @@ public class USBAccessoryService extends TinyGService {
 			return;
 		}
 
-		UsbAccessory[] accessories = mUSBManager.getAccessoryList();
+		UsbAccessory[] accessories = usbManager.getAccessoryList();
 		mAccessory = (accessories == null ? null
 				: accessories[0]);
 		if (mAccessory == null) {
 			Toast.makeText(this, "No TinyG USB accessory devices attached!", Toast.LENGTH_SHORT).show();
 			return;
 		}
-		mFileDescriptor = mUSBManager.openAccessory(mAccessory);
+		mFileDescriptor = usbManager.openAccessory(mAccessory);
 		if (mFileDescriptor != null) {
 			FileDescriptor fd = mFileDescriptor.getFileDescriptor();
 			if (fd.valid()) {

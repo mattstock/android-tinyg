@@ -43,7 +43,7 @@ abstract public class TinyGService extends Service {
 	protected static final String TAG = "TinyG";
 	protected Machine machine;
 	private final Semaphore available = new Semaphore(1, true);
-	private static final BlockingQueue<String[]> queue = new LinkedBlockingQueue<String[]>();
+	private final BlockingQueue<String[]> queue = new LinkedBlockingQueue<String[]>();
 	private final IBinder mBinder = new TinyGBinder();
 	private final QueueProcessor procQ = new QueueProcessor();
 	private Thread dequeueWorker;
