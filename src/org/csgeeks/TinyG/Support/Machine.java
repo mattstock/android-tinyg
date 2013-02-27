@@ -120,6 +120,17 @@ public class Machine {
 		state.putFloat("hardware_version", (float) sysjson.getDouble("hv"));
 		state.putFloat("json_verbosity", (float) sysjson.getDouble("jv"));
 		state.putInt("system_interval", sysjson.getInt("si"));
+		state.putString("board_id", sysjson.getString("id"));
+		state.putFloat("junction_acceleration", (float) sysjson.getDouble("ja"));
+		state.putFloat("chordal_tolerance", (float) sysjson.getDouble("ct"));
+		state.putBoolean("switch_type", sysjson.getInt("st") == 1);
+		state.putBoolean("enable_json", sysjson.getInt("ej") == 1);
+		state.putInt("json_verbosity", sysjson.getInt("jv"));
+		state.putInt("text_verbosity", sysjson.getInt("tv"));
+		state.putInt("queue_verbosity", sysjson.getInt("qv"));
+		state.putInt("status_verbosity", sysjson.getInt("sv"));
+		state.putInt("status_interval", sysjson.getInt("si"));
+		state.putInt("gcode_plane", sysjson.getInt("gpl"));
 	}
 
 	public void putAxis(JSONObject axisjson, String name) throws JSONException {
