@@ -132,9 +132,7 @@ public class TinyGNetwork extends TinyGService {
 					}
 					for (int i = 0; i < cnt; i++)
 						if (inbuffer[i] == '\n') {
-							String foo = new String(linebuffer, 0, idx);
-							Log.d(TAG, "string inside listenertask: " + foo);
-							publishProgress(foo);
+							publishProgress(new String(linebuffer, 0, idx));
 							idx = 0;
 						} else
 							linebuffer[idx++] = inbuffer[i];
@@ -150,7 +148,6 @@ public class TinyGNetwork extends TinyGService {
 			Bundle b;
 			if (values.length <= 0)
 				return;
-			Log.d(TAG, "read = " + values[0]);
 			if ((b = machine.processJSON(values[0])) == null)
 				return;
 			updateInfo(values[0], b);

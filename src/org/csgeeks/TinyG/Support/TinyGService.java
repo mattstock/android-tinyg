@@ -38,19 +38,21 @@ abstract public class TinyGService extends Service {
 	public static final String CMD_GET_MOTOR_2_SETTINGS = "{\"2\":null}\n";
 	public static final String CMD_GET_MOTOR_3_SETTINGS = "{\"3\":null}\n";
 	public static final String CMD_GET_MOTOR_4_SETTINGS = "{\"4\":null}\n";
-	
+
+	// buffer size on TinyG
+	public static final int TINYG_BUFFER_SIZE = 254;
+
 	// broadcast messages when we get updated data
 	public static final String STATUS = "org.csgeeks.TinyG.STATUS";
 	public static final String CONNECTION_STATUS = "org.csgeeks.TinyG.CONNECTION_STATUS";
-	
+
 	protected static final String TAG = "TinyG";
 	protected Machine machine;
-	private final Semaphore available = new Semaphore(1, true);
+	private final Semaphore available = new Semaphore(TINYG_BUFFER_SIZE, true);
 	private final BlockingQueue<String[]> queue = new LinkedBlockingQueue<String[]>();
 	private final IBinder mBinder = new TinyGBinder();
 	private final QueueProcessor procQ = new QueueProcessor();
 	private Thread dequeueWorker;
-	private String waitFor;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -102,13 +104,15 @@ abstract public class TinyGService extends Service {
 	}
 
 	public void send_gcode(String gcode) {
-		send_message("f", "{\"gc\": \"" + gcode + "\"}\n"); // In verbose mode 2, only the f is returned for gc
+		send_message("f", "{\"gc\": \"" + gcode + "\"}\n"); // In verbose mode
+															// 2, only the f is
+															// returned for gc
 	}
 
 	// Enqueue a command
 	public void send_message(String cmd_type, String cmd) {
 		try {
-			String[] msg = new String[] {cmd_type, cmd};
+			String[] msg = new String[] { cmd_type, cmd };
 			queue.put(msg);
 		} catch (InterruptedException e) {
 			// This really shouldn't happen
@@ -131,16 +135,17 @@ abstract public class TinyGService extends Service {
 	protected void updateInfo(String line, Bundle b) {
 		String json = b.getString("json");
 		Intent i;
-		
-		if (json == null)
-			return;
-		if (json.equals("sr")) {
+
+		// Currently the only async communication
+		if (json != null && json.equals("sr")) {
 			i = new Intent(STATUS);
 			i.putExtras(b);
 			sendBroadcast(i, null);
 		}
-		if (json.equals(waitFor))
-			available.release();
+
+		int freed = b.getInt("buffer");
+		if (freed > 0)
+			available.release(freed);
 	}
 
 	// Asks for the service to send a full update of all state.
@@ -150,7 +155,7 @@ abstract public class TinyGService extends Service {
 		send_message("si", CMD_SET_STATUS_UPDATE_INTERVAL);
 		send_message("hv", CMD_SET_HARDWARE_VERSION);
 		send_message("sr", CMD_GET_STATUS_REPORT);
-		
+
 		// Preload all of these for later display
 		send_message("a", CMD_GET_A_AXIS);
 		send_message("b", CMD_GET_B_AXIS);
@@ -169,10 +174,8 @@ abstract public class TinyGService extends Service {
 		public void run() {
 			try {
 				while (true) {
-					available.acquire();
 					String[] cmd = queue.take();
-					Log.d(TAG, "send: " + cmd[1]);
-					waitFor = cmd[0];
+					available.acquire(cmd[1].length());
 					write(cmd[1]);
 				}
 			} catch (InterruptedException e) {

@@ -14,6 +14,7 @@ import android.util.Log;
 public class Machine {
 	private static final String TAG = "TinyG";
 
+	// Machine state variables
 	private Bundle state;
 	private Bundle axis[] = new Bundle[6];
 	private Bundle motor[] = new Bundle[4];
@@ -215,37 +216,12 @@ public class Machine {
 	}
 
 	public Bundle processJSON(String string) {
-		Bundle bResult, fResult;
+		Bundle bResult;
 		try {
 			JSONObject json = new JSONObject(string);
 
-			if (json.has("f")) { // qr and sr don't!
-				fResult = processFooter(json.getJSONArray("f"));
-
-				// Check checksum
-				int pos = string.lastIndexOf(",");
-				if (pos == -1) // Shouldn't be possible!
-					return null;
-				String subval = string.substring(0, pos);
-				int check = fResult.getInt("checksum");
-				long y = (subval.hashCode() & 0x00000000ffffffffL) % 9999;
-				Log.d(TAG, "val = " + check);
-				if (y != check) {
-					Log.e(TAG, "Checksum error for: " + string + " (" + y + ")");
-					return null;
-				}
-				switch (fResult.getInt("status")) {
-				case 0: // OK
-				case 3: // NOOP
-				case 60: // NULL move
-					break;
-				default:
-					Log.e(TAG, "Status code error: " + string);
-					return null;
-				}
-			}
 			if (json.has("r")) {
-				bResult = processBody(json.getJSONObject("r"));
+				bResult = processBody(string, json.getJSONObject("r"));
 				return bResult;
 			}
 			if (json.has("sr")) {
@@ -269,43 +245,58 @@ public class Machine {
 		return b;
 	}
 
-	private Bundle processBody(JSONObject json) throws JSONException {
-		if (json.has("sr"))
-			return processStatusReport(json.getJSONObject("sr"));
-		if (json.has("qr"))
-			return processQueueReport(json.getInt("qr"));
-		if (json.has("sys"))
-			return processSys(json.getJSONObject("sys"));
-		if (json.has("1"))
-			return processMotor(1, json.getJSONObject("1"));
-		if (json.has("2"))
-			return processMotor(2, json.getJSONObject("2"));
-		if (json.has("3"))
-			return processMotor(3, json.getJSONObject("3"));
-		if (json.has("4"))
-			return processMotor(4, json.getJSONObject("4"));
-		if (json.has("a"))
-			return processAxis("a", json.getJSONObject("a"));
-		if (json.has("b"))
-			return processAxis("b", json.getJSONObject("b"));
-		if (json.has("c"))
-			return processAxis("c", json.getJSONObject("c"));
-		if (json.has("x"))
-			return processAxis("x", json.getJSONObject("x"));
-		if (json.has("y"))
-			return processAxis("y", json.getJSONObject("y"));
-		if (json.has("z"))
-			return processAxis("z", json.getJSONObject("z"));
-		// Anything else doesn't change the state of the machine.
-		// Just get the block type so that we can check ACK status later.
-		Bundle b = new Bundle();
-		for (Iterator<String> it = json.keys(); it.hasNext();) {
-			String reply = it.next();
-			Log.d(TAG, "Storing misc response type " + reply);
-			b.putString("json", reply);
+	private Bundle processBody(String json_string, JSONObject json)
+			throws JSONException {
+		Bundle fResult = processFooter(json.getJSONArray("f"));
+
+		// Check checksum
+		int pos = json_string.lastIndexOf(",");
+		if (pos == -1) // Shouldn't be possible!
+			return null;
+		String subval = json_string.substring(0, pos);
+		int check = fResult.getInt("checksum");
+		long y = (subval.hashCode() & 0x00000000ffffffffL) % 9999;
+		if (y != check) {
+			Log.e(TAG, "Checksum error for: " + json_string + " (" + y + "," + check + ")");
+			return null;
 		}
-		Log.d(TAG, "Done with processing");
-		return b;
+		switch (fResult.getInt("status")) {
+		case 0: // OK
+		case 3: // NOOP
+		case 60: // NULL move
+			break;
+		default:
+			Log.e(TAG, "Status code error: " + json_string);
+			return null;
+		}
+
+		if (json.has("sr")) 
+			fResult.putAll(processStatusReport(json.getJSONObject("sr")));
+		if (json.has("qr"))
+			fResult.putAll(processQueueReport(json.getInt("qr")));
+		if (json.has("sys"))
+			fResult.putAll(processSys(json.getJSONObject("sys")));
+		if (json.has("1"))
+			fResult.putAll(processMotor(1, json.getJSONObject("1")));
+		if (json.has("2"))
+			fResult.putAll(processMotor(2, json.getJSONObject("2")));
+		if (json.has("3"))
+			fResult.putAll(processMotor(3, json.getJSONObject("3")));
+		if (json.has("4"))
+			fResult.putAll(processMotor(4, json.getJSONObject("4")));
+		if (json.has("a"))
+			fResult.putAll(processAxis("a", json.getJSONObject("a")));
+		if (json.has("b"))
+			fResult.putAll(processAxis("b", json.getJSONObject("b")));
+		if (json.has("c"))
+			fResult.putAll(processAxis("c", json.getJSONObject("c")));
+		if (json.has("x"))
+			fResult.putAll(processAxis("x", json.getJSONObject("x")));
+		if (json.has("y"))
+			fResult.putAll(processAxis("y", json.getJSONObject("y")));
+		if (json.has("z"))
+			fResult.putAll(processAxis("z", json.getJSONObject("z")));
+		return fResult;
 	}
 
 	private Bundle processStatusReport(JSONObject sr) throws JSONException {

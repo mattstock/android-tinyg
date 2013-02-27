@@ -150,7 +150,6 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 			Bundle b = intent.getExtras();
 			String action = intent.getAction();
 			if (action.equals(TinyGService.STATUS)) {
-				Log.d(TAG, "Got status update");
 				StatusFragment sf = (StatusFragment) getSupportFragmentManager().findFragmentById(R.id.statusF);
 				sf.updateState(b);
 				Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
@@ -158,7 +157,6 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 					((JogFragment) f).updateState(b);
 			}
 			if (action.equals(TinyGService.CONNECTION_STATUS)) {
-				Log.d(TAG, "Got CONNECTION_STATUS broadcast");
 				connected = b.getBoolean("connection");
 				invalidateOptionsMenu();
 			}
@@ -300,7 +298,6 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	public void onSystemSelected() {
 		if (tinyg == null)
 			return;
-		Log.d(TAG, "Sending GET_MACHINE message");
 		Bundle b = tinyg.getMachineStatus();
 		Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
 		if (f != null && f.getClass() == SystemFragment.class)
@@ -309,7 +306,6 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	public void onMotorSelected(int m) {
 		if (tinyg == null)
 			return;
-		Log.d(TAG, String.format("Sending GET_MOTOR message %d", m));
 		Bundle b = tinyg.getMotor(m);
 		Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
 		if (f != null && f.getClass() == MotorFragment.class)

@@ -193,7 +193,6 @@ public class USBHostService extends TinyGService {
 			Bundle b;
 			if (values.length <= 0)
 				return;
-			Log.d(TAG, "read = " + values[0]);
 			if ((b = machine.processJSON(values[0])) == null)
 				return;
 			updateInfo(values[0], b);
