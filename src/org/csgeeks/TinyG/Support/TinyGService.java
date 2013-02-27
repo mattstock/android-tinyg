@@ -38,8 +38,11 @@ abstract public class TinyGService extends Service {
 	public static final String CMD_GET_MOTOR_2_SETTINGS = "{\"2\":null}\n";
 	public static final String CMD_GET_MOTOR_3_SETTINGS = "{\"3\":null}\n";
 	public static final String CMD_GET_MOTOR_4_SETTINGS = "{\"4\":null}\n";
+	
+	// broadcast messages when we get updated data
 	public static final String STATUS = "org.csgeeks.TinyG.STATUS";
 	public static final String CONNECTION_STATUS = "org.csgeeks.TinyG.CONNECTION_STATUS";
+	
 	protected static final String TAG = "TinyG";
 	protected Machine machine;
 	private final Semaphore available = new Semaphore(1, true);
@@ -127,10 +130,12 @@ abstract public class TinyGService extends Service {
 
 	protected void updateInfo(String line, Bundle b) {
 		String json = b.getString("json");
+		Intent i;
+		
 		if (json == null)
 			return;
 		if (json.equals("sr")) {
-			Intent i = new Intent(STATUS);
+			i = new Intent(STATUS);
 			i.putExtras(b);
 			sendBroadcast(i, null);
 		}
@@ -145,6 +150,19 @@ abstract public class TinyGService extends Service {
 		send_message("si", CMD_SET_STATUS_UPDATE_INTERVAL);
 		send_message("hv", CMD_SET_HARDWARE_VERSION);
 		send_message("sr", CMD_GET_STATUS_REPORT);
+		
+		// Preload all of these for later display
+		send_message("a", CMD_GET_A_AXIS);
+		send_message("b", CMD_GET_B_AXIS);
+		send_message("c", CMD_GET_C_AXIS);
+		send_message("x", CMD_GET_X_AXIS);
+		send_message("y", CMD_GET_Y_AXIS);
+		send_message("z", CMD_GET_Z_AXIS);
+		send_message("1", CMD_GET_MOTOR_1_SETTINGS);
+		send_message("2", CMD_GET_MOTOR_2_SETTINGS);
+		send_message("3", CMD_GET_MOTOR_3_SETTINGS);
+		send_message("4", CMD_GET_MOTOR_4_SETTINGS);
+		send_message("sys", CMD_GET_MACHINE_SETTINGS);
 	}
 
 	private class QueueProcessor implements Runnable {

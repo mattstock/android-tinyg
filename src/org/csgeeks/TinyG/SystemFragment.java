@@ -60,7 +60,6 @@ public class SystemFragment extends SherlockFragment {
 	}
 	
 	public void updateState(Bundle b) {
-		Activity a = getSherlockActivity();
 		fb.setText(Float.toString(b.getFloat("firmware_build")));
 		fv.setText(Float.toString(b.getFloat("firmware_version")));
 		si.setText(Integer.toString(b.getInt("system_interval")));
