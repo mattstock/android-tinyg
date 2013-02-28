@@ -20,7 +20,8 @@ import android.widget.AdapterView.OnItemSelectedListener;
 public class MotorFragment extends SherlockFragment {
 	private static final String TAG = "TinyG";
 	private MotorFragmentListener mListener;
-
+	private View fragView;
+	
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
@@ -37,9 +38,9 @@ public class MotorFragment extends SherlockFragment {
 			Bundle savedInstanceState) {
 		Log.d(TAG, "Creating MotorFragment");
 		// Inflate the layout for this fragment
-		View v = inflater.inflate(R.layout.motor, container, false);
+		fragView = inflater.inflate(R.layout.motor, container, false);
 
-		Spinner s = (Spinner) v.findViewById(R.id.motorpick);
+		Spinner s = (Spinner) fragView.findViewById(R.id.motorpick);
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
 				getActivity(), R.array.motorArray,
 				android.R.layout.simple_spinner_item);
@@ -49,19 +50,18 @@ public class MotorFragment extends SherlockFragment {
 
 		
 		// Configure axis picker
-		s = (Spinner) v.findViewById(R.id.map_axis);
+		s = (Spinner) fragView.findViewById(R.id.map_axis);
 		adapter = ArrayAdapter.createFromResource(getActivity(), R.array.axisArray,
 				android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		s.setAdapter(adapter);
-		s.setOnItemSelectedListener(new AxisItemSelectedListener());
 
-		return v;
+		return fragView;
 	}
 
 	public interface MotorFragmentListener {
 		public void onMotorSelected(int m);
-		public void onAxisSelected(int a);
+		public void onMotorSaved(int m, Bundle b);
 	}
 
 	private class MotorItemSelectedListener implements OnItemSelectedListener {
@@ -75,37 +75,47 @@ public class MotorFragment extends SherlockFragment {
 			// Do nothing.
 		}
 	}
+	
+	// Pull all of the field values into a Bundle
+	private Bundle getValues() {
+		Bundle b = new Bundle();
+		String scratch;
 
-	private class AxisItemSelectedListener implements OnItemSelectedListener {
+		scratch = ((EditText)fragView.findViewById(R.id.step_angle)).getText().toString();
+		b.putFloat("step_angle", Float.parseFloat(scratch));
+		scratch = ((EditText)fragView.findViewById(R.id.travel_rev)).getText().toString();
+		b.putFloat("travel_rev", Float.parseFloat(scratch));
+		scratch = ((EditText)fragView.findViewById(R.id.microsteps)).getText().toString();
+		b.putInt("microsteps", Integer.parseInt(scratch));
+		b.putBoolean("polarity", ((ToggleButton)fragView.findViewById(R.id.polarity)).isChecked());
+		b.putBoolean("power_management", ((ToggleButton)fragView.findViewById(R.id.power_management)).isChecked());
+		b.putInt("map_to_axis", (int) ((Spinner)fragView.findViewById(R.id.map_axis)).getSelectedItemId()+1);
 
-		public void onItemSelected(AdapterView<?> parent, View view, int pos,
-				long id) {
-			mListener.onAxisSelected(pos);
-		}
-
-		public void onNothingSelected(AdapterView<?> parent) {
-			// Do nothing.
-		}
+		return b;
 	}
 
 	public void myClickHandler(View view) {
+		
+		if (view.getId() == R.id.save) {
+			Spinner s = (Spinner) fragView.findViewById(R.id.motorpick);
+			mListener.onMotorSaved((int) s.getSelectedItemId()+1, getValues());
+		}
 	}
 	
 	public void updateState(Bundle b) {
-		Activity a = getActivity();
-		Spinner s = (Spinner) a.findViewById(R.id.motorpick);
+		Spinner s = (Spinner) fragView.findViewById(R.id.motorpick);
 		if (s.getSelectedItemId() == b.getInt("motor")-1) {
-			((EditText) a.findViewById(R.id.step_angle)).setText(Float
+			((EditText) fragView.findViewById(R.id.step_angle)).setText(Float
 					.toString(b.getFloat("step_angle")));
-			((EditText) a.findViewById(R.id.travel_rev)).setText(Float
+			((EditText) fragView.findViewById(R.id.travel_rev)).setText(Float
 					.toString(b.getFloat("travel_rev")));
-			((EditText) a.findViewById(R.id.microsteps))
+			((EditText) fragView.findViewById(R.id.microsteps))
 					.setText(Integer.toString(b.getInt("microsteps")));
-			((ToggleButton) a.findViewById(R.id.polarity)).setChecked(b
+			((ToggleButton) fragView.findViewById(R.id.polarity)).setChecked(b
 					.getBoolean("polarity"));
-			((ToggleButton) a.findViewById(R.id.power_management))
+			((ToggleButton) fragView.findViewById(R.id.power_management))
 					.setChecked(b.getBoolean("power_management"));
-			((Spinner) a.findViewById(R.id.map_axis)).setSelection(b
+			((Spinner) fragView.findViewById(R.id.map_axis)).setSelection(b
 					.getInt("map_to_axis"));
 		}
 	}

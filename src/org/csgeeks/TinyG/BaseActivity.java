@@ -36,7 +36,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-public class BaseActivity extends SherlockFragmentActivity implements FileFragment.FileFragmentListener, JogFragment.JogFragmentListener, MotorFragment.MotorFragmentListener, AxisFragment.AxisFragmentListener, SystemFragment.SystemFragmentListener {
+public class BaseActivity extends SherlockFragmentActivity implements
+		FileFragment.FileFragmentListener, JogFragment.JogFragmentListener,
+		MotorFragment.MotorFragmentListener, AxisFragment.AxisFragmentListener,
+		SystemFragment.SystemFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGService tinyg = null;
 	private int bindType = 0;
@@ -46,7 +49,7 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	private PrefsListener mPreferencesListener;
 	private Download mDownload;
 	private BroadcastReceiver mIntentReceiver;
-	
+
 	@Override
 	public void onResume() {
 		IntentFilter updateFilter = new IntentFilter();
@@ -67,19 +70,19 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		final ActionBar actionBar = getSupportActionBar();
 
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		Resources res = getResources();
 		String[] tabs = res.getStringArray(R.array.tabArray);
 		MyTabListener tabListener = new MyTabListener();
-		for (int i=0; i < tabs.length; i++) {
+		for (int i = 0; i < tabs.length; i++) {
 			Tab tab = actionBar.newTab();
 			tab.setText(tabs[i]);
 			tab.setTag(tabs[i]);
 			tab.setTabListener(tabListener);
-			actionBar.addTab(tab);			
+			actionBar.addTab(tab);
 		}
 
 		// Force landscape for now, since we don't really handle the loss of the
@@ -104,8 +107,8 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	private boolean bindDriver(ServiceConnection s) {
 		switch (bindType) {
 		case 0: // Network
-			return bindService(new Intent(getApplicationContext(), TinyGNetwork.class), s,
-					Context.BIND_AUTO_CREATE);
+			return bindService(new Intent(getApplicationContext(),
+					TinyGNetwork.class), s, Context.BIND_AUTO_CREATE);
 		case 1: // USB host
 			// Check to see if the platform supports USB host
 			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR1) {
@@ -113,17 +116,17 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 						.show();
 				return false;
 			}
-			return bindService(new Intent(getApplicationContext(), USBHostService.class), s,
-					Context.BIND_AUTO_CREATE);
+			return bindService(new Intent(getApplicationContext(),
+					USBHostService.class), s, Context.BIND_AUTO_CREATE);
 		case 2: // USB accessory
 			// Check to see if the platform support USB accessory
 			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-				Toast.makeText(this, R.string.no_usb_accessory, Toast.LENGTH_SHORT)
-						.show();
+				Toast.makeText(this, R.string.no_usb_accessory,
+						Toast.LENGTH_SHORT).show();
 				return false;
 			}
-			return bindService(new Intent(getApplicationContext(), USBAccessoryService.class), s,
-					Context.BIND_AUTO_CREATE);
+			return bindService(new Intent(getApplicationContext(),
+					USBAccessoryService.class), s, Context.BIND_AUTO_CREATE);
 		default:
 			return false;
 		}
@@ -150,9 +153,11 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 			Bundle b = intent.getExtras();
 			String action = intent.getAction();
 			if (action.equals(TinyGService.STATUS)) {
-				StatusFragment sf = (StatusFragment) getSupportFragmentManager().findFragmentById(R.id.statusF);
+				StatusFragment sf = (StatusFragment) getSupportFragmentManager()
+						.findFragmentById(R.id.statusF);
 				sf.updateState(b);
-				Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
+				Fragment f = getSupportFragmentManager().findFragmentById(
+						R.id.tabview);
 				if (f != null && f.getClass() == JogFragment.class)
 					((JogFragment) f).updateState(b);
 			}
@@ -179,7 +184,7 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 			menuConnect.setTitle(R.string.connect);
 		return super.onPrepareOptionsMenu(menu);
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
@@ -189,21 +194,22 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 				currentServiceConnection = new DriverServiceConnection();
 				bindDriver(currentServiceConnection);
 				// We can't call connect until we know we have a binding.
-				pendingConnect = true; 
+				pendingConnect = true;
 			}
 			if (connected)
 				tinyg.disconnect();
 			else if (!pendingConnect)
 				tinyg.connect();
-				
+
 			return true;
 		case R.id.settings:
 			startActivity(new Intent(this, EditPreferencesActivity.class));
 			return true;
 		case R.id.about:
-	        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-	        AboutFragment af = new AboutFragment();
-	        af.show(ft, "about");
+			FragmentTransaction ft = getSupportFragmentManager()
+					.beginTransaction();
+			AboutFragment af = new AboutFragment();
+			af.show(ft, "about");
 			return true;
 		case R.id.refresh:
 			if (mDownload != null)
@@ -295,21 +301,45 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		}
 	}
 
+	// Callbacks from the various tabs to pull get/put machine state.
+	// Didn't want to try to have multiple service connections in multiple
+	// fragments if possible.
 	public void onSystemSelected() {
 		if (tinyg == null)
 			return;
 		Bundle b = tinyg.getMachineStatus();
 		Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
 		if (f != null && f.getClass() == SystemFragment.class)
-			((SystemFragment) f).updateState(b);	
+			((SystemFragment) f).updateState(b);
 	}
+
+	public void onSystemSaved(Bundle b) {
+		// TODO
+	}
+
 	public void onMotorSelected(int m) {
 		if (tinyg == null)
 			return;
 		Bundle b = tinyg.getMotor(m);
 		Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
 		if (f != null && f.getClass() == MotorFragment.class)
-			((MotorFragment) f).updateState(b);				
+			((MotorFragment) f).updateState(b);
+	}
+
+	// Look for changed values, and push them on to the service
+	public void onMotorSaved(int mnum, Bundle values) {
+		Bundle motor = tinyg.getMotor(mnum);
+		Bundle update = new Bundle(values);
+		
+		for (String value : values.keySet())
+			if (motor.containsKey(value)
+					&& motor.get(value).equals(values.get(value))) {
+				Log.d(TAG, "removing " + value + " from update list");
+				update.remove(value);
+			} else
+				
+		
+		tinyg.putMotor(mnum, update);
 	}
 
 	public void onAxisSelected(int a) {
@@ -318,16 +348,19 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 		Bundle b = tinyg.getAxis(a);
 		Fragment f = getSupportFragmentManager().findFragmentById(R.id.tabview);
 		if (f != null && f.getClass() == AxisFragment.class)
-			((AxisFragment) f).updateState(b);			
+			((AxisFragment) f).updateState(b);
+	}
+
+	public void onAxisSaved(Bundle b) {
+		// TODO
 	}
 
 	public boolean connectionState() {
 		return connected;
 	}
-	
+
 	private class MyTabListener implements ActionBar.TabListener {
-		
-		
+
 		public void onTabSelected(Tab tab, FragmentTransaction ft) {
 			Fragment f;
 			FragmentManager fm = getSupportFragmentManager();
@@ -342,7 +375,8 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 					f = new AxisFragment();
 				else if (tab.getText().equals("System"))
 					f = new SystemFragment();
-				else // Jog
+				else
+					// Jog
 					f = new JogFragment();
 				ft.add(R.id.tabview, f, (String) tab.getText());
 			} else {
@@ -366,28 +400,31 @@ public class BaseActivity extends SherlockFragmentActivity implements FileFragme
 	public void jogChange(float rate) {
 		Bundle b = new Bundle();
 		b.putFloat("jogRate", rate);
-		StatusFragment sf = (StatusFragment) getSupportFragmentManager().findFragmentById(R.id.statusF);
-		sf.updateState(b);		
+		StatusFragment sf = (StatusFragment) getSupportFragmentManager()
+				.findFragmentById(R.id.statusF);
+		sf.updateState(b);
 	}
 
 	public void toggleDownload(String filename) {
 		if (tinyg == null || !connected)
 			return;
-		
+
 		// stop downloading
 		if (mDownload != null) {
-			FileFragment ff = (FileFragment) getSupportFragmentManager().findFragmentById(R.id.tabview);
+			FileFragment ff = (FileFragment) getSupportFragmentManager()
+					.findFragmentById(R.id.tabview);
 			if (ff != null)
-				ff.updateState(false);					
+				ff.updateState(false);
 			mDownload.cancel();
 			// TODO Send interrupt
 			mDownload = null;
 		} else {
 			mDownload = new Download(this, tinyg);
 			mDownload.openFile(filename);
-			FileFragment ff = (FileFragment) getSupportFragmentManager().findFragmentById(R.id.tabview);
+			FileFragment ff = (FileFragment) getSupportFragmentManager()
+					.findFragmentById(R.id.tabview);
 			if (ff != null)
-				ff.updateState(true);					
+				ff.updateState(true);
 		}
 	}
 

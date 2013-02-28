@@ -57,6 +57,7 @@ public class SystemFragment extends SherlockFragment {
 	
 	public interface SystemFragmentListener {
 		public void onSystemSelected();		
+		public void onSystemSaved(Bundle b);
 	}
 	
 	public void updateState(Bundle b) {

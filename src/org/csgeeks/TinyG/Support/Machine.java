@@ -2,7 +2,9 @@ package org.csgeeks.TinyG.Support;
 
 // Copyright 2012 Matthew Stock
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,7 +15,9 @@ import android.util.Log;
 
 public class Machine {
 	private static final String TAG = "TinyG";
-
+	private static final String UPDATE_BLOCK_FORMAT = "{\"%s\": {%s}}";
+	private static final String UPDATE_VALUE_FORMAT = "{\"%s\": %s}";
+	
 	// Machine state variables
 	private Bundle state;
 	private Bundle axis[] = new Bundle[6];
@@ -114,7 +118,7 @@ public class Machine {
 	public Bundle getStatusBundle() {
 		return state;
 	}
-
+	
 	public void putSys(JSONObject sysjson) throws JSONException {
 		state.putFloat("firmware_build", (float) sysjson.getDouble("fb"));
 		state.putFloat("firmware_version", (float) sysjson.getDouble("fv"));
@@ -184,6 +188,60 @@ public class Machine {
 		m.putBoolean("power_management", motorjson.getInt("pm") == 1);
 		m.putInt("map_to_axis", motorjson.getInt("ma"));
 		m.putInt("motor", name);
+	}
+
+	// Looks at Bundle for changed values, modifies local state,
+	// and returns a command string to send to TinyG to update
+	// the value.  This is ugly in part because we need to know the types
+	// we're pushing around.
+	public String updateMotorBundle(int mnum, Bundle b) {
+		String scratch;
+		String cmds = null;
+		Bundle m = motor[mnum];
+		
+		m.putAll(b);
+		
+		if (b.containsKey("map_to_axis")) {
+			scratch = String.format(UPDATE_VALUE_FORMAT, "ma", b.getInt("map_to_axis"));
+			cmds = scratch;
+		}
+		if (b.containsKey("travel_rev")) {
+			scratch = String.format(UPDATE_VALUE_FORMAT, "tr", b.getFloat("travel_rev"));
+			if (cmds == null)
+				cmds = scratch;
+			else
+				cmds = cmds + "," + scratch;
+		}
+		if (b.containsKey("microsteps")) {
+			scratch = String.format(UPDATE_VALUE_FORMAT, "mi", b.getInt("microsteps"));
+			if (cmds == null)
+				cmds = scratch;
+			else
+				cmds = cmds + "," + scratch;
+		}
+		if (b.containsKey("step_angle")) {
+			scratch = String.format(UPDATE_VALUE_FORMAT, "sa", b.getFloat("step_angle"));
+			if (cmds == null)
+				cmds = scratch;
+			else
+				cmds = cmds + "," + scratch;
+		}
+		if (b.containsKey("polarity")) {
+			scratch = String.format(UPDATE_VALUE_FORMAT, "po", b.getBoolean("polarity") ? "1" : "0");
+			if (cmds == null)
+				cmds = scratch;
+			else
+				cmds = cmds + "," + scratch;
+		}
+		if (b.containsKey("power_management")) {
+			scratch = String.format(UPDATE_VALUE_FORMAT, "pm", b.getBoolean("power_managment") ? "1" : "0");
+			if (cmds == null)
+				cmds = scratch;
+			else
+				cmds = cmds + "," + scratch;
+		}
+		
+		return String.format(UPDATE_BLOCK_FORMAT, Integer.toString(mnum), cmds);
 	}
 
 	public Bundle getMotorBundle(int m) {
@@ -334,4 +392,5 @@ public class Machine {
 		b.putString("json", axisName);
 		return b;
 	}
+
 }

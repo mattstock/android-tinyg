@@ -2,6 +2,7 @@ package org.csgeeks.TinyG.Support;
 
 // Copyright 2012 Matthew Stock
 
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
@@ -49,7 +50,7 @@ abstract public class TinyGService extends Service {
 	protected static final String TAG = "TinyG";
 	protected Machine machine;
 	private final Semaphore available = new Semaphore(TINYG_BUFFER_SIZE, true);
-	private final BlockingQueue<String[]> queue = new LinkedBlockingQueue<String[]>();
+	private final BlockingQueue<String> queue = new LinkedBlockingQueue<String>();
 	private final IBinder mBinder = new TinyGBinder();
 	private final QueueProcessor procQ = new QueueProcessor();
 	private Thread dequeueWorker;
@@ -104,16 +105,15 @@ abstract public class TinyGService extends Service {
 	}
 
 	public void send_gcode(String gcode) {
-		send_message("f", "{\"gc\": \"" + gcode + "\"}\n"); // In verbose mode
+		send_message("{\"gc\": \"" + gcode + "\"}\n"); // In verbose mode
 															// 2, only the f is
 															// returned for gc
 	}
 
 	// Enqueue a command
-	public void send_message(String cmd_type, String cmd) {
+	public void send_message(String cmd) {
 		try {
-			String[] msg = new String[] { cmd_type, cmd };
-			queue.put(msg);
+			queue.put(cmd);
 		} catch (InterruptedException e) {
 			// This really shouldn't happen
 			e.printStackTrace();
@@ -124,6 +124,14 @@ abstract public class TinyGService extends Service {
 		return machine.getMotorBundle(m);
 	}
 
+	// apply any new values in the bundle to the machine state
+	// and sends the necessary change commands to TinyG
+	public void putMotor(int m, Bundle b) {
+		String cmd = machine.updateMotorBundle(m, b);
+		Log.d(TAG, "update motor command: " + cmd);
+		// send_message(cmd);
+	}
+	
 	public Bundle getAxis(int a) {
 		return machine.getAxisBundle(a);
 	}
@@ -150,33 +158,33 @@ abstract public class TinyGService extends Service {
 
 	// Asks for the service to send a full update of all state.
 	public void refresh() {
-		send_message("ee", CMD_DISABLE_LOCAL_ECHO);
-		send_message("jv", CMD_JSON_VERBOSITY);
-		send_message("si", CMD_SET_STATUS_UPDATE_INTERVAL);
-		send_message("hv", CMD_SET_HARDWARE_VERSION);
-		send_message("sr", CMD_GET_STATUS_REPORT);
+		send_message(CMD_DISABLE_LOCAL_ECHO);
+		send_message(CMD_JSON_VERBOSITY);
+		send_message(CMD_SET_STATUS_UPDATE_INTERVAL);
+		send_message(CMD_SET_HARDWARE_VERSION);
+		send_message(CMD_GET_STATUS_REPORT);
 
 		// Preload all of these for later display
-		send_message("a", CMD_GET_A_AXIS);
-		send_message("b", CMD_GET_B_AXIS);
-		send_message("c", CMD_GET_C_AXIS);
-		send_message("x", CMD_GET_X_AXIS);
-		send_message("y", CMD_GET_Y_AXIS);
-		send_message("z", CMD_GET_Z_AXIS);
-		send_message("1", CMD_GET_MOTOR_1_SETTINGS);
-		send_message("2", CMD_GET_MOTOR_2_SETTINGS);
-		send_message("3", CMD_GET_MOTOR_3_SETTINGS);
-		send_message("4", CMD_GET_MOTOR_4_SETTINGS);
-		send_message("sys", CMD_GET_MACHINE_SETTINGS);
+		send_message(CMD_GET_A_AXIS);
+		send_message(CMD_GET_B_AXIS);
+		send_message(CMD_GET_C_AXIS);
+		send_message(CMD_GET_X_AXIS);
+		send_message(CMD_GET_Y_AXIS);
+		send_message(CMD_GET_Z_AXIS);
+		send_message(CMD_GET_MOTOR_1_SETTINGS);
+		send_message(CMD_GET_MOTOR_2_SETTINGS);
+		send_message(CMD_GET_MOTOR_3_SETTINGS);
+		send_message(CMD_GET_MOTOR_4_SETTINGS);
+		send_message(CMD_GET_MACHINE_SETTINGS);
 	}
 
 	private class QueueProcessor implements Runnable {
 		public void run() {
 			try {
 				while (true) {
-					String[] cmd = queue.take();
-					available.acquire(cmd[1].length());
-					write(cmd[1]);
+					String cmd = queue.take();
+					available.acquire(cmd.length());
+					write(cmd);
 				}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block

@@ -4,6 +4,7 @@ import com.actionbarsherlock.app.SherlockFragment;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import android.widget.ToggleButton;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 public class AxisFragment extends SherlockFragment {
+	private static final String TAG = "TinyG";
 	private AxisFragmentListener mListener;
 	private Activity mActivity;
 
@@ -51,6 +53,7 @@ public class AxisFragment extends SherlockFragment {
 
 	public interface AxisFragmentListener {
 		public void onAxisSelected(int a);
+		public void onAxisSaved(Bundle b);
 	}
 
 	public class AxisItemSelectedListener implements OnItemSelectedListener {
@@ -66,7 +69,9 @@ public class AxisFragment extends SherlockFragment {
 	}
 
 	public void myClickHandler(View view) {
-
+		if (view.getId() == R.id.save) {
+			Log.d(TAG, "save on axis");
+		}
 	}
 
 	public void updateState(Bundle b) {
@@ -85,9 +90,9 @@ public class AxisFragment extends SherlockFragment {
 			((EditText) mActivity.findViewById(R.id.switch_max))
 					.setText(Integer.toString(b.getInt("switch_max")));
 			((EditText) mActivity.findViewById(R.id.latch_backoff))
-					.setText(Integer.toString(b.getInt("latch_backoff")));
+					.setText(Float.toString(b.getFloat("latch_backoff")));
 			((EditText) mActivity.findViewById(R.id.zero_backoff))
-					.setText(Integer.toString(b.getInt("zero_backoff")));
+					.setText(Float.toString(b.getFloat("zero_backoff")));
 			((EditText) mActivity.findViewById(R.id.velocity_max))
 					.setText(Float.toString(b.getFloat("velocity_max")));
 			((EditText) mActivity.findViewById(R.id.travel_max)).setText(Float

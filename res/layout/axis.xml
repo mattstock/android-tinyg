@@ -282,6 +282,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
+        android:onClick="myClickHandler"
         android:text="@string/save" />
 
 </RelativeLayout>
