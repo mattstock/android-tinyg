@@ -129,9 +129,15 @@ abstract public class TinyGService extends Service {
 	public void putMotor(int m, Bundle b) {
 		String cmd = machine.updateMotorBundle(m, b);
 		Log.d(TAG, "update motor command: " + cmd);
-		// send_message(cmd);
+		send_message(cmd + "\n");
 	}
-	
+
+	public void putAxis(int a, Bundle b) {
+		String cmd = machine.updateAxisBundle(a, b);
+		Log.d(TAG, "update axis command: " + cmd);
+		send_message(cmd + "\n");
+	}
+
 	public Bundle getAxis(int a) {
 		return machine.getAxisBundle(a);
 	}

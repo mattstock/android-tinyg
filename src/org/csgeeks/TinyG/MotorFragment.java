@@ -89,7 +89,7 @@ public class MotorFragment extends SherlockFragment {
 		b.putInt("microsteps", Integer.parseInt(scratch));
 		b.putBoolean("polarity", ((ToggleButton)fragView.findViewById(R.id.polarity)).isChecked());
 		b.putBoolean("power_management", ((ToggleButton)fragView.findViewById(R.id.power_management)).isChecked());
-		b.putInt("map_to_axis", (int) ((Spinner)fragView.findViewById(R.id.map_axis)).getSelectedItemId()+1);
+		b.putInt("map_to_axis", (int) ((Spinner)fragView.findViewById(R.id.map_axis)).getSelectedItemId());
 
 		return b;
 	}

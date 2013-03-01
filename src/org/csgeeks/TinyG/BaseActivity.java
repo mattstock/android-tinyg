@@ -331,15 +331,18 @@ public class BaseActivity extends SherlockFragmentActivity implements
 		Bundle motor = tinyg.getMotor(mnum);
 		Bundle update = new Bundle(values);
 		
+		Log.d(TAG, "new = " + values.toString());
+		Log.d(TAG, "old = " + motor.toString());
+		
 		for (String value : values.keySet())
 			if (motor.containsKey(value)
 					&& motor.get(value).equals(values.get(value))) {
 				Log.d(TAG, "removing " + value + " from update list");
 				update.remove(value);
-			} else
+			}
 				
-		
-		tinyg.putMotor(mnum, update);
+		if (!update.isEmpty())
+			tinyg.putMotor(mnum, update);
 	}
 
 	public void onAxisSelected(int a) {
@@ -351,8 +354,22 @@ public class BaseActivity extends SherlockFragmentActivity implements
 			((AxisFragment) f).updateState(b);
 	}
 
-	public void onAxisSaved(Bundle b) {
-		// TODO
+	public void onAxisSaved(int a, Bundle values) {
+		Bundle axis = tinyg.getAxis(a);
+		Bundle update = new Bundle(values);
+		
+		Log.d(TAG, "new = " + values.toString());
+		Log.d(TAG, "old = " + axis.toString());
+		
+		for (String value : values.keySet())
+			if (axis.containsKey(value)
+					&& axis.get(value).equals(values.get(value))) {
+				Log.d(TAG, "removing " + value + " from update list");
+				update.remove(value);
+			}
+				
+		if (!update.isEmpty())
+			tinyg.putAxis(a, update);
 	}
 
 	public boolean connectionState() {

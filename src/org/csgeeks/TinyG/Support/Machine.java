@@ -16,8 +16,10 @@ import android.util.Log;
 public class Machine {
 	private static final String TAG = "TinyG";
 	private static final String UPDATE_BLOCK_FORMAT = "{\"%s\": {%s}}";
-	private static final String UPDATE_VALUE_FORMAT = "{\"%s\": %s}";
-	
+	private static final String UPDATE_VALUE_FORMAT = "\"%s\": %s";
+	private static final String axisIndexToName[] = { "x", "y", "z", "a", "b",
+			"c" };
+
 	// Machine state variables
 	private Bundle state;
 	private Bundle axis[] = new Bundle[6];
@@ -118,36 +120,58 @@ public class Machine {
 	public Bundle getStatusBundle() {
 		return state;
 	}
-	
+
 	public void putSys(JSONObject sysjson) throws JSONException {
-		state.putFloat("firmware_build", (float) sysjson.getDouble("fb"));
-		state.putFloat("firmware_version", (float) sysjson.getDouble("fv"));
-		state.putFloat("hardware_version", (float) sysjson.getDouble("hv"));
-		state.putFloat("json_verbosity", (float) sysjson.getDouble("jv"));
-		state.putInt("system_interval", sysjson.getInt("si"));
-		state.putString("board_id", sysjson.getString("id"));
-		state.putFloat("junction_acceleration", (float) sysjson.getDouble("ja"));
-		state.putFloat("chordal_tolerance", (float) sysjson.getDouble("ct"));
-		state.putBoolean("switch_type", sysjson.getInt("st") == 1);
-		state.putBoolean("enable_json", sysjson.getInt("ej") == 1);
-		state.putInt("json_verbosity", sysjson.getInt("jv"));
-		state.putInt("text_verbosity", sysjson.getInt("tv"));
-		state.putInt("queue_verbosity", sysjson.getInt("qv"));
-		state.putInt("status_verbosity", sysjson.getInt("sv"));
-		state.putInt("status_interval", sysjson.getInt("si"));
-		state.putInt("gcode_plane", sysjson.getInt("gpl"));
+		if (sysjson.has("fb"))
+			state.putFloat("firmware_build", (float) sysjson.getDouble("fb"));
+		if (sysjson.has("fv"))
+			state.putFloat("firmware_version", (float) sysjson.getDouble("fv"));
+		if (sysjson.has("hv"))
+			state.putFloat("hardware_version", (float) sysjson.getDouble("hv"));
+		if (sysjson.has("si"))
+			state.putInt("system_interval", sysjson.getInt("si"));
+		if (sysjson.has("id"))
+			state.putString("board_id", sysjson.getString("id"));
+		if (sysjson.has("ja"))
+			state.putFloat("junction_acceleration",
+					(float) sysjson.getDouble("ja"));
+		if (sysjson.has("ct"))
+			state.putFloat("chordal_tolerance", (float) sysjson.getDouble("ct"));
+		if (sysjson.has("st"))
+			state.putBoolean("switch_type", sysjson.getInt("st") == 1);
+		if (sysjson.has("ej"))
+			state.putBoolean("enable_json", sysjson.getInt("ej") == 1);
+		if (sysjson.has("jv"))
+			state.putInt("json_verbosity", sysjson.getInt("jv"));
+		if (sysjson.has("tv"))
+			state.putInt("text_verbosity", sysjson.getInt("tv"));
+		if (sysjson.has("qv"))
+			state.putInt("queue_verbosity", sysjson.getInt("qv"));
+		if (sysjson.has("sv"))
+			state.putInt("status_verbosity", sysjson.getInt("sv"));
+		if (sysjson.has("si"))
+			state.putInt("status_interval", sysjson.getInt("si"));
+		if (sysjson.has("gpl"))
+			state.putInt("gcode_plane", sysjson.getInt("gpl"));
 	}
 
 	public void putAxis(JSONObject axisjson, String name) throws JSONException {
 		Bundle a = axis[axisNameToIndex(name)];
 
-		a.putFloat("travel_max", (float) axisjson.getDouble("tm"));
-		a.putFloat("velocity_max", (float) axisjson.getDouble("vm"));
-		a.putFloat("jerk_max", (float) axisjson.getDouble("jm"));
-		a.putFloat("junction_deviation", (float) axisjson.getDouble("jd"));
-		a.putFloat("feed_rate", (float) axisjson.getDouble("fr"));
-		a.putBoolean("axis_mode", axisjson.getInt("am") == 1);
 		a.putInt("axis", axisNameToIndex(name));
+
+		if (axisjson.has("tm"))
+			a.putFloat("travel_max", (float) axisjson.getDouble("tm"));
+		if (axisjson.has("vm"))
+			a.putFloat("velocity_max", (float) axisjson.getDouble("vm"));
+		if (axisjson.has("jm"))
+			a.putFloat("jerk_max", (float) axisjson.getDouble("jm"));
+		if (axisjson.has("jd"))
+			a.putFloat("junction_deviation", (float) axisjson.getDouble("jd"));
+		if (axisjson.has("fr"))
+			a.putFloat("feed_rate", (float) axisjson.getDouble("fr"));
+		if (axisjson.has("am"))
+			a.putBoolean("axis_mode", axisjson.getInt("am") == 1);
 		if (axisjson.has("sv"))
 			a.putFloat("search_velocity", (float) axisjson.getDouble("sv"));
 		if (axisjson.has("lv"))
@@ -160,6 +184,63 @@ public class Machine {
 			a.putFloat("latch_backoff", (float) axisjson.getDouble("lb"));
 		if (axisjson.has("zb"))
 			a.putFloat("zero_backoff", (float) axisjson.getDouble("zb"));
+	}
+
+	public String updateAxisBundle(int anum, Bundle b) {
+		String scratch;
+		String cmds = null;
+		Bundle a = axis[anum];
+
+		a.putAll(b);
+
+		if (b.containsKey("travel_max")) {
+			scratch = String.format(UPDATE_VALUE_FORMAT, "tm",
+					b.getFloat("travel_max"));
+			cmds = scratch;
+		}
+		if (b.containsKey("velocity_max")) {
+			scratch = String.format(UPDATE_VALUE_FORMAT, "vm",
+					b.getFloat("velocity_max"));
+			if (cmds == null)
+				cmds = scratch;
+			else
+				cmds = cmds + "," + scratch;
+		}
+		if (b.containsKey("jerk_max")) {
+			scratch = String.format(UPDATE_VALUE_FORMAT, "jm",
+					b.getFloat("jerk_max"));
+			if (cmds == null)
+				cmds = scratch;
+			else
+				cmds = cmds + "," + scratch;
+		}
+		if (b.containsKey("junction_deviation")) {
+			scratch = String.format(UPDATE_VALUE_FORMAT, "jv",
+					b.getFloat("junction_deviation"));
+			if (cmds == null)
+				cmds = scratch;
+			else
+				cmds = cmds + "," + scratch;
+		}
+		if (b.containsKey("feed_rate")) {
+			scratch = String.format(UPDATE_VALUE_FORMAT, "fr",
+					b.getFloat("feed_rate"));
+			if (cmds == null)
+				cmds = scratch;
+			else
+				cmds = cmds + "," + scratch;
+		}
+		if (b.containsKey("axis_mode")) {
+			scratch = String.format(UPDATE_VALUE_FORMAT, "am",
+					b.getBoolean("axis_mode") ? "1" : "0");
+			if (cmds == null)
+				cmds = scratch;
+			else
+				cmds = cmds + "," + scratch;
+		}
+
+		// TODO the rest of the options!
+		return String.format(UPDATE_BLOCK_FORMAT, axisIndexToName[anum], cmds);
 	}
 
 	public Bundle getAxisBundle(int idx) {
@@ -180,67 +261,79 @@ public class Machine {
 			m = motor[0];
 		else
 			m = motor[name - 1];
-
-		m.putFloat("travel_rev", (float) motorjson.getDouble("tr"));
-		m.putFloat("step_angle", (float) motorjson.getDouble("sa"));
-		m.putInt("microsteps", motorjson.getInt("mi"));
-		m.putBoolean("polarity", motorjson.getInt("po") == 1);
-		m.putBoolean("power_management", motorjson.getInt("pm") == 1);
-		m.putInt("map_to_axis", motorjson.getInt("ma"));
 		m.putInt("motor", name);
+
+		if (motorjson.has("tr"))
+			m.putFloat("travel_rev", (float) motorjson.getDouble("tr"));
+		if (motorjson.has("sa"))
+			m.putFloat("step_angle", (float) motorjson.getDouble("sa"));
+		if (motorjson.has("mi"))
+			m.putInt("microsteps", motorjson.getInt("mi"));
+		if (motorjson.has("po"))
+			m.putBoolean("polarity", motorjson.getInt("po") == 1);
+		if (motorjson.has("pm"))
+			m.putBoolean("power_management", motorjson.getInt("pm") == 1);
+		if (motorjson.has("ma"))
+			m.putInt("map_to_axis", motorjson.getInt("ma"));
 	}
 
 	// Looks at Bundle for changed values, modifies local state,
 	// and returns a command string to send to TinyG to update
-	// the value.  This is ugly in part because we need to know the types
+	// the value. This is ugly in part because we need to know the types
 	// we're pushing around.
 	public String updateMotorBundle(int mnum, Bundle b) {
 		String scratch;
 		String cmds = null;
 		Bundle m = motor[mnum];
-		
+
 		m.putAll(b);
-		
+
 		if (b.containsKey("map_to_axis")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "ma", b.getInt("map_to_axis"));
+			scratch = String.format(UPDATE_VALUE_FORMAT, "ma",
+					b.getInt("map_to_axis"));
 			cmds = scratch;
 		}
 		if (b.containsKey("travel_rev")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "tr", b.getFloat("travel_rev"));
+			scratch = String.format(UPDATE_VALUE_FORMAT, "tr",
+					b.getFloat("travel_rev"));
 			if (cmds == null)
 				cmds = scratch;
 			else
 				cmds = cmds + "," + scratch;
 		}
 		if (b.containsKey("microsteps")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "mi", b.getInt("microsteps"));
+			scratch = String.format(UPDATE_VALUE_FORMAT, "mi",
+					b.getInt("microsteps"));
 			if (cmds == null)
 				cmds = scratch;
 			else
 				cmds = cmds + "," + scratch;
 		}
 		if (b.containsKey("step_angle")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "sa", b.getFloat("step_angle"));
+			scratch = String.format(UPDATE_VALUE_FORMAT, "sa",
+					b.getFloat("step_angle"));
 			if (cmds == null)
 				cmds = scratch;
 			else
 				cmds = cmds + "," + scratch;
 		}
 		if (b.containsKey("polarity")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "po", b.getBoolean("polarity") ? "1" : "0");
+			scratch = String.format(UPDATE_VALUE_FORMAT, "po",
+					b.getBoolean("polarity") ? "1" : "0");
 			if (cmds == null)
 				cmds = scratch;
 			else
 				cmds = cmds + "," + scratch;
 		}
 		if (b.containsKey("power_management")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "pm", b.getBoolean("power_managment") ? "1" : "0");
+			scratch = String.format(UPDATE_VALUE_FORMAT, "pm",
+					b.getBoolean("power_managment") ? "1" : "0");
 			if (cmds == null)
 				cmds = scratch;
 			else
 				cmds = cmds + "," + scratch;
 		}
-		
+
 		return String.format(UPDATE_BLOCK_FORMAT, Integer.toString(mnum), cmds);
 	}
 
@@ -315,7 +408,8 @@ public class Machine {
 		int check = fResult.getInt("checksum");
 		long y = (subval.hashCode() & 0x00000000ffffffffL) % 9999;
 		if (y != check) {
-			Log.e(TAG, "Checksum error for: " + json_string + " (" + y + "," + check + ")");
+			Log.e(TAG, "Checksum error for: " + json_string + " (" + y + ","
+					+ check + ")");
 			return null;
 		}
 		switch (fResult.getInt("status")) {
@@ -328,7 +422,7 @@ public class Machine {
 			return null;
 		}
 
-		if (json.has("sr")) 
+		if (json.has("sr"))
 			fResult.putAll(processStatusReport(json.getJSONObject("sr")));
 		if (json.has("qr"))
 			fResult.putAll(processQueueReport(json.getInt("qr")));

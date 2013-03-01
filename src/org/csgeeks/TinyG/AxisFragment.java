@@ -18,7 +18,7 @@ import android.widget.AdapterView.OnItemSelectedListener;
 public class AxisFragment extends SherlockFragment {
 	private static final String TAG = "TinyG";
 	private AxisFragmentListener mListener;
-	private Activity mActivity;
+	private View fragView;
 
 	@Override
 	public void onAttach(Activity activity) {
@@ -35,25 +35,22 @@ public class AxisFragment extends SherlockFragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		// Inflate the layout for this fragment
-		View v = inflater.inflate(R.layout.axis, container, false);
+		fragView = inflater.inflate(R.layout.axis, container, false);
 
-		// configure axis picker
-		mActivity = getActivity();
-
-		Spinner s = (Spinner) v.findViewById(R.id.axispick);
+		Spinner s = (Spinner) fragView.findViewById(R.id.axispick);
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-				mActivity, R.array.axisArray,
+				getActivity(), R.array.axisArray,
 				android.R.layout.simple_spinner_item);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		s.setAdapter(adapter);
 		s.setOnItemSelectedListener(new AxisItemSelectedListener());
 
-		return v;
+		return fragView;
 	}
 
 	public interface AxisFragmentListener {
 		public void onAxisSelected(int a);
-		public void onAxisSaved(Bundle b);
+		public void onAxisSaved(int a, Bundle b);
 	}
 
 	public class AxisItemSelectedListener implements OnItemSelectedListener {
@@ -70,36 +67,69 @@ public class AxisFragment extends SherlockFragment {
 
 	public void myClickHandler(View view) {
 		if (view.getId() == R.id.save) {
-			Log.d(TAG, "save on axis");
+			Spinner s = (Spinner) fragView.findViewById(R.id.axispick);
+			mListener.onAxisSaved((int) s.getSelectedItemId(), getValues());
 		}
 	}
 
+	// Pull all of the field values into a Bundle
+	private Bundle getValues() {
+		Bundle b = new Bundle();
+		String scratch;
+
+		scratch = ((EditText)fragView.findViewById(R.id.feed_rate)).getText().toString();
+		b.putFloat("feed_rate", Float.parseFloat(scratch));
+		scratch = ((EditText)fragView.findViewById(R.id.search_velocity)).getText().toString();
+		b.putFloat("search_velocity", Float.parseFloat(scratch));
+		scratch = ((EditText)fragView.findViewById(R.id.latch_velocity)).getText().toString();
+		b.putFloat("latch_velocity", Float.parseFloat(scratch));
+		b.putBoolean("axis_mode", ((ToggleButton)fragView.findViewById(R.id.axis_mode)).isChecked());
+		scratch = ((EditText)fragView.findViewById(R.id.switch_min)).getText().toString();
+		b.putInt("switch_min", Integer.parseInt(scratch));
+		scratch = ((EditText)fragView.findViewById(R.id.switch_max)).getText().toString();
+		b.putInt("switch_max", Integer.parseInt(scratch));
+		scratch = ((EditText)fragView.findViewById(R.id.latch_backoff)).getText().toString();
+		b.putFloat("latch_backoff", Float.parseFloat(scratch));
+		scratch = ((EditText)fragView.findViewById(R.id.zero_backoff)).getText().toString();
+		b.putFloat("zero_backoff", Float.parseFloat(scratch));
+		scratch = ((EditText)fragView.findViewById(R.id.velocity_max)).getText().toString();
+		b.putFloat("velocity_max", Float.parseFloat(scratch));
+		scratch = ((EditText)fragView.findViewById(R.id.travel_max)).getText().toString();
+		b.putFloat("travel_max", Float.parseFloat(scratch));
+		scratch = ((EditText)fragView.findViewById(R.id.jerk_max)).getText().toString();
+		b.putFloat("jerk_max", Float.parseFloat(scratch));
+		scratch = ((EditText)fragView.findViewById(R.id.junction_deviation)).getText().toString();
+		b.putFloat("junction_deviation", Float.parseFloat(scratch));
+
+		return b;
+	}
+
 	public void updateState(Bundle b) {
-		Spinner s = (Spinner) mActivity.findViewById(R.id.axispick);
+		Spinner s = (Spinner) fragView.findViewById(R.id.axispick);
 		if (s.getSelectedItemId() == b.getInt("axis")) {
-			((EditText) mActivity.findViewById(R.id.feed_rate)).setText(Float
+			((EditText) fragView.findViewById(R.id.feed_rate)).setText(Float
 					.toString(b.getFloat("feed_rate")));
-			((EditText) mActivity.findViewById(R.id.search_velocity))
+			((EditText) fragView.findViewById(R.id.search_velocity))
 					.setText(Float.toString(b.getFloat("search_velocity")));
-			((EditText) mActivity.findViewById(R.id.latch_velocity))
+			((EditText) fragView.findViewById(R.id.latch_velocity))
 					.setText(Float.toString(b.getFloat("latch_velocity")));
-			((ToggleButton) mActivity.findViewById(R.id.axis_mode))
+			((ToggleButton) fragView.findViewById(R.id.axis_mode))
 					.setChecked(b.getBoolean("axis_mode"));
-			((EditText) mActivity.findViewById(R.id.switch_min))
+			((EditText) fragView.findViewById(R.id.switch_min))
 					.setText(Integer.toString(b.getInt("switch_min")));
-			((EditText) mActivity.findViewById(R.id.switch_max))
+			((EditText) fragView.findViewById(R.id.switch_max))
 					.setText(Integer.toString(b.getInt("switch_max")));
-			((EditText) mActivity.findViewById(R.id.latch_backoff))
+			((EditText) fragView.findViewById(R.id.latch_backoff))
 					.setText(Float.toString(b.getFloat("latch_backoff")));
-			((EditText) mActivity.findViewById(R.id.zero_backoff))
+			((EditText) fragView.findViewById(R.id.zero_backoff))
 					.setText(Float.toString(b.getFloat("zero_backoff")));
-			((EditText) mActivity.findViewById(R.id.velocity_max))
+			((EditText) fragView.findViewById(R.id.velocity_max))
 					.setText(Float.toString(b.getFloat("velocity_max")));
-			((EditText) mActivity.findViewById(R.id.travel_max)).setText(Float
+			((EditText) fragView.findViewById(R.id.travel_max)).setText(Float
 					.toString(b.getFloat("travel_max")));
-			((EditText) mActivity.findViewById(R.id.jerk_max)).setText(Float
+			((EditText) fragView.findViewById(R.id.jerk_max)).setText(Float
 					.toString(b.getFloat("jerk_max")));
-			((EditText) mActivity.findViewById(R.id.junction_deviation))
+			((EditText) fragView.findViewById(R.id.junction_deviation))
 					.setText(Float.toString(b.getFloat("junction_deviation")));
 		}
 	}
