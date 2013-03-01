@@ -252,8 +252,8 @@ public class BaseActivity extends SherlockFragmentActivity implements
 			((AxisFragment) f).myClickHandler(view);
 		if (f.getClass() == SystemFragment.class)
 			((SystemFragment) f).myClickHandler(view);
-		if (f.getClass() == JogFragment.class)
-			((JogFragment) f).myClickHandler(view);
+//		if (f.getClass() == JogFragment.class)
+//			((JogFragment) f).myClickHandler(view);
 		if (f.getClass() == FileFragment.class)
 			((FileFragment) f).myClickHandler(view);
 	}

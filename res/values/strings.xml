@@ -2,10 +2,6 @@
 <resources>
 
     <string name="app_name">TinyG Console</string>
-    <string name="local_service_started">Local service has started</string>
-    <string name="local_service_stopped">Local service has stopped</string>
-    <string name="local_service_connected">Local Service Connected</string>
-    <string name="local_service_disconnected">Local service disconnected</string>
     <string name="local_service_label">TinyG Connector</string>
     <string name="network">Network</string>
     <string name="usb">USB</string>
@@ -18,26 +14,9 @@
     <string name="yneg">Y-</string>
     <string name="zpos">Z+</string>
     <string name="zneg">Z-</string>
-    <string name="ipos">I+</string>
-    <string name="ineg">I-</string>
-    <string name="jpos">J+</string>
-    <string name="jneg">J-</string>
-    <string name="kpos">K+</string>
-    <string name="kneg">K-</string>
-    <string name="rpos">R+</string>
-    <string name="rneg">R-</string>
     <string name="zero">Zero</string>
     <string name="zeropos">0.000</string>
     <string name="zeroloc">(0.0, 0.0, 0.0, 0.0)</string>
-    <string name="ijk_label">IJK mode</string>
-    <string name="radius_label">Radius mode</string>
-    <string name="i_label">I: </string>
-    <string name="j_label">J: </string>
-    <string name="k_label">K: </string>
-    <string name="r_label">R: </string>
-    <string name="x_label">X: </string>
-    <string name="y_label">Y: </string>
-    <string name="z_label">Z: </string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
     <string name="stop">stop</string>
@@ -54,7 +33,9 @@
     <string name="line">Line: </string>
     <string name="vel">Vel: </string>
     <string name="na">-</string>
-    <string name="jog_label">Jog</string>
+    <string name="jog_slow_label">Slow</string>
+    <string name="jog_fast_label">Fast</string>
+    <string name="jog_step_value_label">Jog Step: </string>
     <string name="jogval">Jog Rate: </string>
     <string name="mm">mm</string>
     <string name="inch">inch</string>
@@ -64,7 +45,7 @@
     <string name="ccw">ccw</string>
     <string name="invalid">invalid</string>
     <string name="version">1.4</string>
-    <string name="about">Android app copyright 2012 Bexkat Systems LLC.\nTinyG and TgFX copyright Synthetos, LLC.</string>
+    <string name="about">Android app copyright 2013 Bexkat Systems LLC.\nTinyG and TgFX copyright Synthetos, LLC.</string>
     <string name="no_usb_host">USB host connectivity only supported in Android 3.1 and above.</string>
     <string name="no_usb_accessory">USB accessory connectivity only supported in Android 2.3.4 and above.</string>
     <string name="no_service">TinyG USB Service must be installed for USB support to work.</string>

@@ -16,23 +16,23 @@
         android:text="@string/position_entry_label"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <Button
-        android:id="@+id/jog"
+    <ToggleButton
+        android:id="@+id/jogRate"
         android:layout_width="75dp"
         android:layout_height="75dp"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/position_entry_label"
         android:layout_marginTop="100dp"
-        android:onClick="myClickHandler"
-        android:text="@string/jog_label" />
+        android:textOn="@string/jog_fast_label"
+        android:textOff="@string/jog_slow_label" />
 
     <Button
         android:id="@+id/xneg"
         android:layout_width="75dp"
         android:layout_height="75dp"
-        android:layout_above="@+id/yneg"
-        android:layout_alignLeft="@+id/yneg"
-        android:onClick="myClickHandler"
+        android:layout_below="@+id/position_entry_label"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@+id/jogRate"
         android:text="@string/xneg" />
 
     <Button
@@ -41,17 +41,14 @@
         android:layout_height="75dp"
         android:layout_alignTop="@+id/xneg"
         android:layout_toRightOf="@+id/xneg"
-        android:onClick="myClickHandler"
         android:text="@string/xpos" />
 
     <Button
         android:id="@+id/yneg"
         android:layout_width="75dp"
         android:layout_height="75dp"
-        android:layout_alignTop="@+id/jog"
-        android:layout_marginLeft="20dp"
-        android:layout_toRightOf="@+id/y_position"
-        android:onClick="myClickHandler"
+        android:layout_alignLeft="@+id/xneg"
+        android:layout_alignTop="@+id/jogRate"
         android:text="@string/yneg" />
 
     <Button
@@ -60,7 +57,6 @@
         android:layout_height="75dp"
         android:layout_alignTop="@+id/yneg"
         android:layout_toRightOf="@+id/yneg"
-        android:onClick="myClickHandler"
         android:text="@string/ypos" />
 
     <Button
@@ -69,7 +65,6 @@
         android:layout_height="75dp"
         android:layout_alignLeft="@+id/yneg"
         android:layout_below="@+id/yneg"
-        android:onClick="myClickHandler"
         android:text="@string/zneg" />
 
     <Button
@@ -78,231 +73,27 @@
         android:layout_height="75dp"
         android:layout_alignTop="@+id/zneg"
         android:layout_toRightOf="@+id/zneg"
-        android:onClick="myClickHandler"
         android:text="@string/zpos" />
 
-    <TextView
-        android:id="@+id/x_label"
-        android:layout_width="wrap_content"
+    <SeekBar
+        android:id="@+id/jog_step"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/xneg"
-        android:layout_alignLeft="@+id/y_label"
-        android:text="@string/x_label"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <EditText
-        android:id="@+id/x_position"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/xneg"
-        android:layout_toRightOf="@+id/x_label"
-        android:ems="5"
-        android:inputType="numberDecimal" >
-    </EditText>
+        android:max="100"
+        android:layout_below="@+id/zneg" />
 
     <TextView
-        android:id="@+id/y_label"
+        android:id="@+id/jog_step_value_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/yneg"
-        android:layout_marginLeft="20dp"
-        android:layout_toRightOf="@+id/jog"
-        android:text="@string/y_label"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <EditText
-        android:id="@+id/y_position"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/yneg"
-        android:layout_toRightOf="@+id/y_label"
-        android:ems="5"
-        android:inputType="numberDecimal" >
-    </EditText>
-
+        android:text="@string/jog_step_value_label"
+        android:layout_below="@+id/jog_step" />
+    
     <TextView
-        android:id="@+id/z_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/zneg"
-        android:layout_alignLeft="@+id/y_label"
-        android:text="@string/z_label"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <EditText
-        android:id="@+id/z_position"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/zneg"
-        android:layout_toRightOf="@+id/z_label"
-        android:ems="5"
-        android:inputType="numberDecimal" >
-    </EditText>
-
-    <ToggleButton
-        android:id="@+id/arc_mode"
+        android:id="@+id/jog_step_value"
         android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_alignLeft="@+id/jog"
-        android:layout_below="@+id/jog"
-        android:layout_marginTop="200dp"
-        android:onClick="myClickHandler"
-        android:textOff="@string/ijk_label"
-        android:textOn="@string/radius_label" />
-
-    <Button
-        android:id="@+id/ineg"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_above="@+id/jneg"
-        android:layout_alignLeft="@+id/jneg"
-        android:onClick="myClickHandler"
-        android:text="@string/ineg" />
-
-    <Button
-        android:id="@+id/ipos"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_alignTop="@+id/ineg"
-        android:layout_toRightOf="@+id/ineg"
-        android:onClick="myClickHandler"
-        android:text="@string/ipos" />
-
-    <Button
-        android:id="@+id/jneg"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_alignTop="@+id/arc_mode"
-        android:layout_marginLeft="20dp"
-        android:layout_toRightOf="@+id/j_position"
-        android:onClick="myClickHandler"
-        android:text="@string/jneg" />
-
-    <Button
-        android:id="@+id/jpos"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_alignTop="@+id/jneg"
-        android:layout_toRightOf="@+id/jneg"
-        android:onClick="myClickHandler"
-        android:text="@string/jpos" />
-
-    <Button
-        android:id="@+id/kneg"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_alignLeft="@+id/jneg"
-        android:layout_below="@+id/jneg"
-        android:onClick="myClickHandler"
-        android:text="@string/kneg" />
-
-    <Button
-        android:id="@+id/kpos"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_alignTop="@+id/kneg"
-        android:layout_toRightOf="@+id/kneg"
-        android:onClick="myClickHandler"
-        android:text="@string/kpos" />
-
-    <TextView
-        android:id="@+id/i_label"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/ineg"
-        android:layout_alignLeft="@+id/j_label"
-        android:text="@string/i_label"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <EditText
-        android:id="@+id/i_position"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/ineg"
-        android:layout_toRightOf="@+id/i_label"
-        android:ems="5"
-        android:inputType="numberDecimal" >
-    </EditText>
-
-    <TextView
-        android:id="@+id/j_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/jneg"
-        android:layout_marginLeft="20dp"
-        android:layout_toRightOf="@+id/arc_mode"
-        android:text="@string/j_label"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <EditText
-        android:id="@+id/j_position"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/jneg"
-        android:layout_toRightOf="@+id/j_label"
-        android:ems="5"
-        android:inputType="numberDecimal" >
-    </EditText>
-
-    <TextView
-        android:id="@+id/k_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/kneg"
-        android:layout_alignLeft="@+id/j_label"
-        android:text="@string/k_label"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <EditText
-        android:id="@+id/k_position"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/kneg"
-        android:layout_toRightOf="@+id/k_label"
-        android:ems="5"
-        android:inputType="numberDecimal" >
-    </EditText>
-
-    <Button
-        android:id="@+id/rneg"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_alignTop="@+id/arc_mode"
-        android:layout_marginLeft="20dp"
-        android:layout_toRightOf="@+id/r_position"
-        android:onClick="myClickHandler"
-        android:text="@string/rneg"
-        android:visibility="invisible" />
-
-    <Button
-        android:id="@+id/rpos"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_alignTop="@+id/rneg"
-        android:layout_toRightOf="@+id/rneg"
-        android:onClick="myClickHandler"
-        android:text="@string/rpos"
-        android:visibility="invisible" />
-
-    <TextView
-        android:id="@+id/r_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/rneg"
-        android:layout_marginLeft="20dp"
-        android:layout_toRightOf="@+id/arc_mode"
-        android:text="@string/r_label"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:visibility="invisible" />
-
-    <EditText
-        android:id="@+id/r_position"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/rneg"
-        android:layout_toRightOf="@+id/r_label"
-        android:ems="5"
-        android:inputType="numberDecimal"
-        android:visibility="invisible" >
-    </EditText>
+        android:layout_alignBaseline="@+id/jog_step_value_label"
+        android:layout_toRightOf="@+id/jog_step_value_label" />
+    
 </RelativeLayout>
