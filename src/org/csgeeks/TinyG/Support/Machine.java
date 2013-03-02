@@ -55,10 +55,10 @@ public class Machine {
 		if (sr.has("momo"))
 			switch (sr.getInt("momo")) {
 			case 0:
-				state.putString("momo", "traverse");
+				state.putString("momo", "seek");
 				break;
 			case 1:
-				state.putString("momo", "straight");
+				state.putString("momo", "feed");
 				break;
 			case 2:
 				state.putString("momo", "cw_arc");
@@ -67,7 +67,13 @@ public class Machine {
 				state.putString("momo", "ccw_arc");
 				break;
 			case 4:
-				state.putString("momo", "invalid");
+				state.putString("momo", "cancel");
+				break;
+			case 5:
+				state.putString("momo", "probe");
+				break;
+			default:
+				state.putString("momo", Integer.toString(sr.getInt("momo")));
 				break;
 			}
 
@@ -77,30 +83,33 @@ public class Machine {
 				state.putString("status", "init");
 				break;
 			case 1:
-				state.putString("status", "reset");
+				state.putString("status", "ready");
 				break;
 			case 2:
-				state.putString("status", "stop");
+				state.putString("status", "shutdown");
 				break;
 			case 3:
-				state.putString("status", "end");
+				state.putString("status", "stop");
 				break;
 			case 4:
-				state.putString("status", "run");
+				state.putString("status", "end");
 				break;
 			case 5:
-				state.putString("status", "hold");
+				state.putString("status", "run");
 				break;
 			case 6:
-				state.putString("status", "probe");
+				state.putString("status", "hold");
 				break;
 			case 7:
-				state.putString("status", "cycle");
+				state.putString("status", "probe");
 				break;
 			case 8:
-				state.putString("status", "homing");
+				state.putString("status", "cycle");
 				break;
 			case 9:
+				state.putString("status", "homing");
+				break;
+			case 10:
 				state.putString("status", "jog");
 				break;
 			}
@@ -110,8 +119,11 @@ public class Machine {
 			case 0:
 				state.putString("units", "inches");
 				break;
-			case 2:
+			case 1:
 				state.putString("units", "mm");
+				break;
+			case 2:
+				state.putString("units", "degrees");
 				break;
 			}
 		}
