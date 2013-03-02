@@ -450,5 +450,12 @@ public class BaseActivity extends SherlockFragmentActivity implements
 			return;
 		tinyg.send_gcode(cmd);
 	}
+	
+	public void stopMove() {
+		if (tinyg == null || !connected)
+			return;
+		tinyg.send_stop();
+		tinyg.refresh();
+	}
 
 }

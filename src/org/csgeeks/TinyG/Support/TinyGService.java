@@ -49,7 +49,9 @@ abstract public class TinyGService extends Service {
 
 	protected static final String TAG = "TinyG";
 	protected Machine machine;
-	private final Semaphore available = new Semaphore(TINYG_BUFFER_SIZE, true);
+	private final Semaphore serialBufferAvail = new Semaphore(
+			TINYG_BUFFER_SIZE, true);
+	protected final Semaphore writeLock = new Semaphore(1, true);
 	private final BlockingQueue<String> queue = new LinkedBlockingQueue<String>();
 	private final IBinder mBinder = new TinyGBinder();
 	private final QueueProcessor procQ = new QueueProcessor();
@@ -88,7 +90,7 @@ abstract public class TinyGService extends Service {
 		i.putExtras(b);
 		sendBroadcast(i, null);
 		queue.clear();
-		available.release();
+		serialBufferAvail.release();
 
 		Log.d(TAG, "disconnect done");
 	}
@@ -106,18 +108,34 @@ abstract public class TinyGService extends Service {
 
 	public void send_gcode(String gcode) {
 		send_message("{\"gc\": \"" + gcode + "\"}\n"); // In verbose mode
-															// 2, only the f is
-															// returned for gc
+														// 2, only the f is
+														// returned for gc
 	}
 
 	// Enqueue a command
 	public void send_message(String cmd) {
 		try {
+			Log.d(TAG, "adding " + cmd);
 			queue.put(cmd);
 		} catch (InterruptedException e) {
 			// This really shouldn't happen
 			e.printStackTrace();
 		}
+	}
+
+	public void send_stop() {
+		Log.d(TAG, "in send_stop()");
+		queue.clear();
+		try {
+			writeLock.acquire();
+			Log.d(TAG, "sending pause, etc");
+			write("!");
+			write("{\"qf\":1}\n");
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		writeLock.release();
 	}
 
 	public Bundle getMotor(int m) {
@@ -159,7 +177,7 @@ abstract public class TinyGService extends Service {
 
 		int freed = b.getInt("buffer");
 		if (freed > 0)
-			available.release(freed);
+			serialBufferAvail.release(freed);
 	}
 
 	// Asks for the service to send a full update of all state.
@@ -189,8 +207,10 @@ abstract public class TinyGService extends Service {
 			try {
 				while (true) {
 					String cmd = queue.take();
-					available.acquire(cmd.length());
+					serialBufferAvail.acquire(cmd.length());
+					writeLock.acquire();
 					write(cmd);
+					writeLock.release();
 				}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
