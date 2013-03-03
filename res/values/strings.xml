@@ -14,7 +14,8 @@
     <string name="yneg">Y-</string>
     <string name="zpos">Z+</string>
     <string name="zneg">Z-</string>
-    <string name="zero">Zero</string>
+    <string name="origin">Set 0</string>
+    <string name="home">Home</string>
     <string name="zeropos">0.000</string>
     <string name="zeroloc">(0.0, 0.0, 0.0, 0.0)</string>
     <string name="connect">Connect</string>

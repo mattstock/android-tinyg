@@ -20,11 +20,14 @@ public class JogFragment extends SherlockFragment {
 	private static final String TAG = "TinyG";
 	private static float jogFastRate = 400;
 	private static float jogSlowRate = 100;
+	private static final String CMD_SET_ORIGIN = "g92x0y0z0a0";
 	private static final String CMD_STEP_FORMAT = "g91f%fg1%s%f";
+	private static final String CMD_MOVE_ORIGIN = "g90g0x0y0z0a0";
 	private static int[] jogControls = { R.id.xpos, R.id.xneg, R.id.ypos,
 			R.id.yneg, R.id.zpos, R.id.zneg };
 	private static int[] allButtons = { R.id.xpos, R.id.xneg, R.id.ypos,
-			R.id.yneg, R.id.zpos, R.id.zneg, R.id.jogRate };
+			R.id.yneg, R.id.zpos, R.id.zneg, R.id.jogRate, R.id.home,
+			R.id.origin };
 	private float jogStep = 10;
 	private float jogRate = jogFastRate;
 	private TextView jogStepView;
@@ -56,12 +59,13 @@ public class JogFragment extends SherlockFragment {
 			v.setOnClickListener(clickListener);
 		}
 
-		for (int id : jogControls) {
+		// Disable for now, until the queue flush support is ready.
+/*		for (int id : jogControls) {
 			v = mView.findViewById(id);
 			v.setOnLongClickListener(jogHoldListener);
 			v.setOnTouchListener(jogReleaseListener);
 		}
-
+*/
 		// Rapid movement
 		((ToggleButton) mView.findViewById(R.id.jogRate)).setChecked(true);
 
@@ -144,9 +148,12 @@ public class JogFragment extends SherlockFragment {
 				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "z",
 						-jogStep));
 				break;
-			// case R.id.zero:
-			// mListener.sendGcode(JSONParser.CMD_ZERO_ALL_AXIS);
-			// break;
+			case R.id.origin:
+				parent.sendGcode(CMD_SET_ORIGIN);
+				break;
+			case R.id.home:
+				parent.sendGcode(CMD_MOVE_ORIGIN);
+				break;
 			}
 		}
 	};
@@ -158,13 +165,32 @@ public class JogFragment extends SherlockFragment {
 
 			switch (v.getId()) {
 			case R.id.xpos:
-				Log.d(TAG, "start jog on x+");
 				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "x",
 						400f));
 				jogActive = true;
 				return true;
 			case R.id.xneg:
 				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "x",
+						-400f));
+				jogActive = true;
+				return true;
+			case R.id.ypos:
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "y",
+						400f));
+				jogActive = true;
+				return true;
+			case R.id.yneg:
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "y",
+						-400f));
+				jogActive = true;
+				return true;
+			case R.id.zpos:
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "z",
+						400f));
+				jogActive = true;
+				return true;
+			case R.id.zneg:
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "z",
 						-400f));
 				jogActive = true;
 				return true;
@@ -176,22 +202,17 @@ public class JogFragment extends SherlockFragment {
 	private View.OnTouchListener jogReleaseListener = new View.OnTouchListener() {
 
 		public boolean onTouch(View v, MotionEvent event) {
-			Log.d(TAG, "got motionevent");
-
 			if (event.getAction() == MotionEvent.ACTION_UP) {
-				Log.d(TAG, "button released");
 				if (!jogActive)
 					return false;
-				Log.d(TAG, "going into switch");
 				jogActive = false;
 				switch (v.getId()) {
 				case R.id.xpos:
-					Log.d(TAG, "stop jog on x+");
-					parent.stopMove();
-					enabled = true;
-					return false;
 				case R.id.xneg:
-					Log.d(TAG, "stop jog on x-");
+				case R.id.ypos:
+				case R.id.yneg:
+				case R.id.zpos:
+				case R.id.zneg:
 					parent.stopMove();
 					enabled = true;
 					return false;
@@ -201,6 +222,8 @@ public class JogFragment extends SherlockFragment {
 		}
 	};
 
+	// Used to use this for enable/disable of buttons, but maybe it's ok to
+	// queue things up.
 	public void updateState(Bundle b) {
 	}
 }

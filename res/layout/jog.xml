@@ -23,8 +23,8 @@
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/position_entry_label"
         android:layout_marginTop="100dp"
-        android:textOn="@string/jog_fast_label"
-        android:textOff="@string/jog_slow_label" />
+        android:textOff="@string/jog_slow_label"
+        android:textOn="@string/jog_fast_label" />
 
     <Button
         android:id="@+id/xneg"
@@ -75,25 +75,45 @@
         android:layout_toRightOf="@+id/zneg"
         android:text="@string/zpos" />
 
-    <SeekBar
-        android:id="@+id/jog_step"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:max="100"
-        android:layout_below="@+id/zneg" />
-
     <TextView
         android:id="@+id/jog_step_value_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/jog_step_value_label"
-        android:layout_below="@+id/jog_step" />
-    
+        android:layout_below="@+id/jog_step"
+        android:text="@string/jog_step_value_label" />
+
     <TextView
         android:id="@+id/jog_step_value"
         android:layout_width="75dp"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/jog_step_value_label"
         android:layout_toRightOf="@+id/jog_step_value_label" />
-    
+
+    <Button
+        android:id="@+id/home"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_alignBaseline="@+id/origin"
+        android:layout_alignBottom="@+id/origin"
+        android:layout_toRightOf="@+id/jog_step_value"
+        android:text="@string/home" />
+
+    <SeekBar
+        android:id="@+id/jog_step"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/origin"
+        android:layout_below="@+id/zneg"
+        android:layout_marginTop="31dp"
+        android:max="100" />
+
+    <Button
+        android:id="@+id/origin"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_below="@+id/jog_step_value_label"
+        android:layout_marginTop="39dp"
+        android:layout_toLeftOf="@+id/zneg"
+        android:text="@string/origin" />
+
 </RelativeLayout>
