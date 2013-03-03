@@ -78,28 +78,27 @@ public class AxisFragment extends SherlockFragment {
 		String scratch;
 
 		scratch = ((EditText)fragView.findViewById(R.id.feed_rate)).getText().toString();
-		b.putFloat("feed_rate", Float.parseFloat(scratch));
+		b.putFloat("fr", Float.parseFloat(scratch));
 		scratch = ((EditText)fragView.findViewById(R.id.search_velocity)).getText().toString();
-		b.putFloat("search_velocity", Float.parseFloat(scratch));
+		b.putFloat("sv", Float.parseFloat(scratch));
 		scratch = ((EditText)fragView.findViewById(R.id.latch_velocity)).getText().toString();
-		b.putFloat("latch_velocity", Float.parseFloat(scratch));
-		b.putBoolean("axis_mode", ((ToggleButton)fragView.findViewById(R.id.axis_mode)).isChecked());
+		b.putFloat("lv", Float.parseFloat(scratch));
+		scratch = ((EditText)fragView.findViewById(R.id.axis_mode)).getText().toString();
+		b.putInt("am", Integer.parseInt(scratch));
 		scratch = ((EditText)fragView.findViewById(R.id.switch_min)).getText().toString();
-		b.putInt("switch_min", Integer.parseInt(scratch));
+		b.putInt("sn", Integer.parseInt(scratch));
 		scratch = ((EditText)fragView.findViewById(R.id.switch_max)).getText().toString();
-		b.putInt("switch_max", Integer.parseInt(scratch));
-		scratch = ((EditText)fragView.findViewById(R.id.latch_backoff)).getText().toString();
-		b.putFloat("latch_backoff", Float.parseFloat(scratch));
+		b.putInt("sx", Integer.parseInt(scratch));
 		scratch = ((EditText)fragView.findViewById(R.id.zero_backoff)).getText().toString();
-		b.putFloat("zero_backoff", Float.parseFloat(scratch));
+		b.putFloat("zb", Float.parseFloat(scratch));
 		scratch = ((EditText)fragView.findViewById(R.id.velocity_max)).getText().toString();
-		b.putFloat("velocity_max", Float.parseFloat(scratch));
+		b.putFloat("vm", Float.parseFloat(scratch));
 		scratch = ((EditText)fragView.findViewById(R.id.travel_max)).getText().toString();
-		b.putFloat("travel_max", Float.parseFloat(scratch));
+		b.putFloat("tm", Float.parseFloat(scratch));
 		scratch = ((EditText)fragView.findViewById(R.id.jerk_max)).getText().toString();
-		b.putFloat("jerk_max", Float.parseFloat(scratch));
+		b.putFloat("jm", Float.parseFloat(scratch));
 		scratch = ((EditText)fragView.findViewById(R.id.junction_deviation)).getText().toString();
-		b.putFloat("junction_deviation", Float.parseFloat(scratch));
+		b.putFloat("jd", Float.parseFloat(scratch));
 
 		return b;
 	}
@@ -108,29 +107,27 @@ public class AxisFragment extends SherlockFragment {
 		Spinner s = (Spinner) fragView.findViewById(R.id.axispick);
 		if (s.getSelectedItemId() == b.getInt("axis")) {
 			((EditText) fragView.findViewById(R.id.feed_rate)).setText(Float
-					.toString(b.getFloat("feed_rate")));
+					.toString(b.getFloat("fr")));
 			((EditText) fragView.findViewById(R.id.search_velocity))
-					.setText(Float.toString(b.getFloat("search_velocity")));
+					.setText(Float.toString(b.getFloat("sv")));
 			((EditText) fragView.findViewById(R.id.latch_velocity))
-					.setText(Float.toString(b.getFloat("latch_velocity")));
-			((ToggleButton) fragView.findViewById(R.id.axis_mode))
-					.setChecked(b.getBoolean("axis_mode"));
+					.setText(Float.toString(b.getFloat("lv")));
+			((EditText) fragView.findViewById(R.id.axis_mode))
+					.setText(Integer.toString(b.getInt("am")));
 			((EditText) fragView.findViewById(R.id.switch_min))
-					.setText(Integer.toString(b.getInt("switch_min")));
+					.setText(Integer.toString(b.getInt("sn")));
 			((EditText) fragView.findViewById(R.id.switch_max))
-					.setText(Integer.toString(b.getInt("switch_max")));
-			((EditText) fragView.findViewById(R.id.latch_backoff))
-					.setText(Float.toString(b.getFloat("latch_backoff")));
+					.setText(Integer.toString(b.getInt("sx")));
 			((EditText) fragView.findViewById(R.id.zero_backoff))
-					.setText(Float.toString(b.getFloat("zero_backoff")));
+					.setText(Float.toString(b.getFloat("zb")));
 			((EditText) fragView.findViewById(R.id.velocity_max))
-					.setText(Float.toString(b.getFloat("velocity_max")));
+					.setText(Float.toString(b.getFloat("vm")));
 			((EditText) fragView.findViewById(R.id.travel_max)).setText(Float
-					.toString(b.getFloat("travel_max")));
+					.toString(b.getFloat("tm")));
 			((EditText) fragView.findViewById(R.id.jerk_max)).setText(Float
-					.toString(b.getFloat("jerk_max")));
+					.toString(b.getFloat("jm")));
 			((EditText) fragView.findViewById(R.id.junction_deviation))
-					.setText(Float.toString(b.getFloat("junction_deviation")));
+					.setText(Float.toString(b.getFloat("jd")));
 		}
 	}
 }

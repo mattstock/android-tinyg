@@ -2,10 +2,6 @@ package org.csgeeks.TinyG.Support;
 
 // Copyright 2012 Matthew Stock
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +15,27 @@ public class Machine {
 	private static final String UPDATE_VALUE_FORMAT = "\"%s\": %s";
 	private static final String axisIndexToName[] = { "x", "y", "z", "a", "b",
 			"c" };
+	private static final TGVar axisVars[] = new TGVar[] {
+			new TGVar("tm", "float"), new TGVar("vm", "float"),
+			new TGVar("jm", "float"), new TGVar("jd", "float"),
+			new TGVar("ra", "float"), new TGVar("fr", "float"),
+			new TGVar("am", "int"), new TGVar("sv", "float"),
+			new TGVar("lv", "float"), new TGVar("sn", "int"),
+			new TGVar("sx", "int"), new TGVar("zb", "float") };
+	private static final TGVar motorVars[] = new TGVar[] {
+			new TGVar("tr", "float"), new TGVar("sa", "float"),
+			new TGVar("mi", "int"), new TGVar("po", "boolean"),
+			new TGVar("pm", "boolean"), new TGVar("ma", "int") };
+	private static final TGVar sysVars[] = new TGVar[] {
+			new TGVar("fb", "float"), new TGVar("fv", "float"),
+			new TGVar("hv", "float"), new TGVar("id", "string"),
+			new TGVar("ja", "float"), new TGVar("ct", "float"),
+			new TGVar("st", "boolean"), new TGVar("ej", "boolean"),
+			new TGVar("jv", "int"), new TGVar("tv", "int"),
+			new TGVar("qv", "int"), new TGVar("sv", "int"),
+			new TGVar("si", "int"), new TGVar("ic", "boolean"),
+			new TGVar("ec", "boolean"), new TGVar("ee", "boolean"),
+			new TGVar("ex", "boolean") };
 
 	// Machine state variables
 	private Bundle state;
@@ -35,11 +52,114 @@ public class Machine {
 		state = new Bundle();
 	}
 
-	public void setQueue(int qr) {
+	public Bundle getStatusBundle() {
+		return state;
+	}
+
+	public Bundle getAxisBundle(int idx) {
+		if (idx < 0 || idx > 5)
+			return axis[0];
+		else
+			return axis[idx];
+	}
+
+	public Bundle getAxisBundle(String string) {
+		return axis[axisNameToIndex(string)];
+	}
+
+	public Bundle getMotorBundle(int m) {
+		if (m < 1 || m > 4)
+			return motor[0];
+		else
+			return motor[m - 1];
+	}
+
+	public String updateAxisBundle(int anum, Bundle b) {
+		String scratch;
+		String cmds = null;
+		Bundle a = axis[anum];
+
+		a.putAll(b);
+
+		for (TGVar v : axisVars) {
+			if (b.containsKey(v.name)) {
+				scratch = "";
+				if (v.type.equals("float"))
+					scratch = Float.toString(b.getFloat(v.name));
+				if (v.type.equals("boolean"))
+					scratch = b.getBoolean(v.name) ? "1" : "0";
+				if (v.type.equals("string"))
+					scratch = b.getString(v.name);
+				if (v.type.equals("int"))
+					scratch = Integer.toString(b.getInt(v.name));
+				scratch = String.format(UPDATE_VALUE_FORMAT, v.name, scratch);
+				if (cmds == null)
+					cmds = scratch;
+				else
+					cmds = ", " + scratch;
+			}
+		}
+
+		return String.format(UPDATE_BLOCK_FORMAT, axisIndexToName[anum], cmds);
+	}
+
+	public String updateMotorBundle(int mnum, Bundle b) {
+		String scratch;
+		String cmds = null;
+		Bundle m = motor[mnum];
+
+		m.putAll(b);
+
+		for (TGVar v : motorVars) {
+			if (b.containsKey(v.name)) {
+				scratch = "";
+				if (v.type.equals("float"))
+					scratch = Float.toString(b.getFloat(v.name));
+				if (v.type.equals("boolean"))
+					scratch = b.getBoolean(v.name) ? "1" : "0";
+				if (v.type.equals("string"))
+					scratch = b.getString(v.name);
+				if (v.type.equals("int"))
+					scratch = Integer.toString(b.getInt(v.name));
+				scratch = String.format(UPDATE_VALUE_FORMAT, v.name, scratch);
+				if (cmds == null)
+					cmds = scratch;
+				else
+					cmds = ", " + scratch;
+			}
+		}
+
+
+		return String.format(UPDATE_BLOCK_FORMAT, Integer.toString(mnum), cmds);
+	}
+
+	private int axisNameToIndex(String string) {
+		if (string.equals("x")) {
+			return 0;
+		}
+		if (string.equals("y")) {
+			return 1;
+		}
+		if (string.equals("z")) {
+			return 2;
+		}
+		if (string.equals("a")) {
+			return 3;
+		}
+		if (string.equals("b")) {
+			return 4;
+		}
+		if (string.equals("c")) {
+			return 5;
+		}
+		return 0;
+	}
+
+	private void setQueue(int qr) {
 		state.putInt("qr", qr);
 	}
 
-	public void setStatus(JSONObject sr) throws JSONException {
+	private void setStatus(JSONObject sr) throws JSONException {
 		if (sr.has("posx"))
 			state.putFloat("posx", (float) sr.getDouble("posx"));
 		if (sr.has("posy"))
@@ -129,144 +249,41 @@ public class Machine {
 		}
 	}
 
-	public Bundle getStatusBundle() {
-		return state;
+	private void putSys(JSONObject sysjson) throws JSONException {
+		for (TGVar v : sysVars) {
+			if (sysjson.has(v.name)) {
+				if (v.type.equals("float"))
+					state.putFloat(v.name, (float) sysjson.getDouble(v.name));
+				if (v.type.equals("boolean"))
+					state.putBoolean(v.name, sysjson.getInt(v.name) == 1);
+				if (v.type.equals("int"))
+					state.putInt(v.name, sysjson.getInt(v.name));
+				if (v.type.equals("string"))
+					state.putString(v.name, sysjson.getString(v.name));
+			}
+		}
 	}
 
-	public void putSys(JSONObject sysjson) throws JSONException {
-		if (sysjson.has("fb"))
-			state.putFloat("firmware_build", (float) sysjson.getDouble("fb"));
-		if (sysjson.has("fv"))
-			state.putFloat("firmware_version", (float) sysjson.getDouble("fv"));
-		if (sysjson.has("hv"))
-			state.putFloat("hardware_version", (float) sysjson.getDouble("hv"));
-		if (sysjson.has("si"))
-			state.putInt("system_interval", sysjson.getInt("si"));
-		if (sysjson.has("id"))
-			state.putString("board_id", sysjson.getString("id"));
-		if (sysjson.has("ja"))
-			state.putFloat("junction_acceleration",
-					(float) sysjson.getDouble("ja"));
-		if (sysjson.has("ct"))
-			state.putFloat("chordal_tolerance", (float) sysjson.getDouble("ct"));
-		if (sysjson.has("st"))
-			state.putBoolean("switch_type", sysjson.getInt("st") == 1);
-		if (sysjson.has("ej"))
-			state.putBoolean("enable_json", sysjson.getInt("ej") == 1);
-		if (sysjson.has("jv"))
-			state.putInt("json_verbosity", sysjson.getInt("jv"));
-		if (sysjson.has("tv"))
-			state.putInt("text_verbosity", sysjson.getInt("tv"));
-		if (sysjson.has("qv"))
-			state.putInt("queue_verbosity", sysjson.getInt("qv"));
-		if (sysjson.has("sv"))
-			state.putInt("status_verbosity", sysjson.getInt("sv"));
-		if (sysjson.has("si"))
-			state.putInt("status_interval", sysjson.getInt("si"));
-		if (sysjson.has("gpl"))
-			state.putInt("gcode_plane", sysjson.getInt("gpl"));
-	}
-
-	public void putAxis(JSONObject axisjson, String name) throws JSONException {
+	private void putAxis(JSONObject axisjson, String name) throws JSONException {
 		Bundle a = axis[axisNameToIndex(name)];
 
 		a.putInt("axis", axisNameToIndex(name));
 
-		if (axisjson.has("tm"))
-			a.putFloat("travel_max", (float) axisjson.getDouble("tm"));
-		if (axisjson.has("vm"))
-			a.putFloat("velocity_max", (float) axisjson.getDouble("vm"));
-		if (axisjson.has("jm"))
-			a.putFloat("jerk_max", (float) axisjson.getDouble("jm"));
-		if (axisjson.has("jd"))
-			a.putFloat("junction_deviation", (float) axisjson.getDouble("jd"));
-		if (axisjson.has("fr"))
-			a.putFloat("feed_rate", (float) axisjson.getDouble("fr"));
-		if (axisjson.has("am"))
-			a.putBoolean("axis_mode", axisjson.getInt("am") == 1);
-		if (axisjson.has("sv"))
-			a.putFloat("search_velocity", (float) axisjson.getDouble("sv"));
-		if (axisjson.has("lv"))
-			a.putFloat("latch_velocity", (float) axisjson.getDouble("lv"));
-		if (axisjson.has("sn"))
-			a.putInt("switch_min", axisjson.getInt("sn"));
-		if (axisjson.has("sx"))
-			a.putInt("switch_max", axisjson.getInt("sx"));
-		if (axisjson.has("lb"))
-			a.putFloat("latch_backoff", (float) axisjson.getDouble("lb"));
-		if (axisjson.has("zb"))
-			a.putFloat("zero_backoff", (float) axisjson.getDouble("zb"));
+		for (TGVar v : axisVars) {
+			if (axisjson.has(v.name)) {
+				if (v.type.equals("float"))
+					a.putFloat(v.name, (float) axisjson.getDouble(v.name));
+				if (v.type.equals("boolean"))
+					a.putBoolean(v.name, axisjson.getInt(v.name) == 1);
+				if (v.type.equals("int"))
+					a.putInt(v.name, axisjson.getInt(v.name));
+				if (v.type.equals("string"))
+					a.putString(v.name, axisjson.getString(v.name));
+			}
+		}
 	}
 
-	public String updateAxisBundle(int anum, Bundle b) {
-		String scratch;
-		String cmds = null;
-		Bundle a = axis[anum];
-
-		a.putAll(b);
-
-		if (b.containsKey("travel_max")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "tm",
-					b.getFloat("travel_max"));
-			cmds = scratch;
-		}
-		if (b.containsKey("velocity_max")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "vm",
-					b.getFloat("velocity_max"));
-			if (cmds == null)
-				cmds = scratch;
-			else
-				cmds = cmds + "," + scratch;
-		}
-		if (b.containsKey("jerk_max")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "jm",
-					b.getFloat("jerk_max"));
-			if (cmds == null)
-				cmds = scratch;
-			else
-				cmds = cmds + "," + scratch;
-		}
-		if (b.containsKey("junction_deviation")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "jv",
-					b.getFloat("junction_deviation"));
-			if (cmds == null)
-				cmds = scratch;
-			else
-				cmds = cmds + "," + scratch;
-		}
-		if (b.containsKey("feed_rate")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "fr",
-					b.getFloat("feed_rate"));
-			if (cmds == null)
-				cmds = scratch;
-			else
-				cmds = cmds + "," + scratch;
-		}
-		if (b.containsKey("axis_mode")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "am",
-					b.getBoolean("axis_mode") ? "1" : "0");
-			if (cmds == null)
-				cmds = scratch;
-			else
-				cmds = cmds + "," + scratch;
-		}
-
-		// TODO the rest of the options!
-		return String.format(UPDATE_BLOCK_FORMAT, axisIndexToName[anum], cmds);
-	}
-
-	public Bundle getAxisBundle(int idx) {
-		if (idx < 0 || idx > 5)
-			return axis[0];
-		else
-			return axis[idx];
-	}
-
-	public Bundle getAxisBundle(String string) {
-		return axis[axisNameToIndex(string)];
-	}
-
-	public void putMotor(JSONObject motorjson, int name) throws JSONException {
+	private void putMotor(JSONObject motorjson, int name) throws JSONException {
 		Bundle m;
 
 		if (name < 1 || name > 4)
@@ -275,107 +292,18 @@ public class Machine {
 			m = motor[name - 1];
 		m.putInt("motor", name);
 
-		if (motorjson.has("tr"))
-			m.putFloat("travel_rev", (float) motorjson.getDouble("tr"));
-		if (motorjson.has("sa"))
-			m.putFloat("step_angle", (float) motorjson.getDouble("sa"));
-		if (motorjson.has("mi"))
-			m.putInt("microsteps", motorjson.getInt("mi"));
-		if (motorjson.has("po"))
-			m.putBoolean("polarity", motorjson.getInt("po") == 1);
-		if (motorjson.has("pm"))
-			m.putBoolean("power_management", motorjson.getInt("pm") == 1);
-		if (motorjson.has("ma"))
-			m.putInt("map_to_axis", motorjson.getInt("ma"));
-	}
-
-	// Looks at Bundle for changed values, modifies local state,
-	// and returns a command string to send to TinyG to update
-	// the value. This is ugly in part because we need to know the types
-	// we're pushing around.
-	public String updateMotorBundle(int mnum, Bundle b) {
-		String scratch;
-		String cmds = null;
-		Bundle m = motor[mnum];
-
-		m.putAll(b);
-
-		if (b.containsKey("map_to_axis")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "ma",
-					b.getInt("map_to_axis"));
-			cmds = scratch;
+		for (TGVar v : motorVars) {
+			if (motorjson.has(v.name)) {
+				if (v.type.equals("float"))
+					m.putFloat(v.name, (float) motorjson.getDouble(v.name));
+				if (v.type.equals("boolean"))
+					m.putBoolean(v.name, motorjson.getInt(v.name) == 1);
+				if (v.type.equals("int"))
+					m.putInt(v.name, motorjson.getInt(v.name));
+				if (v.type.equals("string"))
+					m.putString(v.name, motorjson.getString(v.name));
+			}
 		}
-		if (b.containsKey("travel_rev")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "tr",
-					b.getFloat("travel_rev"));
-			if (cmds == null)
-				cmds = scratch;
-			else
-				cmds = cmds + "," + scratch;
-		}
-		if (b.containsKey("microsteps")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "mi",
-					b.getInt("microsteps"));
-			if (cmds == null)
-				cmds = scratch;
-			else
-				cmds = cmds + "," + scratch;
-		}
-		if (b.containsKey("step_angle")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "sa",
-					b.getFloat("step_angle"));
-			if (cmds == null)
-				cmds = scratch;
-			else
-				cmds = cmds + "," + scratch;
-		}
-		if (b.containsKey("polarity")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "po",
-					b.getBoolean("polarity") ? "1" : "0");
-			if (cmds == null)
-				cmds = scratch;
-			else
-				cmds = cmds + "," + scratch;
-		}
-		if (b.containsKey("power_management")) {
-			scratch = String.format(UPDATE_VALUE_FORMAT, "pm",
-					b.getBoolean("power_managment") ? "1" : "0");
-			if (cmds == null)
-				cmds = scratch;
-			else
-				cmds = cmds + "," + scratch;
-		}
-
-		return String.format(UPDATE_BLOCK_FORMAT, Integer.toString(mnum), cmds);
-	}
-
-	public Bundle getMotorBundle(int m) {
-		if (m < 1 || m > 4)
-			return motor[0];
-		else
-			return motor[m - 1];
-	}
-
-	private int axisNameToIndex(String string) {
-		if (string.equals("x")) {
-			return 0;
-		}
-		if (string.equals("y")) {
-			return 1;
-		}
-		if (string.equals("z")) {
-			return 2;
-		}
-		if (string.equals("a")) {
-			return 3;
-		}
-		if (string.equals("b")) {
-			return 4;
-		}
-		if (string.equals("c")) {
-			return 5;
-		}
-		return 0;
 	}
 
 	public Bundle processJSON(String string) {
@@ -499,4 +427,13 @@ public class Machine {
 		return b;
 	}
 
+	private static class TGVar {
+		public String name;
+		public String type;
+
+		public TGVar(String name, String type) {
+			this.name = name;
+			this.type = type;
+		}
+	}
 }

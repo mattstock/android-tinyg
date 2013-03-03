@@ -128,8 +128,9 @@ abstract public class TinyGService extends Service {
 		queue.clear();
 		try {
 			writeLock.acquire();
-			Log.d(TAG, "sending pause, etc");
+			Log.d(TAG, "sending feedhold");
 			write("!");
+			Log.d(TAG, "sending {\"qf\":1}");
 			write("{\"qf\":1}\n");
 		} catch (InterruptedException e) {
 			e.printStackTrace();

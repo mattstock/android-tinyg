@@ -53,7 +53,7 @@
     <string name="fb">Firmware build: </string>
     <string name="fv">Firmware version: </string>
     <string name="si">Update interval: </string>
-    <string name="fr">Feed rate: </string>
+    <string name="fr">Feed rate max: </string>
     <string name="sa">Step angle: </string>
     <string name="sv">Homing search velocity: </string>
     <string name="lv">Homing latch velocity: </string>
@@ -61,6 +61,8 @@
     <string name="vm">Velocity max: </string>
     <string name="tm">Travel max: </string>
     <string name="jm">Jerk max: </string>
+    <string name="ra">Radius: </string>
+    <string name="jh">Jerk homing: </string>
     <string name="jd">Junction deviation: </string>
     <string name="sn">Switch min: </string>
     <string name="sx">Switch max: </string>

@@ -82,14 +82,14 @@ public class MotorFragment extends SherlockFragment {
 		String scratch;
 
 		scratch = ((EditText)fragView.findViewById(R.id.step_angle)).getText().toString();
-		b.putFloat("step_angle", Float.parseFloat(scratch));
+		b.putFloat("sa", Float.parseFloat(scratch));
 		scratch = ((EditText)fragView.findViewById(R.id.travel_rev)).getText().toString();
-		b.putFloat("travel_rev", Float.parseFloat(scratch));
+		b.putFloat("tr", Float.parseFloat(scratch));
 		scratch = ((EditText)fragView.findViewById(R.id.microsteps)).getText().toString();
-		b.putInt("microsteps", Integer.parseInt(scratch));
-		b.putBoolean("polarity", ((ToggleButton)fragView.findViewById(R.id.polarity)).isChecked());
-		b.putBoolean("power_management", ((ToggleButton)fragView.findViewById(R.id.power_management)).isChecked());
-		b.putInt("map_to_axis", (int) ((Spinner)fragView.findViewById(R.id.map_axis)).getSelectedItemId());
+		b.putInt("mi", Integer.parseInt(scratch));
+		b.putBoolean("po", ((ToggleButton)fragView.findViewById(R.id.polarity)).isChecked());
+		b.putBoolean("pm", ((ToggleButton)fragView.findViewById(R.id.power_management)).isChecked());
+		b.putInt("ma", (int) ((Spinner)fragView.findViewById(R.id.map_axis)).getSelectedItemId());
 
 		return b;
 	}
@@ -106,17 +106,17 @@ public class MotorFragment extends SherlockFragment {
 		Spinner s = (Spinner) fragView.findViewById(R.id.motorpick);
 		if (s.getSelectedItemId() == b.getInt("motor")-1) {
 			((EditText) fragView.findViewById(R.id.step_angle)).setText(Float
-					.toString(b.getFloat("step_angle")));
+					.toString(b.getFloat("sa")));
 			((EditText) fragView.findViewById(R.id.travel_rev)).setText(Float
-					.toString(b.getFloat("travel_rev")));
+					.toString(b.getFloat("tr")));
 			((EditText) fragView.findViewById(R.id.microsteps))
-					.setText(Integer.toString(b.getInt("microsteps")));
+					.setText(Integer.toString(b.getInt("mi")));
 			((ToggleButton) fragView.findViewById(R.id.polarity)).setChecked(b
-					.getBoolean("polarity"));
+					.getBoolean("po"));
 			((ToggleButton) fragView.findViewById(R.id.power_management))
-					.setChecked(b.getBoolean("power_management"));
+					.setChecked(b.getBoolean("pm"));
 			((Spinner) fragView.findViewById(R.id.map_axis)).setSelection(b
-					.getInt("map_to_axis"));
+					.getInt("ma"));
 		}
 	}
 }
