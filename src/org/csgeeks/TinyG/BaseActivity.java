@@ -250,10 +250,6 @@ public class BaseActivity extends SherlockFragmentActivity implements
 			((MotorFragment) f).myClickHandler(view);
 		if (f.getClass() == AxisFragment.class)
 			((AxisFragment) f).myClickHandler(view);
-		if (f.getClass() == SystemFragment.class)
-			((SystemFragment) f).myClickHandler(view);
-//		if (f.getClass() == JogFragment.class)
-//			((JogFragment) f).myClickHandler(view);
 		if (f.getClass() == FileFragment.class)
 			((FileFragment) f).myClickHandler(view);
 	}
@@ -313,8 +309,24 @@ public class BaseActivity extends SherlockFragmentActivity implements
 			((SystemFragment) f).updateState(b);
 	}
 
-	public void onSystemSaved(Bundle b) {
-		// TODO
+	public void onSystemSaved(Bundle values) {
+		if (tinyg == null)
+			return;
+		Bundle sys = tinyg.getMachineStatus();
+		Bundle update = new Bundle(values);
+
+		Log.d(TAG, "new = " + values.toString());
+		Log.d(TAG, "old = " + sys.toString());
+
+		for (String value : values.keySet())
+			if (sys.containsKey(value)
+					&& sys.get(value).equals(values.get(value))) {
+				Log.d(TAG, "removing " + value + " from update list");
+				update.remove(value);
+			}
+
+		if (!update.isEmpty())
+			tinyg.putSystem(update);
 	}
 
 	public void onMotorSelected(int m) {
@@ -328,19 +340,21 @@ public class BaseActivity extends SherlockFragmentActivity implements
 
 	// Look for changed values, and push them on to the service
 	public void onMotorSaved(int mnum, Bundle values) {
+		if (tinyg == null)
+			return;
 		Bundle motor = tinyg.getMotor(mnum);
 		Bundle update = new Bundle(values);
-		
+
 		Log.d(TAG, "new = " + values.toString());
 		Log.d(TAG, "old = " + motor.toString());
-		
+
 		for (String value : values.keySet())
 			if (motor.containsKey(value)
 					&& motor.get(value).equals(values.get(value))) {
 				Log.d(TAG, "removing " + value + " from update list");
 				update.remove(value);
 			}
-				
+
 		if (!update.isEmpty())
 			tinyg.putMotor(mnum, update);
 	}
@@ -355,19 +369,21 @@ public class BaseActivity extends SherlockFragmentActivity implements
 	}
 
 	public void onAxisSaved(int a, Bundle values) {
+		if (tinyg == null)
+			return;
 		Bundle axis = tinyg.getAxis(a);
 		Bundle update = new Bundle(values);
-		
+
 		Log.d(TAG, "new = " + values.toString());
 		Log.d(TAG, "old = " + axis.toString());
-		
+
 		for (String value : values.keySet())
 			if (axis.containsKey(value)
 					&& axis.get(value).equals(values.get(value))) {
 				Log.d(TAG, "removing " + value + " from update list");
 				update.remove(value);
 			}
-				
+
 		if (!update.isEmpty())
 			tinyg.putAxis(a, update);
 	}
@@ -450,7 +466,7 @@ public class BaseActivity extends SherlockFragmentActivity implements
 			return;
 		tinyg.send_gcode(cmd);
 	}
-	
+
 	public void stopMove() {
 		if (tinyg == null || !connected)
 			return;

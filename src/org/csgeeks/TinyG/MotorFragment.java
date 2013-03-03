@@ -90,7 +90,7 @@ public class MotorFragment extends SherlockFragment {
 		b.putInt("mi", Integer.parseInt(scratch));
 		b.putBoolean("po", ((ToggleButton)fragView.findViewById(R.id.polarity)).isChecked());
 		b.putBoolean("pm", ((ToggleButton)fragView.findViewById(R.id.power_management)).isChecked());
-		b.putInt("ma", (int) ((Spinner)fragView.findViewById(R.id.map_axis)).getSelectedItemId());
+		b.putInt("ma", (int) ((Spinner)fragView.findViewById(R.id.map_axis)).getSelectedItemPosition());
 
 		return b;
 	}
@@ -99,7 +99,7 @@ public class MotorFragment extends SherlockFragment {
 		
 		if (view.getId() == R.id.save) {
 			Spinner s = (Spinner) fragView.findViewById(R.id.motorpick);
-			mListener.onMotorSaved((int) s.getSelectedItemId()+1, getValues());
+			mListener.onMotorSaved((int) s.getSelectedItemPosition()+1, getValues());
 		}
 	}
 	

@@ -30,11 +30,11 @@ public class Config {
 		axisVals.add(new TinyGType("zb", "float"));
 		sysVals.add(new TinyGType("fb", "float"));
 		sysVals.add(new TinyGType("fv", "float"));
-		sysVals.add(new TinyGType("hv", "float"));
+		sysVals.add(new TinyGType("hv", "int"));
 		sysVals.add(new TinyGType("id", "string"));
 		sysVals.add(new TinyGType("ja", "float"));
 		sysVals.add(new TinyGType("ct", "float"));
-		sysVals.add(new TinyGType("st", "boolean"));
+		sysVals.add(new TinyGType("st", "int"));
 		sysVals.add(new TinyGType("ej", "boolean"));
 		sysVals.add(new TinyGType("jv", "int"));
 		sysVals.add(new TinyGType("tv", "int"));

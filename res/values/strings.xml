@@ -74,6 +74,9 @@
     <string name="mi">Microsteps: </string>
     <string name="po">Polarity: </string>
     <string name="pm">Power mgmt: </string>
+    <string name="hv">Hardware version: </string>
+    <string name="id">Hardware ID: </string>
+    <string name="st">Switch type: </string>
     <string name="fileLabel">File</string>
     <string name="save">Save</string>
     <string name="start">Start</string>
@@ -116,6 +119,14 @@
         <item>System</item>
         <item>Motor</item>
         <item>Axis</item>
+    </string-array>
+    <string-array name="stArray">
+        <item>Normally Open</item>
+        <item>Normally Closed</item>
+    </string-array>
+    <string-array name="hvArray">
+        <item>v6</item>
+        <item>v7</item>
     </string-array>
 
 </resources>

@@ -20,11 +20,11 @@ abstract public class TinyGService extends Service {
 	public static final String CMD_GET_STATUS_REPORT = "{\"sr\":null}\n";
 	public static final String CMD_SET_QR_VERBOSITY = "{\"qv\":1}\n";
 	public static final String CMD_ENABLE_JSON_MODE = "{\"ej\":1}\n";
-	public static final String CMD_SET_HARDWARE_VERSION = "{\"hv\": 6}\n";
-	public static final String CMD_JSON_VERBOSITY = "{\"jv\": 3}\n";
+	public static final String CMD_SET_HARDWARE_VERSION = "{\"hv\":6}\n";
+	public static final String CMD_JSON_VERBOSITY = "{\"jv\":5}\n";
 	public static final String CMD_DISABLE_LOCAL_ECHO = "{\"ee\":0}\n";
 	public static final String CMD_DISABLE_XON_XOFF = "{\"ex\":0}\n";
-	public static final String CMD_SET_STATUS_UPDATE_INTERVAL = "{\"si\":0}\n";
+	public static final String CMD_SET_STATUS_UPDATE_INTERVAL = "{\"si\":100}\n";
 	public static final String CMD_GET_MACHINE_SETTINGS = "{\"sys\":null}\n";
 	public static final String CMD_SET_UNIT_MM = "{\"gc\":\"g21\"}\n";
 	public static final String CMD_SET_UNIT_INCHES = "{\"gc\":\"g20\"}\n";
@@ -154,6 +154,15 @@ abstract public class TinyGService extends Service {
 		String cmd = machine.updateAxisBundle(a, b);
 		Log.d(TAG, "update axis command: " + cmd);
 		send_message(cmd + "\n");
+	}
+
+	public void putSystem(Bundle b) {
+		List<String> cmds = machine.updateSystemBundle(b);
+		
+		for (String cmd: cmds) {
+			Log.d(TAG, "update system command: " + cmd);
+			send_message(cmd + "\n");
+		}
 	}
 
 	public Bundle getAxis(int a) {

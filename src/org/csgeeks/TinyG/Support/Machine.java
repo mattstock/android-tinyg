@@ -2,6 +2,9 @@ package org.csgeeks.TinyG.Support;
 
 // Copyright 2012 Matthew Stock
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.csgeeks.TinyG.Support.Config.TinyGType;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,6 +16,7 @@ import android.util.Log;
 public class Machine {
 	private static final String TAG = "TinyG";
 	private static final String UPDATE_BLOCK_FORMAT = "{\"%s\": {%s}}";
+	private static final String UPDATE_SINGLE_FORMAT = "{\"%s\":%s}";
 	private static final String UPDATE_VALUE_FORMAT = "\"%s\": %s";
 	private static final String axisIndexToName[] = { "x", "y", "z", "a", "b",
 			"c" };
@@ -111,6 +115,32 @@ public class Machine {
 		}
 
 		return String.format(UPDATE_BLOCK_FORMAT, Integer.toString(mnum), cmds);
+	}
+
+	public List<String> updateSystemBundle(Bundle b) {
+		Log.d(TAG, "in updateSystemBundle()");
+		String scratch;
+		ArrayList<String> cmds = new ArrayList<String>();
+
+		state.putAll(b);
+
+		for (Config.TinyGType v : machineVars.getSys()) {
+			if (b.containsKey(v.name)) {
+				scratch = "";
+				if (v.type.equals("float"))
+					scratch = Float.toString(b.getFloat(v.name));
+				if (v.type.equals("boolean"))
+					scratch = b.getBoolean(v.name) ? "1" : "0";
+				if (v.type.equals("string"))
+					scratch = b.getString(v.name);
+				if (v.type.equals("int"))
+					scratch = Integer.toString(b.getInt(v.name));
+				Log.d(TAG, "name = " + v.name);
+				cmds.add(String.format(UPDATE_SINGLE_FORMAT, v.name, scratch));
+			}
+		}
+
+		return cmds;
 	}
 
 	private int axisNameToIndex(String string) {

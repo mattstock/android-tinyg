@@ -68,7 +68,7 @@ public class AxisFragment extends SherlockFragment {
 	public void myClickHandler(View view) {
 		if (view.getId() == R.id.save) {
 			Spinner s = (Spinner) fragView.findViewById(R.id.axispick);
-			mListener.onAxisSaved((int) s.getSelectedItemId(), getValues());
+			mListener.onAxisSaved((int) s.getSelectedItemPosition(), getValues());
 		}
 	}
 

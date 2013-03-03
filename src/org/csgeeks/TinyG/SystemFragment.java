@@ -6,22 +6,24 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.actionbarsherlock.app.SherlockFragment;
 
 public class SystemFragment extends SherlockFragment {
 	private static final String TAG = "TinyG";
-	private SystemFragmentListener mListener;
-	private TextView fb,fv;
-	private EditText si;
-	
+	private SystemFragmentListener parent;
+	private View fragView;
+
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		try {
-			mListener = (SystemFragmentListener) activity;
+			parent = (SystemFragmentListener) activity;
 		} catch (ClassCastException e) {
 			throw new ClassCastException(activity.toString()
 					+ " must implement SystemFragmentListener");
@@ -31,39 +33,99 @@ public class SystemFragment extends SherlockFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		View v;
-		
+		Spinner s;
+
 		Log.d(TAG, "Creating MachineFragment");
 
 		// Inflate the layout for this fragment
-		v = inflater.inflate(R.layout.system, container, false);
-		fb = ((TextView) v.findViewById(R.id.firmware_build));
-		fv = ((TextView) v.findViewById(R.id.firmware_version));
-		si = ((EditText) v.findViewById(R.id.system_interval));
+		fragView = inflater.inflate(R.layout.system, container, false);
+
+		// Configure switch type picker
+		s = (Spinner) fragView.findViewById(R.id.switch_type);
+		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+				getActivity(), R.array.stArray,
+				android.R.layout.simple_spinner_item);
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		s.setAdapter(adapter);
+
+		// Configure hardware version picker
+		s = (Spinner) fragView.findViewById(R.id.hardware_version);
+		adapter = ArrayAdapter.createFromResource(getActivity(),
+				R.array.hvArray, android.R.layout.simple_spinner_item);
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		s.setAdapter(adapter);
+
+		// Allow for saves
+		((Button) fragView.findViewById(R.id.save))
+				.setOnClickListener(clickListener);
 
 		// Ask for state update
-		mListener.onSystemSelected();
-		
-		return v;
+		parent.onSystemSelected();
+
+		return fragView;
 	}
-	
-	public void myClickHandler(View view) {
-		switch (view.getId()) {
-		case R.id.save:
-			Log.d(TAG, "SystemFragment save button pushed");
+
+	// Pull all of the field values into a Bundle
+	private Bundle getValues() {
+		Bundle b = new Bundle();
+
+		switch (((Spinner) fragView.findViewById(R.id.hardware_version))
+				.getSelectedItemPosition()) {
+		case 0:
+			b.putInt("hv", 6);
+			break;
+		case 1:
+			b.putInt("hv", 7);
 			break;
 		}
+
+		b.putInt("st", ((Spinner) fragView.findViewById(R.id.switch_type)).getSelectedItemPosition());
+
+		return b;
 	}
-	
+
+	private View.OnClickListener clickListener = new View.OnClickListener() {
+		public void onClick(View view) {
+			switch (view.getId()) {
+			case R.id.save:
+				Log.d(TAG, "SystemFragment save button pushed");
+				parent.onSystemSaved(getValues());
+				break;
+			}
+		}
+	};
+
 	public interface SystemFragmentListener {
-		public void onSystemSelected();		
+		public void onSystemSelected();
+
 		public void onSystemSaved(Bundle b);
 	}
-	
+
 	public void updateState(Bundle b) {
-		fb.setText(Float.toString(b.getFloat("fb")));
-		fv.setText(Float.toString(b.getFloat("fv")));
-		si.setText(Integer.toString(b.getInt("si")));
+		int hv_idx;
+
+		switch (b.getInt("hv")) {
+		case 6:
+			hv_idx = 0;
+			break;
+		case 7:
+			hv_idx = 1;
+			break;
+		default:
+			hv_idx = -1;
+			break;
+		}
+		((Spinner) fragView.findViewById(R.id.hardware_version))
+				.setSelection(hv_idx);
+		((Spinner) fragView.findViewById(R.id.switch_type)).setSelection(b
+				.getInt("st"));
+		((TextView) fragView.findViewById(R.id.firmware_build)).setText(Float
+				.toString(b.getFloat("fb")));
+		((TextView) fragView.findViewById(R.id.firmware_version)).setText(Float
+				.toString(b.getFloat("fv")));
+		((TextView) fragView.findViewById(R.id.id)).setText(b.getString("id"));
+		((TextView) fragView.findViewById(R.id.system_interval))
+				.setText(Integer.toString(b.getInt("si")));
 	}
 
 }
