@@ -16,6 +16,35 @@ public class Config {
 		motorVals.add(new TinyGType("po", "boolean"));
 		motorVals.add(new TinyGType("pm", "boolean"));
 		motorVals.add(new TinyGType("ma", "int"));
+		axisVals.add(new TinyGType("tm", "float"));
+		axisVals.add(new TinyGType("vm", "float"));
+		axisVals.add(new TinyGType("jm", "float"));
+		axisVals.add(new TinyGType("jd", "float"));
+		axisVals.add(new TinyGType("ra", "float"));
+		axisVals.add(new TinyGType("fr", "float"));
+		axisVals.add(new TinyGType("am", "int"));
+		axisVals.add(new TinyGType("sv", "float"));
+		axisVals.add(new TinyGType("lv", "float"));
+		axisVals.add(new TinyGType("sn", "int"));
+		axisVals.add(new TinyGType("sx", "int"));
+		axisVals.add(new TinyGType("zb", "float"));
+		sysVals.add(new TinyGType("fb", "float"));
+		sysVals.add(new TinyGType("fv", "float"));
+		sysVals.add(new TinyGType("hv", "float"));
+		sysVals.add(new TinyGType("id", "string"));
+		sysVals.add(new TinyGType("ja", "float"));
+		sysVals.add(new TinyGType("ct", "float"));
+		sysVals.add(new TinyGType("st", "boolean"));
+		sysVals.add(new TinyGType("ej", "boolean"));
+		sysVals.add(new TinyGType("jv", "int"));
+		sysVals.add(new TinyGType("tv", "int"));
+		sysVals.add(new TinyGType("qv", "int"));
+		sysVals.add(new TinyGType("sv", "int"));
+		sysVals.add(new TinyGType("si", "int"));
+		sysVals.add(new TinyGType("ic", "boolean"));
+		sysVals.add(new TinyGType("ec", "boolean"));
+		sysVals.add(new TinyGType("ee", "boolean"));
+		sysVals.add(new TinyGType("ex", "boolean"));
 	}
 	
 	public Set<TinyGType> getMotor() {

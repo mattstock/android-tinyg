@@ -16,30 +16,12 @@ public class Machine {
 	private static final String UPDATE_VALUE_FORMAT = "\"%s\": %s";
 	private static final String axisIndexToName[] = { "x", "y", "z", "a", "b",
 			"c" };
-	private static final TGVar axisVars[] = new TGVar[] {
-			new TGVar("tm", "float"), new TGVar("vm", "float"),
-			new TGVar("jm", "float"), new TGVar("jd", "float"),
-			new TGVar("ra", "float"), new TGVar("fr", "float"),
-			new TGVar("am", "int"), new TGVar("sv", "float"),
-			new TGVar("lv", "float"), new TGVar("sn", "int"),
-			new TGVar("sx", "int"), new TGVar("zb", "float") };
-	private static final TGVar sysVars[] = new TGVar[] {
-			new TGVar("fb", "float"), new TGVar("fv", "float"),
-			new TGVar("hv", "float"), new TGVar("id", "string"),
-			new TGVar("ja", "float"), new TGVar("ct", "float"),
-			new TGVar("st", "boolean"), new TGVar("ej", "boolean"),
-			new TGVar("jv", "int"), new TGVar("tv", "int"),
-			new TGVar("qv", "int"), new TGVar("sv", "int"),
-			new TGVar("si", "int"), new TGVar("ic", "boolean"),
-			new TGVar("ec", "boolean"), new TGVar("ee", "boolean"),
-			new TGVar("ex", "boolean") };
-
 	// Machine state variables
 	private Bundle state;
 	private Bundle axis[] = new Bundle[6];
 	private Bundle motor[] = new Bundle[4];
 	private static Config machineVars;
-	
+
 	public Machine() {
 		for (int i = 0; i < 4; i++) {
 			motor[i] = new Bundle();
@@ -80,7 +62,7 @@ public class Machine {
 
 		a.putAll(b);
 
-		for (TGVar v : axisVars) {
+		for (Config.TinyGType v : machineVars.getAxis()) {
 			if (b.containsKey(v.name)) {
 				scratch = "";
 				if (v.type.equals("float"))
@@ -127,7 +109,6 @@ public class Machine {
 					cmds = ", " + scratch;
 			}
 		}
-
 
 		return String.format(UPDATE_BLOCK_FORMAT, Integer.toString(mnum), cmds);
 	}
@@ -249,7 +230,7 @@ public class Machine {
 	}
 
 	private void putSys(JSONObject sysjson) throws JSONException {
-		for (TGVar v : sysVars) {
+		for (Config.TinyGType v : machineVars.getSys()) {
 			if (sysjson.has(v.name)) {
 				if (v.type.equals("float"))
 					state.putFloat(v.name, (float) sysjson.getDouble(v.name));
@@ -268,7 +249,7 @@ public class Machine {
 
 		a.putInt("axis", axisNameToIndex(name));
 
-		for (TGVar v : axisVars) {
+		for (Config.TinyGType v : machineVars.getAxis()) {
 			if (axisjson.has(v.name)) {
 				if (v.type.equals("float"))
 					a.putFloat(v.name, (float) axisjson.getDouble(v.name));
@@ -424,15 +405,5 @@ public class Machine {
 		Bundle b = getAxisBundle(axisName);
 		b.putString("json", axisName);
 		return b;
-	}
-
-	private static class TGVar {
-		public String name;
-		public String type;
-
-		public TGVar(String name, String type) {
-			this.name = name;
-			this.type = type;
-		}
 	}
 }
