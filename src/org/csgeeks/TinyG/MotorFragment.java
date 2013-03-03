@@ -37,6 +37,7 @@ public class MotorFragment extends SherlockFragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		Log.d(TAG, "Creating MotorFragment");
+		
 		// Inflate the layout for this fragment
 		fragView = inflater.inflate(R.layout.motor, container, false);
 
@@ -105,6 +106,7 @@ public class MotorFragment extends SherlockFragment {
 	public void updateState(Bundle b) {
 		Spinner s = (Spinner) fragView.findViewById(R.id.motorpick);
 		if (s.getSelectedItemId() == b.getInt("motor")-1) {
+			
 			((EditText) fragView.findViewById(R.id.step_angle)).setText(Float
 					.toString(b.getFloat("sa")));
 			((EditText) fragView.findViewById(R.id.travel_rev)).setText(Float

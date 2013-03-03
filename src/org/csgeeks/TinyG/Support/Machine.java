@@ -2,6 +2,7 @@ package org.csgeeks.TinyG.Support;
 
 // Copyright 2012 Matthew Stock
 
+import org.csgeeks.TinyG.Support.Config.TinyGType;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,10 +23,6 @@ public class Machine {
 			new TGVar("am", "int"), new TGVar("sv", "float"),
 			new TGVar("lv", "float"), new TGVar("sn", "int"),
 			new TGVar("sx", "int"), new TGVar("zb", "float") };
-	private static final TGVar motorVars[] = new TGVar[] {
-			new TGVar("tr", "float"), new TGVar("sa", "float"),
-			new TGVar("mi", "int"), new TGVar("po", "boolean"),
-			new TGVar("pm", "boolean"), new TGVar("ma", "int") };
 	private static final TGVar sysVars[] = new TGVar[] {
 			new TGVar("fb", "float"), new TGVar("fv", "float"),
 			new TGVar("hv", "float"), new TGVar("id", "string"),
@@ -41,7 +38,8 @@ public class Machine {
 	private Bundle state;
 	private Bundle axis[] = new Bundle[6];
 	private Bundle motor[] = new Bundle[4];
-
+	private static Config machineVars;
+	
 	public Machine() {
 		for (int i = 0; i < 4; i++) {
 			motor[i] = new Bundle();
@@ -50,6 +48,7 @@ public class Machine {
 			axis[i] = new Bundle();
 		}
 		state = new Bundle();
+		machineVars = new Config();
 	}
 
 	public Bundle getStatusBundle() {
@@ -110,7 +109,7 @@ public class Machine {
 
 		m.putAll(b);
 
-		for (TGVar v : motorVars) {
+		for (Config.TinyGType v : machineVars.getMotor()) {
 			if (b.containsKey(v.name)) {
 				scratch = "";
 				if (v.type.equals("float"))
@@ -292,7 +291,7 @@ public class Machine {
 			m = motor[name - 1];
 		m.putInt("motor", name);
 
-		for (TGVar v : motorVars) {
+		for (TinyGType v : machineVars.getMotor()) {
 			if (motorjson.has(v.name)) {
 				if (v.type.equals("float"))
 					m.putFloat(v.name, (float) motorjson.getDouble(v.name));
