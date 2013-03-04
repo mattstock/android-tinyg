@@ -20,7 +20,6 @@ abstract public class TinyGService extends Service {
 	public static final String CMD_GET_STATUS_REPORT = "{\"sr\":null}\n";
 	public static final String CMD_SET_QR_VERBOSITY = "{\"qv\":1}\n";
 	public static final String CMD_ENABLE_JSON_MODE = "{\"ej\":1}\n";
-	public static final String CMD_SET_HARDWARE_VERSION = "{\"hv\":6}\n";
 	public static final String CMD_JSON_VERBOSITY = "{\"jv\":5}\n";
 	public static final String CMD_DISABLE_LOCAL_ECHO = "{\"ee\":0}\n";
 	public static final String CMD_DISABLE_XON_XOFF = "{\"ex\":0}\n";
@@ -195,7 +194,6 @@ abstract public class TinyGService extends Service {
 		send_message(CMD_JSON_VERBOSITY);
 		send_message(CMD_SET_QR_VERBOSITY);
 		send_message(CMD_SET_STATUS_UPDATE_INTERVAL);
-		send_message(CMD_SET_HARDWARE_VERSION);
 		send_message(CMD_GET_STATUS_REPORT);
 
 		// Preload all of these for later display
