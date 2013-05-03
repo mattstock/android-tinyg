@@ -45,7 +45,6 @@
     <string name="cw">cw</string>
     <string name="ccw">ccw</string>
     <string name="invalid">invalid</string>
-    <string name="version">1.6</string>
     <string name="about">Android app copyright 2013 Bexkat Systems LLC.\nTinyG and TgFX copyright Synthetos, LLC.</string>
     <string name="no_usb_host">USB host connectivity only supported in Android 3.1 and above.</string>
     <string name="no_usb_accessory">USB accessory connectivity only supported in Android 2.3.4 and above.</string>
@@ -80,7 +79,7 @@
     <string name="fileLabel">File</string>
     <string name="save">Save</string>
     <string name="start">Start</string>
-    <string name="stop">Stop</string>
+    <string name="stop_label">Stop</string>
     <string name="pause">Pause</string>
     <string name="cancel">Cancel</string>
     <string name="resume">Resume</string>

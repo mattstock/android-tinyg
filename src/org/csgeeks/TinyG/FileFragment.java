@@ -1,15 +1,16 @@
 package org.csgeeks.TinyG;
 
-import java.io.File;
-
 import com.actionbarsherlock.app.SherlockFragment;
+import com.lamerman.FileDialog;
+import com.lamerman.SelectionMode;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.net.Uri;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,50 +21,61 @@ import android.widget.Toast;
 
 public class FileFragment extends SherlockFragment {
 	private static final String TAG = "TinyG";
-	private FileFragmentListener mListener;
-	private View mView;
-	
+	private FileFragmentListener parent;
+	private Button startButton;
+	private String filename;
+	private EditText fileView;
+	private SharedPreferences settings;
+
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		try {
-			mListener = (FileFragmentListener) activity;
+			parent = (FileFragmentListener) activity;
 		} catch (ClassCastException e) {
 			throw new ClassCastException(activity.toString()
 					+ " must implement FileFragmentListener");
 		}
+		settings = PreferenceManager.getDefaultSharedPreferences(activity);
 	}
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-    	String filename;
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putString("filename", filename);
 
-    	// Inflate the layout for this fragment
-        mView = inflater.inflate(R.layout.gcodefile, container, false);
-        
-        if (savedInstanceState != null)
-        	filename = savedInstanceState.getString("filename");
-        else  {
-        	// TODO pull this from preferences and save last filename on exit.
-        	Log.d(TAG, "Using default filename");
-        	filename = Environment.getExternalStorageDirectory().getPath() + "/test.nc";
-        }
-        
-        EditText fv = (EditText) mView.findViewById(R.id.filename);        
-		fv.setText(filename);
-        return mView;
-    }
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString("filename", filename);
+		editor.commit();
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		// Inflate the layout for this fragment
+		View v = inflater.inflate(R.layout.gcodefile, container, false);
+
+		if (savedInstanceState != null)
+			filename = savedInstanceState.getString("filename");
+		else {
+			filename = settings.getString("filename", Environment
+					.getExternalStorageDirectory().getPath() + "/test.nc");
+		}
+
+		fileView = (EditText) v.findViewById(R.id.filename);
+		fileView.setText(filename);
+		startButton = (Button) v.findViewById(R.id.start);
+		return v;
+	}
 
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode != 1)
 			return;
 		if (resultCode == android.app.Activity.RESULT_OK && data != null) {
-			String fileName = data.getData().getPath();
-			if (fileName != null) {
-				EditText mFilename = (EditText) mView.findViewById(R.id.filename);
-				if (mFilename != null)
-					mFilename.setText(fileName);
+            String newname = data.getStringExtra(FileDialog.RESULT_PATH);
+			if (newname != null) {
+				filename = newname;
+				fileView.setText(newname);
 			}
 		}
 	}
@@ -74,27 +86,21 @@ public class FileFragment extends SherlockFragment {
 			pickFile();
 			break;
 		case R.id.start:
-			EditText mFilename = (EditText) mView.findViewById(R.id.filename);
-			mListener.toggleDownload(mFilename.getText().toString());
+			parent.toggleDownload(filename);
 			break;
-		}		
+		}
 	}
-	
+
 	public interface FileFragmentListener {
 		void toggleDownload(String filename);
 	}
-	
+
 	private void pickFile() {
-		EditText fv = (EditText) mView.findViewById(R.id.filename);
-		String fileName = fv.getText().toString();
+		Intent intent = new Intent(getActivity(), FileDialog.class);
 
-		// TODO write our own
-		Intent intent = new Intent("org.openintents.action.PICK_FILE");
-
-		// Construct URI from file name.
-		File file = new File(fileName);
-		intent.setData(Uri.fromFile(file));
-
+		intent.putExtra(FileDialog.START_PATH, "/sdcard");
+		intent.putExtra(FileDialog.SELECTION_MODE, SelectionMode.MODE_OPEN);
+		
 		try {
 			startActivityForResult(intent, 1);
 		} catch (ActivityNotFoundException e) {
@@ -103,11 +109,11 @@ public class FileFragment extends SherlockFragment {
 					Toast.LENGTH_SHORT).show();
 		}
 	}
-	
+
 	public void updateState(boolean download) {
 		if (download)
-			((Button) mView.findViewById(R.id.start)).setText(R.string.stop);
+			startButton.setText(R.string.stop_label);
 		else
-			((Button) mView.findViewById(R.id.start)).setText(R.string.start);
+			startButton.setText(R.string.start);
 	}
 }
