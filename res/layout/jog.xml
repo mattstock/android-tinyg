@@ -5,23 +5,11 @@
     android:paddingLeft="20dp"
     android:paddingRight="20dp" >
 
-    <TextView
-        android:id="@+id/position_entry_label"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="100dp"
-        android:layout_marginTop="50dp"
-        android:text="@string/position_entry_label"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
     <ToggleButton
         android:id="@+id/jogRate"
         android:layout_width="75dp"
         android:layout_height="75dp"
         android:layout_alignParentLeft="true"
-        android:layout_below="@+id/position_entry_label"
         android:layout_marginTop="100dp"
         android:textOff="@string/jog_slow_label"
         android:textOn="@string/jog_fast_label" />
@@ -30,17 +18,25 @@
         android:id="@+id/xneg"
         android:layout_width="75dp"
         android:layout_height="75dp"
-        android:layout_below="@+id/position_entry_label"
+        android:layout_above="@+id/yneg"
         android:layout_marginLeft="20dp"
         android:layout_toRightOf="@+id/jogRate"
         android:text="@string/xneg" />
+
+    <Button
+        android:id="@+id/xzero"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_alignTop="@+id/xneg"
+        android:layout_toRightOf="@+id/xneg"
+        android:text="@string/zero_label" />
 
     <Button
         android:id="@+id/xpos"
         android:layout_width="75dp"
         android:layout_height="75dp"
         android:layout_alignTop="@+id/xneg"
-        android:layout_toRightOf="@+id/xneg"
+        android:layout_toRightOf="@+id/xzero"
         android:text="@string/xpos" />
 
     <Button
@@ -52,11 +48,19 @@
         android:text="@string/yneg" />
 
     <Button
-        android:id="@+id/ypos"
+        android:id="@+id/yzero"
         android:layout_width="75dp"
         android:layout_height="75dp"
         android:layout_alignTop="@+id/yneg"
         android:layout_toRightOf="@+id/yneg"
+        android:text="@string/zero_label" />
+
+    <Button
+        android:id="@+id/ypos"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_alignTop="@+id/yneg"
+        android:layout_toRightOf="@+id/yzero"
         android:text="@string/ypos" />
 
     <Button
@@ -68,11 +72,19 @@
         android:text="@string/zneg" />
 
     <Button
-        android:id="@+id/zpos"
+        android:id="@+id/zzero"
         android:layout_width="75dp"
         android:layout_height="75dp"
         android:layout_alignTop="@+id/zneg"
         android:layout_toRightOf="@+id/zneg"
+        android:text="@string/zero_label" />
+
+    <Button
+        android:id="@+id/zpos"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_alignTop="@+id/zneg"
+        android:layout_toRightOf="@+id/zzero"
         android:text="@string/zpos" />
 
     <TextView
@@ -85,36 +97,87 @@
     <TextView
         android:id="@+id/jog_step_value"
         android:layout_width="75dp"
-        android:textIsSelectable="false"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/jog_step_value_label"
-        android:layout_toRightOf="@+id/jog_step_value_label" />
+        android:layout_toRightOf="@+id/jog_step_value_label"
+        android:textIsSelectable="false" />
 
     <Button
         android:id="@+id/home"
         android:layout_width="75dp"
         android:layout_height="75dp"
-        android:layout_alignBaseline="@+id/origin"
-        android:layout_alignBottom="@+id/origin"
-        android:layout_toRightOf="@+id/jog_step_value"
+        android:layout_above="@+id/jogRate"
+        android:layout_alignLeft="@+id/jogRate"
         android:text="@string/home" />
 
     <SeekBar
         android:id="@+id/jog_step"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/origin"
+        android:layout_alignLeft="@+id/jogRate"
         android:layout_below="@+id/zneg"
         android:layout_marginTop="31dp"
         android:max="100" />
 
     <Button
-        android:id="@+id/origin"
+        android:id="@+id/g28"
         android:layout_width="75dp"
         android:layout_height="75dp"
+        android:layout_alignLeft="@+id/jogRate"
         android:layout_below="@+id/jog_step_value_label"
         android:layout_marginTop="39dp"
-        android:layout_toLeftOf="@+id/zneg"
-        android:text="@string/origin" />
+        android:text="@string/homing_cycle_label" />
 
+    <Button
+        android:id="@+id/reset"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_alignLeft="@+id/jogRate"
+        android:layout_below="@+id/g28"
+        android:text="@string/reset_label" />
+
+    <ToggleButton
+        android:id="@+id/spindle"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_alignTop="@+id/g28"
+        android:layout_toRightOf="@+id/g28"
+        android:textOff="@string/spindle_label"
+        android:textOn="@string/spindle_label" />
+
+    <ToggleButton
+        android:id="@+id/coolant"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_alignLeft="@+id/spindle"
+        android:layout_below="@+id/spindle"
+        android:textOff="@string/coolant_label"
+        android:textOn="@string/coolant_label" />
+
+    <TextView
+        android:id="@+id/gcode_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/jogRate"
+        android:layout_below="@+id/reset"
+        android:layout_marginTop="30dp"
+        android:text="@string/gcode_label" />
+
+    <EditText
+        android:id="@+id/gcode"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/gcode_label"
+        android:layout_below="@+id/reset"
+        android:layout_toRightOf="@+id/gcode_label"
+        android:inputType="text" />
+
+        <Button
+        android:id="@+id/go"
+        android:layout_width="75dp"
+        android:layout_height="50dp"
+        android:layout_toRightOf="@+id/gcode"
+        android:layout_alignBaseline="@+id/gcode"
+        android:text="@string/go_label" />
+    
 </RelativeLayout>

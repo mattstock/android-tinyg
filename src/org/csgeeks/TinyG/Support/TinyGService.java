@@ -79,6 +79,7 @@ abstract public class TinyGService extends Service {
 	abstract public void connect();
 
 	abstract protected void write(String cmd);
+	abstract protected void write(byte b[]);
 
 	public void disconnect() {
 		// Let everyone know we are disconnected
@@ -137,6 +138,22 @@ abstract public class TinyGService extends Service {
 		writeLock.release();
 	}
 
+	public void send_reset() {
+		byte[] rst = {0x18};
+		
+		Log.d(TAG, "in send_reset()");
+		queue.clear();
+		try {
+			writeLock.acquire();
+			Log.d(TAG, "sending reset");
+			write(rst);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		writeLock.release();
+	}
+
 	public Bundle getMotor(int m) {
 		return machine.getMotorBundle(m);
 	}
@@ -157,8 +174,8 @@ abstract public class TinyGService extends Service {
 
 	public void putSystem(Bundle b) {
 		List<String> cmds = machine.updateSystemBundle(b);
-		
-		for (String cmd: cmds) {
+
+		for (String cmd : cmds) {
 			Log.d(TAG, "update system command: " + cmd);
 			send_message(cmd + "\n");
 		}
@@ -226,4 +243,5 @@ abstract public class TinyGService extends Service {
 			}
 		}
 	}
+
 }

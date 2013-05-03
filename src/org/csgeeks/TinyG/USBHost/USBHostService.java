@@ -122,9 +122,11 @@ public class USBHostService extends TinyGService {
 		}
 	}
 
-	@Override
 	public void write(String s) {
-		byte b[] = s.getBytes();
+		write(s.getBytes());
+	}
+	
+	public void write(byte b[]) {
 		int from_idx, to_idx, res;
 		byte tmp[] = new byte[64];
 

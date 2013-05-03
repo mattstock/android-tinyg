@@ -55,9 +55,13 @@ public class USBAccessoryService extends TinyGService {
 	}
 	
 	public void write(String cmd) {
-		Log.d(TAG, "Writing |" + cmd + "| to USB");
+		write(cmd.getBytes());
+	}
+
+	public void write(byte b[]) {
+		Log.d(TAG, "Writing bytes to USB");
 		try {
-			mOutputStream.write(cmd.getBytes());
+			mOutputStream.write(b);
 		} catch (IOException e) {
 			e.printStackTrace();			
 		}

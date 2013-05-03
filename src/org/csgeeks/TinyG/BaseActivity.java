@@ -473,4 +473,10 @@ public class BaseActivity extends SherlockFragmentActivity implements
 		tinyg.send_stop();
 	}
 
+	public void sendReset() {
+		if (tinyg == null || !connected)
+			return;
+		tinyg.send_reset();
+	}
+
 }

@@ -14,8 +14,14 @@
     <string name="yneg">Y-</string>
     <string name="zpos">Z+</string>
     <string name="zneg">Z-</string>
-    <string name="origin">Set 0</string>
-    <string name="home">Home</string>
+    <string name="zero_label">Set 0</string>
+    <string name="home">Go Home</string>
+    <string name="reset_label">Reset!</string>
+    <string name="homing_cycle_label">G28.2</string>
+    <string name="spindle_label">Spindle</string>
+    <string name="coolant_label">Coolant</string>
+    <string name="gcode_label">Gcode: </string>
+    <string name="go_label">Go</string>
     <string name="zeropos">0.000</string>
     <string name="zeroloc">(0.0, 0.0, 0.0, 0.0)</string>
     <string name="connect">Connect</string>

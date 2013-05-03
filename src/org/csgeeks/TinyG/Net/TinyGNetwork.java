@@ -54,15 +54,19 @@ public class TinyGNetwork extends TinyGService {
 	}
 
 	public void write(String message) {
+		write(message.getBytes());
+	}
+
+	public void write(byte b[]) {
 		try {
-			os.write(message.getBytes());
+			os.write(b);
 		} catch (IOException e) {
 			Log.e(TAG, "network write exception: " + e.getMessage());
 		} catch (NullPointerException e) {
 			Log.e(TAG, "write to network attempted without socket established.");
 		}
 	}
-
+	
 	// We call the initialize function to configure any local variables, pulling
 	// preferences in for example.
 	public void connect() {

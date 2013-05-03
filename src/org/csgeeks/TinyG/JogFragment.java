@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -20,21 +21,21 @@ public class JogFragment extends SherlockFragment {
 	private static final String TAG = "TinyG";
 	private static float jogFastRate = 400;
 	private static float jogSlowRate = 100;
-	private static final String CMD_SET_ORIGIN = "g92x0y0z0a0";
+	private static final String CMD_ZERO_AXIS = "g28.3%s0";
 	private static final String CMD_STEP_FORMAT = "g91f%fg1%s%f";
+	private static final String CMD_HOMING = "g28.2x0y0z0";
 	private static final String CMD_MOVE_ORIGIN = "g90g0x0y0z0a0";
-	private static int[] jogControls = { R.id.xpos, R.id.xneg, R.id.ypos,
-			R.id.yneg, R.id.zpos, R.id.zneg };
 	private static int[] allButtons = { R.id.xpos, R.id.xneg, R.id.ypos,
 			R.id.yneg, R.id.zpos, R.id.zneg, R.id.jogRate, R.id.home,
-			R.id.origin };
+			R.id.xzero, R.id.yzero, R.id.zzero, R.id.spindle, R.id.coolant,
+			R.id.g28, R.id.reset, R.id.go };
 	private float jogStep = 10;
 	private float jogRate = jogFastRate;
 	private TextView jogStepView;
 	boolean enabled = true;
 	boolean jogActive = false;
 
-	View mView;
+	View view;
 
 	@Override
 	public void onAttach(Activity activity) {
@@ -51,39 +52,40 @@ public class JogFragment extends SherlockFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		mView = inflater.inflate(R.layout.jog, container, false);
+		view = inflater.inflate(R.layout.jog, container, false);
 		View v;
 
 		for (int id : allButtons) {
-			v = mView.findViewById(id);
+			v = view.findViewById(id);
 			v.setOnClickListener(clickListener);
 		}
 
 		// Disable for now, until the queue flush support is ready.
-/*		for (int id : jogControls) {
-			v = mView.findViewById(id);
-			v.setOnLongClickListener(jogHoldListener);
-			v.setOnTouchListener(jogReleaseListener);
-		}
-*/
+		/*
+		 * for (int id : jogControls) { v = mView.findViewById(id);
+		 * v.setOnLongClickListener(jogHoldListener);
+		 * v.setOnTouchListener(jogReleaseListener); }
+		 */
 		// Rapid movement
-		((ToggleButton) mView.findViewById(R.id.jogRate)).setChecked(true);
+		((ToggleButton) view.findViewById(R.id.jogRate)).setChecked(true);
 
 		// Jog step changes
-		jogStepView = (TextView) mView.findViewById(R.id.jog_step_value);
+		jogStepView = (TextView) view.findViewById(R.id.jog_step_value);
 		jogStepView.setText(Integer.toString((int) jogStep));
 
-		SeekBar s = (SeekBar) mView.findViewById(R.id.jog_step);
+		SeekBar s = (SeekBar) view.findViewById(R.id.jog_step);
 		s.setOnSeekBarChangeListener(jogStepListener);
 		s.setProgress((int) jogStep);
 
-		return mView;
+		return view;
 	}
 
 	public interface JogFragmentListener {
 		void jogChange(float rate);
 
 		void sendGcode(String cmd);
+
+		void sendReset();
 
 		void stopMove();
 	}
@@ -148,8 +150,36 @@ public class JogFragment extends SherlockFragment {
 				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "z",
 						-jogStep));
 				break;
-			case R.id.origin:
-				parent.sendGcode(CMD_SET_ORIGIN);
+			case R.id.zzero:
+				parent.sendGcode(String.format(CMD_ZERO_AXIS, "z"));
+				break;
+			case R.id.yzero:
+				parent.sendGcode(String.format(CMD_ZERO_AXIS, "y"));
+				break;
+			case R.id.xzero:
+				parent.sendGcode(String.format(CMD_ZERO_AXIS, "x"));
+				break;
+			case R.id.coolant:
+				if (((ToggleButton) v).isChecked())
+					parent.sendGcode("M7");
+				else
+					parent.sendGcode("M9");
+				break;
+			case R.id.spindle:
+				if (((ToggleButton) v).isChecked())
+					parent.sendGcode("M3 200");
+				else
+					parent.sendGcode("M5");
+				break;
+			case R.id.reset:
+				parent.sendReset();
+				break;
+			case R.id.g28:
+				parent.sendGcode(CMD_HOMING);
+				break;
+			case R.id.go:
+				String text = ((EditText)view.findViewById(R.id.gcode)).getText().toString();
+				parent.sendGcode(text);
 				break;
 			case R.id.home:
 				parent.sendGcode(CMD_MOVE_ORIGIN);
