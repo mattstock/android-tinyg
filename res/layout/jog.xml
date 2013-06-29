@@ -11,8 +11,8 @@
         android:layout_height="75dp"
         android:layout_alignParentLeft="true"
         android:layout_marginTop="100dp"
-        android:textOff="@string/jog_slow_label"
-        android:textOn="@string/jog_fast_label" />
+        android:textOff="@string/feed_slow_label"
+        android:textOn="@string/feed_fast_label" />
 
     <Button
         android:id="@+id/xneg"
@@ -87,52 +87,20 @@
         android:layout_toRightOf="@+id/zzero"
         android:text="@string/zpos" />
 
-    <TextView
-        android:id="@+id/jog_step_value_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/jog_step"
-        android:text="@string/jog_step_value_label" />
-
-    <TextView
-        android:id="@+id/jog_step_value"
-        android:layout_width="75dp"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/jog_step_value_label"
-        android:layout_toRightOf="@+id/jog_step_value_label"
-        android:textIsSelectable="false" />
-
-    <Button
-        android:id="@+id/home"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_above="@+id/jogRate"
-        android:layout_alignLeft="@+id/jogRate"
-        android:text="@string/home" />
-
-    <SeekBar
-        android:id="@+id/jog_step"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/jogRate"
-        android:layout_below="@+id/zneg"
-        android:layout_marginTop="31dp"
-        android:max="100" />
-
     <Button
         android:id="@+id/g28"
         android:layout_width="75dp"
         android:layout_height="75dp"
         android:layout_alignLeft="@+id/jogRate"
-        android:layout_below="@+id/jog_step_value_label"
-        android:layout_marginTop="39dp"
+        android:layout_below="@+id/zneg"
+        android:layout_marginTop="40dp"
         android:text="@string/homing_cycle_label" />
 
     <Button
         android:id="@+id/reset"
         android:layout_width="75dp"
         android:layout_height="75dp"
-        android:layout_alignLeft="@+id/jogRate"
+        android:layout_alignLeft="@+id/g28"
         android:layout_below="@+id/g28"
         android:text="@string/reset_label" />
 
@@ -154,12 +122,71 @@
         android:textOff="@string/coolant_label"
         android:textOn="@string/coolant_label" />
 
+    <Button
+        android:id="@+id/home"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_toRightOf="@+id/spindle"
+        android:layout_alignTop="@+id/spindle"
+        android:text="@string/home" />
+    
+    <TextView 
+        android:id="@+id/rateLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/reset"
+        android:layout_alignLeft="@+id/jogRate"
+        android:layout_marginTop="30dp"
+        android:text="@string/jogval" />
+    
+ 	<RadioGroup
+ 	    android:id="@+id/rateGroup"
+ 	    android:layout_width="300dp"
+ 	    android:layout_height="wrap_content"
+ 	    android:layout_toRightOf="@+id/rateLabel"
+ 	    android:layout_alignTop="@+id/rateLabel"
+ 	    android:layout_marginLeft="20dp"
+ 	    android:orientation="horizontal">
+ 		
+ 	    <RadioButton
+ 	        android:id="@+id/step_001"
+ 	        android:layout_width="wrap_content"
+ 	        android:layout_height="wrap_content"
+ 	        android:text="@string/step_001" />
+
+  	    <RadioButton
+ 	        android:id="@+id/step_01"
+ 	        android:layout_width="wrap_content"
+ 	        android:layout_height="wrap_content"
+ 	        android:text="@string/step_01" />
+ 	    
+  	    <RadioButton
+ 	        android:id="@+id/step_1"
+ 	        android:layout_width="wrap_content"
+ 	        android:layout_height="wrap_content"
+ 	        android:text="@string/step_1" />
+
+  	    <RadioButton
+ 	        android:id="@+id/step_1_0"
+ 	        android:layout_width="wrap_content"
+ 	        android:layout_height="wrap_content"
+ 	        android:text="@string/step_1_0" />
+  	    
+  	    <RadioButton
+ 	        android:id="@+id/step_10"
+ 	        android:layout_width="wrap_content"
+ 	        android:layout_height="wrap_content"
+ 	        android:text="@string/step_10" />
+  	      	    	    	    
+ 	</RadioGroup>
+ 	    
+
     <TextView
         android:id="@+id/gcode_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/jogRate"
-        android:layout_below="@+id/reset"
+        android:layout_below="@+id/rateGroup"
         android:layout_marginTop="30dp"
         android:text="@string/gcode_label" />
 

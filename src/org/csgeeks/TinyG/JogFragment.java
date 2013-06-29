@@ -5,6 +5,7 @@ package org.csgeeks.TinyG;
 import com.actionbarsherlock.app.SherlockFragment;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,8 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.SeekBar;
-import android.widget.TextView;
+import android.widget.RadioButton;
 import android.widget.ToggleButton;
 
 public class JogFragment extends SherlockFragment {
@@ -25,13 +25,14 @@ public class JogFragment extends SherlockFragment {
 	private static final String CMD_STEP_FORMAT = "g91f%fg1%s%f";
 	private static final String CMD_HOMING = "g28.2x0y0z0";
 	private static final String CMD_MOVE_ORIGIN = "g90g0x0y0z0a0";
+	public static final String STATUS = "org.csgeeks.TinyG.STATUS";
 	private static int[] allButtons = { R.id.xpos, R.id.xneg, R.id.ypos,
 			R.id.yneg, R.id.zpos, R.id.zneg, R.id.jogRate, R.id.home,
 			R.id.xzero, R.id.yzero, R.id.zzero, R.id.spindle, R.id.coolant,
+			R.id.step_001, R.id.step_01, R.id.step_1, R.id.step_1_0, R.id.step_10,
 			R.id.g28, R.id.reset, R.id.go };
 	private float jogStep = 10;
 	private float jogRate = jogFastRate;
-	private TextView jogStepView;
 	boolean enabled = true;
 	boolean jogActive = false;
 
@@ -68,20 +69,13 @@ public class JogFragment extends SherlockFragment {
 		 */
 		// Rapid movement
 		((ToggleButton) view.findViewById(R.id.jogRate)).setChecked(true);
-
-		// Jog step changes
-		jogStepView = (TextView) view.findViewById(R.id.jog_step_value);
-		jogStepView.setText(Integer.toString((int) jogStep));
-
-		SeekBar s = (SeekBar) view.findViewById(R.id.jog_step);
-		s.setOnSeekBarChangeListener(jogStepListener);
-		s.setProgress((int) jogStep);
-
+		
+		((RadioButton) view.findViewById(R.id.step_10)).setChecked(true);
 		return view;
 	}
 
 	public interface JogFragmentListener {
-		void jogChange(float rate);
+		void jogChange(float step, float rate);
 
 		void sendGcode(String cmd);
 
@@ -90,25 +84,7 @@ public class JogFragment extends SherlockFragment {
 		void stopMove();
 	}
 
-	private SeekBar.OnSeekBarChangeListener jogStepListener = new SeekBar.OnSeekBarChangeListener() {
-
-		public void onStopTrackingTouch(SeekBar seekBar) {
-		}
-
-		public void onStartTrackingTouch(SeekBar seekBar) {
-		}
-
-		public void onProgressChanged(SeekBar seekBar, int progress,
-				boolean fromUser) {
-			jogStep = progress;
-
-			if (jogStepView != null)
-				jogStepView.setText(Integer.toString((int) jogStep));
-		}
-	};
-
 	private View.OnClickListener clickListener = new View.OnClickListener() {
-
 		public void onClick(View v) {
 
 			// These buttons should work all the time
@@ -118,9 +94,31 @@ public class JogFragment extends SherlockFragment {
 					jogRate = jogFastRate;
 				else
 					jogRate = jogSlowRate;
+				parent.jogChange(jogStep, jogRate);
 				break;
+			case R.id.step_001:
+				jogStep = 0.001f;
+				parent.jogChange(jogStep, jogRate);
+				break;
+			case R.id.step_01:
+				jogStep = 0.01f;
+				parent.jogChange(jogStep, jogRate);
+				break;
+			case R.id.step_1:
+				jogStep = 0.1f;
+				parent.jogChange(jogStep, jogRate);
+				break;
+			case R.id.step_1_0:
+				jogStep = 1.0f;
+				parent.jogChange(jogStep, jogRate);
+				break;
+			case R.id.step_10:
+				jogStep = 10.0f;
+				parent.jogChange(jogStep, jogRate);
+				break;				
 			}
 
+				
 			if (!enabled)
 				return;
 

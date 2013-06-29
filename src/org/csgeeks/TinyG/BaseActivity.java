@@ -430,9 +430,10 @@ public class BaseActivity extends SherlockFragmentActivity implements
 		}
 	}
 
-	public void jogChange(float rate) {
+	public void jogChange(float step, float rate) {
 		Bundle b = new Bundle();
 		b.putFloat("jogRate", rate);
+		b.putFloat("jogStep", step);
 		StatusFragment sf = (StatusFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.statusF);
 		sf.updateState(b);
