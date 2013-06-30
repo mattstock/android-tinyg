@@ -44,8 +44,9 @@ public class USBHostService extends TinyGService {
 		Log.d(TAG, "USB service onCreate()");
 		mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 		IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+		filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+		filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
 		registerReceiver(mUsbReceiver, filter);
-		deviceFTDI = USBHostSupport.loadFTDI(mUsbManager);
 	}
 
 	@Override
@@ -61,65 +62,81 @@ public class USBHostService extends TinyGService {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
+
 			if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
 				Log.d(TAG, "USB attach");
-			} else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+				deviceFTDI = USBHostSupport.loadFTDI(mUsbManager);
+				return;
+			}
+			if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
 				Log.d(TAG, "USB detach");
+				disconnect();
+				return;
 			}
 			if (action.equals(ACTION_USB_PERMISSION)) {
 				if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED,
 						false)) {
-					// TODO Make sure we're talking about the same device
 
 					// Do all of the setup and call the listener AsyncTask
 					conn = mUsbManager.openDevice(deviceFTDI);
-					if (!conn.claimInterface(deviceFTDI.getInterface(0), true)) {
+					if (conn == null) {
 						Toast.makeText(USBHostService.this,
-								"TinyG USB device locked", Toast.LENGTH_SHORT)
-								.show();
-						Log.e(TAG, "Can't claim USB interface");
-					}
-					// Configure for TinyG serial settings - 115200, 8N1
-					USBHostSupport.ftdi_settings(conn);
-					epIN = null;
-					epOUT = null;
-
-					UsbInterface usbIf = deviceFTDI.getInterface(0);
-					for (int i = 0; i < usbIf.getEndpointCount(); i++) {
-						if (usbIf.getEndpoint(i).getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
-							if (usbIf.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN)
-								epIN = usbIf.getEndpoint(i);
-							else
-								epOUT = usbIf.getEndpoint(i);
+								"USB open failed", Toast.LENGTH_SHORT).show();
+						disconnect();
+						return;
+					} else {
+						if (!conn.claimInterface(deviceFTDI.getInterface(0), true)) {
+							Toast.makeText(USBHostService.this,
+									"TinyG USB device locked", Toast.LENGTH_SHORT)
+									.show();
+							Log.e(TAG, "Can't claim USB interface");
+							disconnect();
+							return;
+						} else {
+							// Configure for TinyG serial settings - 115200, 8N1
+							USBHostSupport.ftdi_settings(conn);
+							epIN = null;
+							epOUT = null;
+		
+							UsbInterface usbIf = deviceFTDI.getInterface(0);
+							for (int i = 0; i < usbIf.getEndpointCount(); i++) {
+								if (usbIf.getEndpoint(i).getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
+									if (usbIf.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN)
+										epIN = usbIf.getEndpoint(i);
+									else
+										epOUT = usbIf.getEndpoint(i);
+								}
+							}
+							Log.d(TAG, "Got endpoints");
+							mListener = new ListenerTask();
+							mListener.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+							// Let everyone know we are connected
+							Bundle b = new Bundle();
+							b.putBoolean("connection", true);
+							Intent i = new Intent(CONNECTION_STATUS);
+							i.putExtras(b);
+							sendBroadcast(i, null);
+							refresh();
 						}
 					}
-					Log.d(TAG, "Got endpoints");
-					mListener = new ListenerTask();
-					mListener.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-					// Let everyone know we are connected
-					Bundle b = new Bundle();
-					b.putBoolean("connection", true);
-					Intent i = new Intent(CONNECTION_STATUS);
-					i.putExtras(b);
-					sendBroadcast(i, null);
-					refresh();
 				} else {
 					Toast.makeText(USBHostService.this,
 							"USB permission denied", Toast.LENGTH_SHORT).show();
-				}
+					disconnect();
+					return;
+				}	
 			}
 		}
 	}
 
 	public void disconnect() {
 		super.disconnect();
-		if (mListener != null) {
-			mListener.cancel(true);
-		}
 		if (deviceFTDI != null && conn != null) {
 			conn.releaseInterface(deviceFTDI.getInterface(0));
 			conn.close();
 		}
+		deviceFTDI = null;
+		stopSelf();		
 	}
 
 	public void write(String s) {
@@ -147,8 +164,9 @@ public class USBHostService extends TinyGService {
 	// work is done in the BroadcastReceiver above.
 	@Override
 	public void connect() {
-		if (deviceFTDI == null) {
-			Toast.makeText(this, "No TinyG USB host devices attached!",
+		super.connect();
+		if ((deviceFTDI = USBHostSupport.loadFTDI(mUsbManager)) == null) {
+				Toast.makeText(this, "No TinyG USB host devices attached!",
 					Toast.LENGTH_SHORT).show();
 		} else {
 			PendingIntent mPermissionIntent = PendingIntent.getBroadcast(this,
@@ -168,7 +186,7 @@ public class USBHostService extends TinyGService {
 				while (!isCancelled()) {
 					if ((cnt = conn.bulkTransfer(epIN, inbuffer, USB_BUFFER_SIZE, 0)) < 2) {
 						Log.e(TAG, "Bulk read failed");
-						break;
+						return null;
 					}
 					for (int i = 0; i < cnt; i++) {
 						if (i % 64 == 0) { // Skip the two FTDI bytes that are spaced every 64 bytes
@@ -204,6 +222,12 @@ public class USBHostService extends TinyGService {
 		protected void onCancelled() {
 			Log.i(TAG, "ListenerTask cancelled");
 		}
+		
+		@Override
+	    protected void onPostExecute(Void result) {
+			Log.i(TAG, "post execute ListenerTask");
+			disconnect();
+			return;
+	    }
 	}
-
 }

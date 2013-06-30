@@ -163,6 +163,8 @@ public class BaseActivity extends SherlockFragmentActivity implements
 			}
 			if (action.equals(TinyGService.CONNECTION_STATUS)) {
 				connected = b.getBoolean("connection");
+				if (connected == false)
+					pendingConnect = false;
 				invalidateOptionsMenu();
 			}
 		}
@@ -190,17 +192,25 @@ public class BaseActivity extends SherlockFragmentActivity implements
 		// Handle item selection
 		switch (item.getItemId()) {
 		case R.id.connect:
+			if (pendingConnect) {
+				Log.d(TAG, "Waiting for connection...");
+				return true;
+			}
 			if (tinyg == null) {
+				connected = false;
 				currentServiceConnection = new DriverServiceConnection();
 				bindDriver(currentServiceConnection);
 				// We can't call connect until we know we have a binding.
 				pendingConnect = true;
+				Log.d(TAG, "Binding...");
+				return true;
 			}
 			if (connected)
 				tinyg.disconnect();
-			else if (!pendingConnect)
+			else {
+				Log.d(TAG, "Conn using old binding");
 				tinyg.connect();
-
+			}
 			return true;
 		case R.id.settings:
 			startActivity(new Intent(this, EditPreferencesActivity.class));

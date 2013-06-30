@@ -70,6 +70,7 @@ public class TinyGNetwork extends TinyGService {
 	// We call the initialize function to configure any local variables, pulling
 	// preferences in for example.
 	public void connect() {
+		super.connect();
 		initialize();
 
 		new ConnectTask().execute(0);

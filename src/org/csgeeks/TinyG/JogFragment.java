@@ -5,7 +5,6 @@ package org.csgeeks.TinyG;
 import com.actionbarsherlock.app.SherlockFragment;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,7 +24,6 @@ public class JogFragment extends SherlockFragment {
 	private static final String CMD_STEP_FORMAT = "g91f%fg1%s%f";
 	private static final String CMD_HOMING = "g28.2x0y0z0";
 	private static final String CMD_MOVE_ORIGIN = "g90g0x0y0z0a0";
-	public static final String STATUS = "org.csgeeks.TinyG.STATUS";
 	private static int[] allButtons = { R.id.xpos, R.id.xneg, R.id.ypos,
 			R.id.yneg, R.id.zpos, R.id.zneg, R.id.jogRate, R.id.home,
 			R.id.xzero, R.id.yzero, R.id.zzero, R.id.spindle, R.id.coolant,

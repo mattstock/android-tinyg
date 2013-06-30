@@ -63,8 +63,6 @@ abstract public class TinyGService extends Service {
 	@Override
 	public void onCreate() {
 		machine = new Machine();
-		dequeueWorker = new Thread(procQ);
-		dequeueWorker.start();
 	}
 
 	@Override
@@ -76,7 +74,12 @@ abstract public class TinyGService extends Service {
 		return machine;
 	}
 
-	abstract public void connect();
+	public void connect() {
+		if (dequeueWorker == null || !dequeueWorker.isAlive()) {
+			dequeueWorker = new Thread(procQ);
+			dequeueWorker.start();
+		}			
+	}
 
 	abstract protected void write(String cmd);
 	abstract protected void write(byte b[]);
@@ -90,7 +93,10 @@ abstract public class TinyGService extends Service {
 		sendBroadcast(i, null);
 		queue.clear();
 		serialBufferAvail.release();
-
+		writeLock.release();
+		if (dequeueWorker != null)
+			dequeueWorker.interrupt();
+		dequeueWorker = null;
 		Log.d(TAG, "disconnect done");
 	}
 
@@ -238,8 +244,7 @@ abstract public class TinyGService extends Service {
 					writeLock.release();
 				}
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Log.d(TAG, "Exiting queue processor");
 			}
 		}
 	}
