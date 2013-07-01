@@ -317,7 +317,7 @@ public class Machine {
 	}
 
 	public Bundle processJSON(String string) {
-		Bundle bResult;
+		Bundle bResult = null;
 		try {
 			JSONObject json = new JSONObject(string);
 
@@ -330,9 +330,12 @@ public class Machine {
 				return bResult;
 			}
 		} catch (Exception e) {
-			Log.e(TAG, e.getMessage() + " : " + string);
+			Log.e(TAG, e.getMessage());
+			bResult = new Bundle();
+			bResult.putString("json", "error");
+			bResult.putString("error", e.getMessage());
 		}
-		return null;
+		return bResult;
 	}
 
 	// [<protocol_version>, <status_code>, <input_available>, <checksum>]

@@ -43,6 +43,7 @@ abstract public class TinyGService extends Service {
 
 	// broadcast messages when we get updated data
 	public static final String STATUS = "org.csgeeks.TinyG.STATUS";
+	public static final String JSON_ERROR = "org.csgeeks.TinyG.JSON_ERROR";
 	public static final String CONNECTION_STATUS = "org.csgeeks.TinyG.CONNECTION_STATUS";
 
 	protected static final String TAG = "TinyG";
@@ -206,6 +207,12 @@ abstract public class TinyGService extends Service {
 			sendBroadcast(i, null);
 		}
 
+		if (json != null && json.equals("error")) {
+			i = new Intent(JSON_ERROR);
+			i.putExtras(b);
+			sendBroadcast(i, null);
+		}
+		
 		int freed = b.getInt("buffer");
 		if (freed > 0)
 			serialBufferAvail.release(freed);

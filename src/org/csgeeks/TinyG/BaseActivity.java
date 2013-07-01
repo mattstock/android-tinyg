@@ -55,6 +55,7 @@ public class BaseActivity extends SherlockFragmentActivity implements
 		IntentFilter updateFilter = new IntentFilter();
 		updateFilter.addAction(TinyGService.STATUS);
 		updateFilter.addAction(TinyGService.CONNECTION_STATUS);
+		updateFilter.addAction(TinyGService.JSON_ERROR);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
 
@@ -152,6 +153,11 @@ public class BaseActivity extends SherlockFragmentActivity implements
 		public void onReceive(Context context, Intent intent) {
 			Bundle b = intent.getExtras();
 			String action = intent.getAction();
+			if (action.equals(TinyGService.JSON_ERROR)) {
+				Toast.makeText(BaseActivity.this, b.getString("error"), Toast.LENGTH_SHORT)
+				.show();
+			}
+			
 			if (action.equals(TinyGService.STATUS)) {
 				StatusFragment sf = (StatusFragment) getSupportFragmentManager()
 						.findFragmentById(R.id.statusF);
