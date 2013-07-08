@@ -162,15 +162,17 @@ public class BaseActivity extends SherlockFragmentActivity implements
 				StatusFragment sf = (StatusFragment) getSupportFragmentManager()
 						.findFragmentById(R.id.statusF);
 				sf.updateState(b);
-				Fragment f = getSupportFragmentManager().findFragmentById(
-						R.id.tabview);
-				if (f != null && f.getClass() == JogFragment.class)
-					((JogFragment) f).updateState(b);
 			}
 			if (action.equals(TinyGService.CONNECTION_STATUS)) {
 				connected = b.getBoolean("connection");
 				if (connected == false)
 					pendingConnect = false;
+				else { // Connection means want to send jog rate to jog tab
+					Fragment f = getSupportFragmentManager().findFragmentById(
+							R.id.tabview);
+					if (f != null && f.getClass() == JogFragment.class)
+						((JogFragment) f).updateState(tinyg.getMachine().getAxisBundle("x"));	
+				}
 				invalidateOptionsMenu();
 			}
 		}
@@ -424,9 +426,9 @@ public class BaseActivity extends SherlockFragmentActivity implements
 					f = new AxisFragment();
 				else if (tab.getText().equals("System"))
 					f = new SystemFragment();
-				else
-					// Jog
+				else { // Jog
 					f = new JogFragment();
+				}
 				ft.add(R.id.tabview, f, (String) tab.getText());
 			} else {
 				if (f.isDetached())

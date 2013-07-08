@@ -98,7 +98,7 @@ public class FileFragment extends SherlockFragment {
 	private void pickFile() {
 		Intent intent = new Intent(getActivity(), FileDialog.class);
 
-		intent.putExtra(FileDialog.START_PATH, "/sdcard");
+		intent.putExtra(FileDialog.START_PATH, Environment.getExternalStorageDirectory().getPath());
 		intent.putExtra(FileDialog.SELECTION_MODE, SelectionMode.MODE_OPEN);
 		
 		try {

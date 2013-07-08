@@ -18,8 +18,8 @@ import android.widget.ToggleButton;
 public class JogFragment extends SherlockFragment {
 	private JogFragmentListener parent;
 	private static final String TAG = "TinyG";
-	private static float jogFastRate = 400;
-	private static float jogSlowRate = 100;
+	private static float jogFastRate = 400f;
+	private static float jogSlowRate = 200f;
 	private static final String CMD_ZERO_AXIS = "g28.3%s0";
 	private static final String CMD_STEP_FORMAT = "g91f%fg1%s%f";
 	private static final String CMD_HOMING = "g28.2x0y0z0";
@@ -29,11 +29,13 @@ public class JogFragment extends SherlockFragment {
 			R.id.xzero, R.id.yzero, R.id.zzero, R.id.spindle, R.id.coolant,
 			R.id.step_001, R.id.step_01, R.id.step_1, R.id.step_1_0, R.id.step_10,
 			R.id.g28, R.id.reset, R.id.go };
+	private static int[] jogControls = { R.id.xpos, R.id.xneg, R.id.ypos, R.id.yneg, R.id.zpos, R.id.zneg }; 
 	private float jogStep = 10;
 	private float jogRate = jogFastRate;
 	boolean enabled = true;
 	boolean jogActive = false;
-
+	private ToggleButton jogRateButton;
+	
 	View view;
 
 	@Override
@@ -59,14 +61,16 @@ public class JogFragment extends SherlockFragment {
 			v.setOnClickListener(clickListener);
 		}
 
-		// Disable for now, until the queue flush support is ready.
-		/*
-		 * for (int id : jogControls) { v = mView.findViewById(id);
-		 * v.setOnLongClickListener(jogHoldListener);
-		 * v.setOnTouchListener(jogReleaseListener); }
-		 */
-		// Rapid movement
-		((ToggleButton) view.findViewById(R.id.jogRate)).setChecked(true);
+		
+		 for (int id : jogControls) { 
+			 v = view.findViewById(id);
+			 v.setOnLongClickListener(jogHoldListener);
+			 v.setOnTouchListener(jogReleaseListener);
+		 }
+		 
+		 // Rapid movement
+		 jogRateButton = (ToggleButton) view.findViewById(R.id.jogRate);
+		 jogRateButton.setChecked(true);
 		
 		((RadioButton) view.findViewById(R.id.step_10)).setChecked(true);
 		return view;
@@ -192,32 +196,32 @@ public class JogFragment extends SherlockFragment {
 			switch (v.getId()) {
 			case R.id.xpos:
 				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "x",
-						400f));
+						jogFastRate));
 				jogActive = true;
 				return true;
 			case R.id.xneg:
 				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "x",
-						-400f));
+						-jogFastRate));
 				jogActive = true;
 				return true;
 			case R.id.ypos:
 				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "y",
-						400f));
+						jogFastRate));
 				jogActive = true;
 				return true;
 			case R.id.yneg:
 				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "y",
-						-400f));
+						-jogFastRate));
 				jogActive = true;
 				return true;
 			case R.id.zpos:
 				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "z",
-						400f));
+						jogFastRate));
 				jogActive = true;
 				return true;
 			case R.id.zneg:
 				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "z",
-						-400f));
+						-jogFastRate));
 				jogActive = true;
 				return true;
 			}
@@ -251,5 +255,15 @@ public class JogFragment extends SherlockFragment {
 	// Used to use this for enable/disable of buttons, but maybe it's ok to
 	// queue things up.
 	public void updateState(Bundle b) {
+		float tmp = b.getFloat("vm");
+		if (tmp != 0.0f) {
+			jogFastRate = tmp;
+			jogSlowRate = tmp/2;
+			if (jogRateButton.isChecked())
+				jogRate = jogFastRate;
+			else
+				jogRate = jogSlowRate;
+			parent.jogChange(jogStep, jogRate);
+		}
 	}
 }
