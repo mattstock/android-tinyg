@@ -5,7 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import org.csgeeks.TinyG.FileFragment;
 import org.csgeeks.TinyG.R;
+import org.csgeeks.TinyG.FileFragment.FileFragmentListener;
+
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -20,13 +24,14 @@ import android.widget.Toast;
 public class Download {
 	private static final String TAG = "TinyG";
 	private int numLines;
-	private Activity mActivity;
+	private SherlockFragmentActivity parent;
 	private FileWriteTask mFileTask;
 	private Dialog mDialog;
 	private TinyGService mTinyG;
-
-	public Download(Activity a, TinyGService s) {
-		mActivity = a;
+	private boolean active = false;
+	
+	public Download(SherlockFragmentActivity a, TinyGService s) {
+		parent = a;
 		mTinyG = s;
 	}
 
@@ -43,17 +48,17 @@ public class Download {
 			}
 			in.close();
 		} catch (FileNotFoundException e) {
-			Toast.makeText(mActivity, "Invalid filename", Toast.LENGTH_SHORT)
+			Toast.makeText(parent, "Invalid filename", Toast.LENGTH_SHORT)
 					.show();
 			return;
 		} catch (IOException e) {
-			Toast.makeText(mActivity, "Gcode file read error",
+			Toast.makeText(parent, "Gcode file read error",
 					Toast.LENGTH_SHORT).show();
 			return;
 		}
 		Log.d(TAG, "lines = " + numLines);
 
-		mDialog = new Dialog(mActivity);
+		mDialog = new Dialog(parent);
 		mDialog.setContentView(R.layout.download_dialog);
 		mDialog.setTitle("Download");
 		((TextView) mDialog.findViewById(R.id.current)).setText("0");
@@ -69,18 +74,24 @@ public class Download {
 			mFileTask.execute(string);
 		else
 			mFileTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, string);
+		active = true;
 	}
 
+	public boolean isActive() {
+		return active;
+	}
+	
 	public void cancel() {
 		if (mFileTask != null)
 			mFileTask.cancel(true);
+		active = false;
 	}
 
 	protected class FileWriteTask extends AsyncTask<String, String, Void> {
 
 		@Override
 		protected void onPreExecute() {
-			mActivity.findViewById(android.R.id.content).setKeepScreenOn(true);
+			parent.findViewById(android.R.id.content).setKeepScreenOn(true);
 			mDialog.show();
 		}
 
@@ -121,7 +132,7 @@ public class Download {
 			Log.i(TAG, "FileWriteTask cancelled");
 			// TODO add a hard stop instruction to TinyG
 			mDialog.dismiss();
-			Toast.makeText(mActivity, "Download cancelled", Toast.LENGTH_SHORT)
+			Toast.makeText(parent, "Download cancelled", Toast.LENGTH_SHORT)
 					.show();
 		}
 
@@ -129,6 +140,11 @@ public class Download {
 		protected void onPostExecute(Void v) {
 			Log.i(TAG, "FileWriteTask complete");
 			mDialog.dismiss();
+			FileFragment ff = (FileFragment) parent.getSupportFragmentManager()
+					.findFragmentById(R.id.tabview);
+			if (ff != null)
+				ff.updateState(false);
+			active = false;
 		}
 
 	}

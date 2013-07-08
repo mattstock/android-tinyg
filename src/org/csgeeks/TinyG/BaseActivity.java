@@ -462,7 +462,7 @@ public class BaseActivity extends SherlockFragmentActivity implements
 			return;
 
 		// stop downloading
-		if (mDownload != null) {
+		if (mDownload != null && mDownload.isActive()) {
 			FileFragment ff = (FileFragment) getSupportFragmentManager()
 					.findFragmentById(R.id.tabview);
 			if (ff != null)
