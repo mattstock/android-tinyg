@@ -50,6 +50,8 @@
         <activity
             android:name=".FileActivity"
             android:windowSoftInputMode="stateHidden" />
+        <activity 
+   			android:name=".USBAccessory.USBAccessoryActivity" />
 
         <service android:name=".Net.TinyGNetwork" >
             <intent-filter>
