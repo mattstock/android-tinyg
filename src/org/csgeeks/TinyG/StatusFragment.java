@@ -23,9 +23,6 @@ public class StatusFragment extends SherlockFragment {
     }
     
 	public void updateState(Bundle b) {
-		if (b.containsKey("jogRate"))
-			((TextView) v.findViewById(R.id.jogval)).setText(Float
-					.toString(b.getFloat("jogRate")));
 		if (b.containsKey("posx"))
 			((TextView) v.findViewById(R.id.loc)).setText(
 					String.format("( %.3f, %.3f, %.3f, %.3f)",

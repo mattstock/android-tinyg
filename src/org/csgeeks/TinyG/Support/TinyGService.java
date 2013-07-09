@@ -44,6 +44,7 @@ abstract public class TinyGService extends Service {
 	// broadcast messages when we get updated data
 	public static final String STATUS = "org.csgeeks.TinyG.STATUS";
 	public static final String JSON_ERROR = "org.csgeeks.TinyG.JSON_ERROR";
+	public static final String AXIS_UPDATE = "org.csgeeks.TinyG.AXIS_UPDATE";
 	public static final String CONNECTION_STATUS = "org.csgeeks.TinyG.CONNECTION_STATUS";
 
 	protected static final String TAG = "TinyG";
@@ -200,19 +201,25 @@ abstract public class TinyGService extends Service {
 		String json = b.getString("json");
 		Intent i;
 
-		// Currently the only async communication
-		if (json != null && json.equals("sr")) {
-			i = new Intent(STATUS);
-			i.putExtras(b);
-			sendBroadcast(i, null);
+		if (json != null) {
+			if (json.equals("sr")) {
+				i = new Intent(STATUS);
+				i.putExtras(b);
+				sendBroadcast(i, null);
+			}
+			if (json.equals("error")) {
+				i = new Intent(JSON_ERROR);
+				i.putExtras(b);
+				sendBroadcast(i, null);
+			}
+			Log.d(TAG, "json = " + json);
+			if (json.equals("x") || json.equals("y") || json.equals("z") ||
+					json.equals("a") || json.equals("b") || json.equals("c")) {
+				Log.d(TAG, "sending AXIS intent");
+				i = new Intent(AXIS_UPDATE);
+				sendBroadcast(i, null);
+			}
 		}
-
-		if (json != null && json.equals("error")) {
-			i = new Intent(JSON_ERROR);
-			i.putExtras(b);
-			sendBroadcast(i, null);
-		}
-		
 		int freed = b.getInt("buffer");
 		if (freed > 0)
 			serialBufferAvail.release(freed);

@@ -56,6 +56,7 @@ public class BaseActivity extends SherlockFragmentActivity implements
 		updateFilter.addAction(TinyGService.STATUS);
 		updateFilter.addAction(TinyGService.CONNECTION_STATUS);
 		updateFilter.addAction(TinyGService.JSON_ERROR);
+		updateFilter.addAction(TinyGService.AXIS_UPDATE);
 		mIntentReceiver = new TinyGServiceReceiver();
 		registerReceiver(mIntentReceiver, updateFilter);
 
@@ -157,22 +158,22 @@ public class BaseActivity extends SherlockFragmentActivity implements
 				Toast.makeText(BaseActivity.this, b.getString("error"), Toast.LENGTH_SHORT)
 				.show();
 			}
-			
 			if (action.equals(TinyGService.STATUS)) {
 				StatusFragment sf = (StatusFragment) getSupportFragmentManager()
 						.findFragmentById(R.id.statusF);
 				sf.updateState(b);
 			}
+			if (action.equals(TinyGService.AXIS_UPDATE)) {
+				Log.d(TAG, "Got axis update");
+				Fragment f = getSupportFragmentManager().findFragmentById(
+						R.id.tabview);
+				if (f != null && f.getClass() == JogFragment.class && tinyg != null)
+					((JogFragment) f).updateState(tinyg.getMachine());		
+			}
 			if (action.equals(TinyGService.CONNECTION_STATUS)) {
 				connected = b.getBoolean("connection");
 				if (connected == false)
 					pendingConnect = false;
-				else { // Connection means want to send jog rate to jog tab
-					Fragment f = getSupportFragmentManager().findFragmentById(
-							R.id.tabview);
-					if (f != null && f.getClass() == JogFragment.class)
-						((JogFragment) f).updateState(tinyg.getMachine().getAxisBundle("x"));	
-				}
 				invalidateOptionsMenu();
 			}
 		}
@@ -428,6 +429,8 @@ public class BaseActivity extends SherlockFragmentActivity implements
 					f = new SystemFragment();
 				else { // Jog
 					f = new JogFragment();
+					if (tinyg != null)
+						((JogFragment) f).updateState(tinyg.getMachine());		
 				}
 				ft.add(R.id.tabview, f, (String) tab.getText());
 			} else {
@@ -446,15 +449,6 @@ public class BaseActivity extends SherlockFragmentActivity implements
 
 		public void onTabReselected(Tab tab, FragmentTransaction ft) {
 		}
-	}
-
-	public void jogChange(float step, float rate) {
-		Bundle b = new Bundle();
-		b.putFloat("jogRate", rate);
-		b.putFloat("jogStep", step);
-		StatusFragment sf = (StatusFragment) getSupportFragmentManager()
-				.findFragmentById(R.id.statusF);
-		sf.updateState(b);
 	}
 
 	public void toggleDownload(String filename) {

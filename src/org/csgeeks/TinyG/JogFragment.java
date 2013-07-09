@@ -2,6 +2,8 @@ package org.csgeeks.TinyG;
 
 // Copyright 2012 Matthew Stock
 
+import org.csgeeks.TinyG.Support.Machine;
+
 import com.actionbarsherlock.app.SherlockFragment;
 
 import android.app.Activity;
@@ -18,10 +20,9 @@ import android.widget.ToggleButton;
 public class JogFragment extends SherlockFragment {
 	private JogFragmentListener parent;
 	private static final String TAG = "TinyG";
-	private static float jogFastRate = 400f;
-	private static float jogSlowRate = 200f;
+	private static float jogFastRate[] = { 400f, 300f, 100f, 10f, 10f, 10f };
 	private static final String CMD_ZERO_AXIS = "g28.3%s0";
-	private static final String CMD_STEP_FORMAT = "g91f%fg1%s%f";
+	private static final String CMD_STEP_FORMAT = "g91f%fg0%s%f";
 	private static final String CMD_HOMING = "g28.2x0y0z0";
 	private static final String CMD_MOVE_ORIGIN = "g90g0x0y0z0a0";
 	private static int[] allButtons = { R.id.xpos, R.id.xneg, R.id.ypos,
@@ -31,8 +32,6 @@ public class JogFragment extends SherlockFragment {
 			R.id.g28, R.id.reset, R.id.go };
 	private static int[] jogControls = { R.id.xpos, R.id.xneg, R.id.ypos, R.id.yneg, R.id.zpos, R.id.zneg }; 
 	private float jogStep = 10;
-	private float jogRate = jogFastRate;
-	boolean enabled = true;
 	boolean jogActive = false;
 	private ToggleButton jogRateButton;
 	
@@ -77,8 +76,6 @@ public class JogFragment extends SherlockFragment {
 	}
 
 	public interface JogFragmentListener {
-		void jogChange(float step, float rate);
-
 		void sendGcode(String cmd);
 
 		void sendReset();
@@ -86,68 +83,52 @@ public class JogFragment extends SherlockFragment {
 		void stopMove();
 	}
 
+	private float getRateByAxis(int axis) {
+		return (jogRateButton.isChecked() ? jogFastRate[axis] : jogFastRate[axis]/2);
+	}
+	
 	private View.OnClickListener clickListener = new View.OnClickListener() {
 		public void onClick(View v) {
 
 			// These buttons should work all the time
 			switch (v.getId()) {
-			case R.id.jogRate:
-				if (((ToggleButton) v).isChecked())
-					jogRate = jogFastRate;
-				else
-					jogRate = jogSlowRate;
-				parent.jogChange(jogStep, jogRate);
-				break;
 			case R.id.step_001:
 				jogStep = 0.001f;
-				parent.jogChange(jogStep, jogRate);
 				break;
 			case R.id.step_01:
 				jogStep = 0.01f;
-				parent.jogChange(jogStep, jogRate);
 				break;
 			case R.id.step_1:
 				jogStep = 0.1f;
-				parent.jogChange(jogStep, jogRate);
 				break;
 			case R.id.step_1_0:
 				jogStep = 1.0f;
-				parent.jogChange(jogStep, jogRate);
 				break;
 			case R.id.step_10:
 				jogStep = 10.0f;
-				parent.jogChange(jogStep, jogRate);
 				break;				
-			}
-
-				
-			if (!enabled)
-				return;
-
-			// These only work if we're in a happy state
-			switch (v.getId()) {
 			case R.id.xpos:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "x",
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(0), "x",
 						jogStep));
 				break;
 			case R.id.xneg:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "x",
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(0), "x",
 						-jogStep));
 				break;
 			case R.id.ypos:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "y",
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(1), "y",
 						jogStep));
 				break;
 			case R.id.yneg:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "y",
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(1), "y",
 						-jogStep));
 				break;
 			case R.id.zpos:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "z",
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(2), "z",
 						jogStep));
 				break;
 			case R.id.zneg:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "z",
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(2), "z",
 						-jogStep));
 				break;
 			case R.id.zzero:
@@ -190,38 +171,35 @@ public class JogFragment extends SherlockFragment {
 
 	private View.OnLongClickListener jogHoldListener = new View.OnLongClickListener() {
 		public boolean onLongClick(View v) {
-			if (!enabled)
-				return false;
-
 			switch (v.getId()) {
 			case R.id.xpos:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "x",
-						jogFastRate));
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(0), "x",
+						100f));
 				jogActive = true;
 				return true;
 			case R.id.xneg:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "x",
-						-jogFastRate));
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(0), "x",
+						-100f));
 				jogActive = true;
 				return true;
 			case R.id.ypos:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "y",
-						jogFastRate));
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(1), "y",
+						100f));
 				jogActive = true;
 				return true;
 			case R.id.yneg:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "y",
-						-jogFastRate));
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(1), "y",
+						-100f));
 				jogActive = true;
 				return true;
 			case R.id.zpos:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "z",
-						jogFastRate));
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(2), "z",
+						100f));
 				jogActive = true;
 				return true;
 			case R.id.zneg:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, jogRate, "z",
-						-jogFastRate));
+				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(2), "z",
+						-100f));
 				jogActive = true;
 				return true;
 			}
@@ -244,7 +222,6 @@ public class JogFragment extends SherlockFragment {
 				case R.id.zpos:
 				case R.id.zneg:
 					parent.stopMove();
-					enabled = true;
 					return false;
 				}
 			}
@@ -254,16 +231,9 @@ public class JogFragment extends SherlockFragment {
 
 	// Used to use this for enable/disable of buttons, but maybe it's ok to
 	// queue things up.
-	public void updateState(Bundle b) {
-		float tmp = b.getFloat("vm");
-		if (tmp != 0.0f) {
-			jogFastRate = tmp;
-			jogSlowRate = tmp/2;
-			if (jogRateButton.isChecked())
-				jogRate = jogFastRate;
-			else
-				jogRate = jogSlowRate;
-			parent.jogChange(jogStep, jogRate);
-		}
+	public void updateState(Machine m) {
+		for (int i=0; i < 6; i++)
+			jogFastRate[i] = m.getAxisBundle(i).getFloat("vm");
+
 	}
 }

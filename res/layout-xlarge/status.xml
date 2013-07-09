@@ -36,20 +36,6 @@
             android:layout_height="wrap_content"
             android:text="@string/na"
             android:textAppearance="?android:attr/textAppearanceLarge" />
-
-                <TextView
-            android:id="@+id/labelJogval"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/jogval"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
-
-        <TextView
-            android:id="@+id/jogval"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:text="@string/zeropos"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
         
     </LinearLayout>
 
