@@ -18,7 +18,7 @@ import android.util.Log;
 abstract public class TinyGService extends Service {
 	public static final String CMD_GET_OK_PROMPT = "{\"gc\":\"?\"}\n";
 	public static final String CMD_GET_STATUS_REPORT = "{\"sr\":null}\n";
-	public static final String CMD_SET_QR_VERBOSITY = "{\"qv\":1}\n";
+	public static final String CMD_SET_QR_VERBOSITY = "{\"qv\":2}\n";
 	public static final String CMD_ENABLE_JSON_MODE = "{\"ej\":1}\n";
 	public static final String CMD_JSON_VERBOSITY = "{\"jv\":5}\n";
 	public static final String CMD_DISABLE_LOCAL_ECHO = "{\"ee\":0}\n";
@@ -132,7 +132,6 @@ abstract public class TinyGService extends Service {
 
 	public void send_stop() {
 		Log.d(TAG, "in send_stop()");
-		queue.clear();
 		try {
 			writeLock.acquire();
 			Log.d(TAG, "sending feedhold");
@@ -143,6 +142,8 @@ abstract public class TinyGService extends Service {
 			e.printStackTrace();
 		}
 
+		queue.clear();
+		serialBufferAvail.release(TINYG_BUFFER_SIZE);
 		writeLock.release();
 	}
 
@@ -159,7 +160,10 @@ abstract public class TinyGService extends Service {
 			e.printStackTrace();
 		}
 
+		queue.clear();
+		serialBufferAvail.release(TINYG_BUFFER_SIZE);
 		writeLock.release();
+		refresh();
 	}
 
 	public Bundle getMotor(int m) {
@@ -197,6 +201,10 @@ abstract public class TinyGService extends Service {
 		return machine.getStatusBundle();
 	}
 
+	public int queueSize() {
+		return queue.size();
+	}
+	
 	protected void updateInfo(String line, Bundle b) {
 		String json = b.getString("json");
 		Intent i;
@@ -212,10 +220,8 @@ abstract public class TinyGService extends Service {
 				i.putExtras(b);
 				sendBroadcast(i, null);
 			}
-			Log.d(TAG, "json = " + json);
 			if (json.equals("x") || json.equals("y") || json.equals("z") ||
 					json.equals("a") || json.equals("b") || json.equals("c")) {
-				Log.d(TAG, "sending AXIS intent");
 				i = new Intent(AXIS_UPDATE);
 				sendBroadcast(i, null);
 			}
@@ -229,6 +235,7 @@ abstract public class TinyGService extends Service {
 	public void refresh() {
 		send_message(CMD_DISABLE_LOCAL_ECHO);
 		send_message(CMD_JSON_VERBOSITY);
+		send_message(CMD_DISABLE_XON_XOFF);
 		send_message(CMD_SET_QR_VERBOSITY);
 		send_message(CMD_SET_STATUS_UPDATE_INTERVAL);
 		send_message(CMD_GET_STATUS_REPORT);

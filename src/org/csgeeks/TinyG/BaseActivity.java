@@ -37,8 +37,7 @@ import android.view.View;
 import android.widget.Toast;
 
 public class BaseActivity extends SherlockFragmentActivity implements
-		FileFragment.FileFragmentListener, JogFragment.JogFragmentListener,
-		MotorFragment.MotorFragmentListener, AxisFragment.AxisFragmentListener,
+	 	JogFragment.JogFragmentListener, MotorFragment.MotorFragmentListener, AxisFragment.AxisFragmentListener,
 		SystemFragment.SystemFragmentListener {
 	private static final String TAG = "TinyG";
 	private TinyGService tinyg = null;
@@ -47,7 +46,6 @@ public class BaseActivity extends SherlockFragmentActivity implements
 	private boolean pendingConnect = false;
 	private ServiceConnection currentServiceConnection;
 	private PrefsListener mPreferencesListener;
-	private Download mDownload;
 	private BroadcastReceiver mIntentReceiver;
 
 	@Override
@@ -162,9 +160,12 @@ public class BaseActivity extends SherlockFragmentActivity implements
 				StatusFragment sf = (StatusFragment) getSupportFragmentManager()
 						.findFragmentById(R.id.statusF);
 				sf.updateState(b);
+				Fragment f = getSupportFragmentManager().findFragmentById(
+						R.id.tabview);
+				if (f != null && f.getClass() == FileFragment.class && tinyg != null)
+					((FileFragment) f).nextLine(b.getInt("line"));		
 			}
 			if (action.equals(TinyGService.AXIS_UPDATE)) {
-				Log.d(TAG, "Got axis update");
 				Fragment f = getSupportFragmentManager().findFragmentById(
 						R.id.tabview);
 				if (f != null && f.getClass() == JogFragment.class && tinyg != null)
@@ -231,14 +232,16 @@ public class BaseActivity extends SherlockFragmentActivity implements
 			af.show(ft, "about");
 			return true;
 		case R.id.refresh:
-			if (mDownload != null)
+			Fragment f = getSupportFragmentManager().findFragmentById(
+					R.id.tabview);
+			if (f != null && f.getClass() == FileFragment.class && ((FileFragment) f).isActive())
 				return true;
-			if (connected) {
+			if (connected)
 				tinyg.refresh();
-			} else {
+			else 
 				Toast.makeText(this, "Not connected!", Toast.LENGTH_SHORT)
 						.show();
-			}
+		
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -451,29 +454,6 @@ public class BaseActivity extends SherlockFragmentActivity implements
 		}
 	}
 
-	public void toggleDownload(String filename) {
-		if (tinyg == null || !connected)
-			return;
-
-		// stop downloading
-		if (mDownload != null && mDownload.isActive()) {
-			FileFragment ff = (FileFragment) getSupportFragmentManager()
-					.findFragmentById(R.id.tabview);
-			if (ff != null)
-				ff.updateState(false);
-			mDownload.cancel();
-			// TODO Send interrupt
-			mDownload = null;
-		} else {
-			mDownload = new Download(this, tinyg);
-			mDownload.openFile(filename);
-			FileFragment ff = (FileFragment) getSupportFragmentManager()
-					.findFragmentById(R.id.tabview);
-			if (ff != null)
-				ff.updateState(true);
-		}
-	}
-
 	public void sendGcode(String cmd) {
 		if (tinyg == null || !connected)
 			return;
@@ -490,6 +470,12 @@ public class BaseActivity extends SherlockFragmentActivity implements
 		if (tinyg == null || !connected)
 			return;
 		tinyg.send_reset();
+	}
+	
+	public int queueSize() {
+		if (tinyg == null || !connected)
+			return -1;
+		return tinyg.queueSize();
 	}
 
 }

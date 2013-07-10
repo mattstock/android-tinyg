@@ -166,6 +166,7 @@ public class Machine {
 	}
 
 	private void setQueue(int qr) {
+		Log.d(TAG, "qr = " + qr);
 		state.putInt("qr", qr);
 	}
 
@@ -327,6 +328,10 @@ public class Machine {
 			}
 			if (json.has("sr")) {
 				bResult = processStatusReport(json.getJSONObject("sr"));
+				return bResult;
+			}
+			if (json.has("qr")) {
+				bResult = processQueueReport(json.getInt("qr"));
 				return bResult;
 			}
 		} catch (Exception e) {

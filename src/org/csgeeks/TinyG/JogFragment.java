@@ -81,6 +81,8 @@ public class JogFragment extends SherlockFragment {
 		void sendReset();
 
 		void stopMove();
+		
+		int queueSize();
 	}
 
 	private float getRateByAxis(int axis) {

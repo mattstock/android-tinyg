@@ -1,33 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="400dp"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="horizontal" >
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
+        android:layout_height="match_parent"
+        android:layout_weight="2" >
 
         <Button
             android:id="@+id/filepick"
-            android:layout_width="wrap_content"
+            android:layout_width="75dp"
             android:layout_height="50dp"
             android:onClick="myClickHandler"
             android:text="@string/fileLabel" />
 
         <EditText
             android:id="@+id/filename"
-            android:layout_width="wrap_content"
+            android:layout_width="400dp"
             android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/filepick"
             android:inputType="text" />
-    </LinearLayout>
 
-    <Button
-        android:id="@+id/start"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:onClick="myClickHandler"
-        android:text="@string/start" />
+        <Button
+            android:id="@+id/start"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:layout_below="@+id/filepick"
+            android:onClick="myClickHandler"
+            android:text="@string/start" />
+    </RelativeLayout>
+
+    <ScrollView
+        android:id="@+id/fileScroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1" >
+
+        <TextView
+            android:id="@+id/fileContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </ScrollView>
 
 </LinearLayout>
