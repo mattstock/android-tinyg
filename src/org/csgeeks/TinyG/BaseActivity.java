@@ -337,15 +337,10 @@ public class BaseActivity extends SherlockFragmentActivity implements
 		Bundle sys = tinyg.getMachineStatus();
 		Bundle update = new Bundle(values);
 
-		Log.d(TAG, "new = " + values.toString());
-		Log.d(TAG, "old = " + sys.toString());
-
 		for (String value : values.keySet())
 			if (sys.containsKey(value)
-					&& sys.get(value).equals(values.get(value))) {
-				Log.d(TAG, "removing " + value + " from update list");
+					&& sys.get(value).equals(values.get(value)))
 				update.remove(value);
-			}
 
 		if (!update.isEmpty())
 			tinyg.putSystem(update);
@@ -367,15 +362,10 @@ public class BaseActivity extends SherlockFragmentActivity implements
 		Bundle motor = tinyg.getMotor(mnum);
 		Bundle update = new Bundle(values);
 
-		Log.d(TAG, "new = " + values.toString());
-		Log.d(TAG, "old = " + motor.toString());
-
 		for (String value : values.keySet())
 			if (motor.containsKey(value)
-					&& motor.get(value).equals(values.get(value))) {
-				Log.d(TAG, "removing " + value + " from update list");
+					&& motor.get(value).equals(values.get(value)))
 				update.remove(value);
-			}
 
 		if (!update.isEmpty())
 			tinyg.putMotor(mnum, update);
@@ -401,10 +391,8 @@ public class BaseActivity extends SherlockFragmentActivity implements
 
 		for (String value : values.keySet())
 			if (axis.containsKey(value)
-					&& axis.get(value).equals(values.get(value))) {
-				Log.d(TAG, "removing " + value + " from update list");
+					&& axis.get(value).equals(values.get(value)))
 				update.remove(value);
-			}
 
 		if (!update.isEmpty())
 			tinyg.putAxis(a, update);

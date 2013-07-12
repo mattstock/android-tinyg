@@ -81,7 +81,7 @@ public class Machine {
 				if (cmds == null)
 					cmds = scratch;
 				else
-					cmds = ", " + scratch;
+					cmds = cmds + ", " + scratch;
 			}
 		}
 
@@ -110,7 +110,7 @@ public class Machine {
 				if (cmds == null)
 					cmds = scratch;
 				else
-					cmds = ", " + scratch;
+					cmds = cmds + ", " + scratch;
 			}
 		}
 
@@ -118,7 +118,6 @@ public class Machine {
 	}
 
 	public List<String> updateSystemBundle(Bundle b) {
-		Log.d(TAG, "in updateSystemBundle()");
 		String scratch;
 		ArrayList<String> cmds = new ArrayList<String>();
 
@@ -135,7 +134,6 @@ public class Machine {
 					scratch = b.getString(v.name);
 				if (v.type.equals("int"))
 					scratch = Integer.toString(b.getInt(v.name));
-				Log.d(TAG, "name = " + v.name);
 				cmds.add(String.format(UPDATE_SINGLE_FORMAT, v.name, scratch));
 			}
 		}
