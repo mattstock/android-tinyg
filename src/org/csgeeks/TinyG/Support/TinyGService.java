@@ -2,6 +2,12 @@ package org.csgeeks.TinyG.Support;
 
 // Copyright 2012 Matthew Stock
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -12,7 +18,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
+import android.os.Process;
 import android.util.Log;
 
 abstract public class TinyGService extends Service {
@@ -56,7 +64,8 @@ abstract public class TinyGService extends Service {
 	private final IBinder mBinder = new TinyGBinder();
 	private final QueueProcessor procQ = new QueueProcessor();
 	private Thread dequeueWorker;
-
+	private BlackBox ioLog;
+	
 	@Override
 	public IBinder onBind(Intent intent) {
 		return mBinder;
@@ -80,7 +89,9 @@ abstract public class TinyGService extends Service {
 		if (dequeueWorker == null || !dequeueWorker.isAlive()) {
 			dequeueWorker = new Thread(procQ);
 			dequeueWorker.start();
-		}			
+		}	
+		
+		ioLog = new BlackBox();
 	}
 
 	abstract protected void write(String cmd);
@@ -99,6 +110,7 @@ abstract public class TinyGService extends Service {
 		if (dequeueWorker != null)
 			dequeueWorker.interrupt();
 		dequeueWorker = null;
+		ioLog.close();
 		Log.d(TAG, "disconnect done");
 	}
 
@@ -209,6 +221,7 @@ abstract public class TinyGService extends Service {
 		String json = b.getString("json");
 		Intent i;
 
+		ioLog.write("< ", line + "\n");
 		if (json != null) {
 			if (json.equals("sr")) {
 				i = new Intent(STATUS);
@@ -263,6 +276,7 @@ abstract public class TinyGService extends Service {
 					writeLock.acquire();
 					write(cmd);
 					writeLock.release();
+					ioLog.write("> ", cmd);
 				}
 			} catch (InterruptedException e) {
 				Log.d(TAG, "Exiting queue processor");
