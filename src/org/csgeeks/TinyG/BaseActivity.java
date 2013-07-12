@@ -466,4 +466,18 @@ public class BaseActivity extends SherlockFragmentActivity implements
 		return tinyg.queueSize();
 	}
 
+	public void goHome() {
+		String command = "g28.2 ";
+		Bundle b;
+		
+		if (tinyg == null || !connected)
+			return;
+		for (int i=0; i < 3; i++) {
+			b = tinyg.getAxis(i);
+			if (b.getInt("am") == 1)
+				command = command + Machine.axisIndexToName[i] + "0";
+		}
+		Log.d(TAG, "home command: " + command);
+		tinyg.send_gcode(command);		
+	}
 }

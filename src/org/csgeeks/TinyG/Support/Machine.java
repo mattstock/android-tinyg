@@ -18,7 +18,7 @@ public class Machine {
 	private static final String UPDATE_BLOCK_FORMAT = "{\"%s\": {%s}}";
 	private static final String UPDATE_SINGLE_FORMAT = "{\"%s\":%s}";
 	private static final String UPDATE_VALUE_FORMAT = "\"%s\": %s";
-	private static final String axisIndexToName[] = { "x", "y", "z", "a", "b",
+	public static final String axisIndexToName[] = { "x", "y", "z", "a", "b",
 			"c" };
 	// Machine state variables
 	private Bundle state;
@@ -141,7 +141,7 @@ public class Machine {
 		return cmds;
 	}
 
-	private int axisNameToIndex(String string) {
+	public static int axisNameToIndex(String string) {
 		if (string.equals("x")) {
 			return 0;
 		}

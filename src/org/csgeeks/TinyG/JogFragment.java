@@ -20,10 +20,10 @@ import android.widget.ToggleButton;
 public class JogFragment extends SherlockFragment {
 	private JogFragmentListener parent;
 	private static final String TAG = "TinyG";
-	private static float jogFastRate[] = { 400f, 300f, 100f, 10f, 10f, 10f };
+	private static float jogSlowRate[] = { 400f, 300f, 100f, 10f, 10f, 10f };
 	private static final String CMD_ZERO_AXIS = "g28.3%s0";
-	private static final String CMD_STEP_FORMAT = "g91f%fg0%s%f";
-	private static final String CMD_HOMING = "g28.2x0y0z0";
+	private static final String CMD_JOG_SLOW = "g91 f%f g1%s%f";
+	private static final String CMD_JOG_FULL = "g91 g0%s%f";
 	private static final String CMD_MOVE_ORIGIN = "g90g0x0y0z0a0";
 	private static int[] allButtons = { R.id.xpos, R.id.xneg, R.id.ypos,
 			R.id.yneg, R.id.zpos, R.id.zneg, R.id.jogRate, R.id.home,
@@ -83,10 +83,15 @@ public class JogFragment extends SherlockFragment {
 		void stopMove();
 		
 		int queueSize();
+		
+		void goHome();
 	}
 
-	private float getRateByAxis(int axis) {
-		return (jogRateButton.isChecked() ? jogFastRate[axis] : jogFastRate[axis]/2);
+	private String getRateByAxis(int axis, float step) {
+		if (jogRateButton.isChecked())
+			return String.format(CMD_JOG_FULL, Machine.axisIndexToName[axis], step);
+		else
+			return String.format(CMD_JOG_SLOW, jogSlowRate[axis], Machine.axisIndexToName[axis], step);
 	}
 	
 	private View.OnClickListener clickListener = new View.OnClickListener() {
@@ -110,28 +115,22 @@ public class JogFragment extends SherlockFragment {
 				jogStep = 10.0f;
 				break;				
 			case R.id.xpos:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(0), "x",
-						jogStep));
+				parent.sendGcode(getRateByAxis(0, jogStep));
 				break;
 			case R.id.xneg:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(0), "x",
-						-jogStep));
+				parent.sendGcode(getRateByAxis(0, -jogStep));
 				break;
 			case R.id.ypos:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(1), "y",
-						jogStep));
+				parent.sendGcode(getRateByAxis(1, jogStep));
 				break;
 			case R.id.yneg:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(1), "y",
-						-jogStep));
+				parent.sendGcode(getRateByAxis(1, -jogStep));
 				break;
 			case R.id.zpos:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(2), "z",
-						jogStep));
+				parent.sendGcode(getRateByAxis(2, jogStep));
 				break;
 			case R.id.zneg:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(2), "z",
-						-jogStep));
+				parent.sendGcode(getRateByAxis(2, -jogStep));
 				break;
 			case R.id.zzero:
 				parent.sendGcode(String.format(CMD_ZERO_AXIS, "z"));
@@ -158,7 +157,7 @@ public class JogFragment extends SherlockFragment {
 				parent.sendReset();
 				break;
 			case R.id.g28:
-				parent.sendGcode(CMD_HOMING);
+				parent.goHome();
 				break;
 			case R.id.go:
 				String text = ((EditText)view.findViewById(R.id.gcode)).getText().toString();
@@ -175,33 +174,27 @@ public class JogFragment extends SherlockFragment {
 		public boolean onLongClick(View v) {
 			switch (v.getId()) {
 			case R.id.xpos:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(0), "x",
-						100f));
+				parent.sendGcode(getRateByAxis(0, 100f));
 				jogActive = true;
 				return true;
 			case R.id.xneg:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(0), "x",
-						-100f));
+				parent.sendGcode(getRateByAxis(0, -100f));
 				jogActive = true;
 				return true;
 			case R.id.ypos:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(1), "y",
-						100f));
+				parent.sendGcode(getRateByAxis(1, 100f));
 				jogActive = true;
 				return true;
 			case R.id.yneg:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(1), "y",
-						-100f));
+				parent.sendGcode(getRateByAxis(1, -100f));
 				jogActive = true;
 				return true;
 			case R.id.zpos:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(2), "z",
-						100f));
+				parent.sendGcode(getRateByAxis(2, 100f));
 				jogActive = true;
 				return true;
 			case R.id.zneg:
-				parent.sendGcode(String.format(CMD_STEP_FORMAT, getRateByAxis(2), "z",
-						-100f));
+				parent.sendGcode(getRateByAxis(2, -100f));
 				jogActive = true;
 				return true;
 			}
@@ -235,7 +228,7 @@ public class JogFragment extends SherlockFragment {
 	// queue things up.
 	public void updateState(Machine m) {
 		for (int i=0; i < 6; i++)
-			jogFastRate[i] = m.getAxisBundle(i).getFloat("vm");
+			jogSlowRate[i] = (m.getAxisBundle(i).getFloat("vm"))/2f;
 
 	}
 }
