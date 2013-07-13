@@ -61,27 +61,14 @@ public class FileFragment extends SherlockFragment {
 	}
 
 	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		outState.putString("filename", filename);
-
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putString("filename", filename);
-		editor.commit();
-	}
-
-	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
+		Log.d(TAG, "onCreateView()");
 		// Inflate the layout for this fragment
 		View v = inflater.inflate(R.layout.gcodefile, container, false);
 
-		if (savedInstanceState != null)
-			filename = savedInstanceState.getString("filename");
-		else {
-			filename = settings.getString("filename", Environment
-					.getExternalStorageDirectory().getPath() + "/test.nc");
-		}
+		filename = settings.getString("filename", Environment
+				.getExternalStorageDirectory().getPath() + "/test.gcode");
 
 		fileView = (EditText) v.findViewById(R.id.filename);
 		fileView.setText(filename);
@@ -90,10 +77,23 @@ public class FileFragment extends SherlockFragment {
 		fileScroll = (ScrollView) v.findViewById(R.id.fileScroll);
 		activeSpan = new ForegroundColorSpan(Color.RED);
 		
-		openFile();
 		return v;
 	}
 
+	@Override
+	public void onResume() {
+		super.onResume();
+		openFile();			
+	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString("filename", filename);
+		editor.commit();
+	}
+	
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode != 1)
 			return;
@@ -123,8 +123,8 @@ public class FileFragment extends SherlockFragment {
 			if (active) {
 				cancel();
 			} else {
-				queueFile();
 				updateState(true);
+				queueFile();
 			}
 			break;
 		}
@@ -197,8 +197,6 @@ public class FileFragment extends SherlockFragment {
 			SpannableStringBuilder stringBuilder = new SpannableStringBuilder(buf);
 			fileContent.setText(stringBuilder, BufferType.SPANNABLE);
 		} catch (FileNotFoundException e) {
-			Toast.makeText((Activity)parent, "Invalid filename", Toast.LENGTH_SHORT)
-					.show();
 			return;
 		} catch (IOException e) {
 			Toast.makeText((Activity)parent, "Gcode file read error", Toast.LENGTH_SHORT)
@@ -221,8 +219,11 @@ public class FileFragment extends SherlockFragment {
 		String line;
 		int idx = 0;
 
-		if (gcodeFile == null)
+		if (gcodeFile == null) {
+			Toast.makeText((Activity)parent, "Invalid file", Toast.LENGTH_SHORT).show();
+			updateState(false);
 			return;
+		}
 		
 		currentLinenum = 0;
 		try {
