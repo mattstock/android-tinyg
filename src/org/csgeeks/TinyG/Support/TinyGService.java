@@ -2,12 +2,6 @@ package org.csgeeks.TinyG.Support;
 
 // Copyright 2012 Matthew Stock
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -18,9 +12,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
-import android.os.Process;
 import android.util.Log;
 
 abstract public class TinyGService extends Service {
@@ -64,6 +56,8 @@ abstract public class TinyGService extends Service {
 	private final IBinder mBinder = new TinyGBinder();
 	private final QueueProcessor procQ = new QueueProcessor();
 	private Thread dequeueWorker;
+	private boolean paused = false;
+	private volatile boolean flushed;
 	private BlackBox ioLog;
 	
 	@Override
@@ -91,6 +85,8 @@ abstract public class TinyGService extends Service {
 			dequeueWorker.start();
 		}	
 		
+		paused = false;
+		flushed = false;
 		ioLog = new BlackBox();
 	}
 
@@ -104,8 +100,10 @@ abstract public class TinyGService extends Service {
 		Intent i = new Intent(CONNECTION_STATUS);
 		i.putExtras(b);
 		sendBroadcast(i, null);
+		int inuse = TINYG_BUFFER_SIZE - serialBufferAvail.availablePermits();
+		if (inuse > 0)
+			serialBufferAvail.release(inuse);
 		queue.clear();
-		serialBufferAvail.release();
 		writeLock.release();
 		if (dequeueWorker != null)
 			dequeueWorker.interrupt();
@@ -142,38 +140,85 @@ abstract public class TinyGService extends Service {
 		}
 	}
 
+	// Pause can be completed by either a resume or a flush.
 	public void send_stop() {
 		Log.d(TAG, "in send_stop()");
-		try {
-			writeLock.acquire();
-			Log.d(TAG, "sending feedhold");
-			write("!");
-			Log.d(TAG, "sending {\"qf\":1}");
-			write("{\"qf\":1}\n");
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		queue.clear();
-		serialBufferAvail.release(TINYG_BUFFER_SIZE);
-		writeLock.release();
+		Log.d(TAG, "paused = " + paused);
+		send_pause();
+		send_flush();
+		Log.d(TAG, "paused = " + paused);
 	}
-
+	
+	public void send_pause() {
+		if (!paused) {
+			try {
+				writeLock.acquire();
+				Log.d(TAG, "sending feedhold");
+				write("!");
+				ioLog.write("> ", "!\n");
+				paused = true;
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void send_flush() {
+			try {
+				if (!paused)
+					writeLock.acquire();
+				Log.d(TAG, "sending queue flush");
+				write("%");  // this still doesn't work
+//				write("{\"qf\":1}\n");
+				ioLog.write("> ", "{\"qf\":1}\n");
+				
+				Log.d(TAG, "permits: " + serialBufferAvail.availablePermits());
+				int inuse = TINYG_BUFFER_SIZE - serialBufferAvail.availablePermits();
+				if (inuse > 0)
+					serialBufferAvail.release(inuse);
+				if (!queue.isEmpty()) {
+					queue.clear();
+					flushed = true;
+				}
+				paused = false;
+				writeLock.release();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	}
+	
+	public void send_resume() {
+		if (paused) {
+			Log.d(TAG, "Sending cycle start");
+			write("~");
+			ioLog.write("> ", "~\n");
+			paused = false;
+			writeLock.release();
+		}
+	}
+	
 	public void send_reset() {
 		byte[] rst = {0x18};
 		
 		Log.d(TAG, "in send_reset()");
-		queue.clear();
 		try {
 			writeLock.acquire();
 			Log.d(TAG, "sending reset");
+			ioLog.write("> ", "RESET\n");
 			write(rst);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 
-		queue.clear();
-		serialBufferAvail.release(TINYG_BUFFER_SIZE);
+		int inuse = TINYG_BUFFER_SIZE - serialBufferAvail.availablePermits();
+		if (inuse > 0)
+			serialBufferAvail.release(inuse);
+		if (!queue.isEmpty()) {
+			queue.clear();
+			flushed = true;
+		}
 		writeLock.release();
 		refresh();
 	}
@@ -273,10 +318,15 @@ abstract public class TinyGService extends Service {
 				while (true) {
 					String cmd = queue.take();
 					serialBufferAvail.acquire(cmd.length());
+					flushed = false;
 					writeLock.acquire();
-					write(cmd);
-					writeLock.release();
-					ioLog.write("> ", cmd);
+					if (flushed) { // Don't write that last command if we wiped the queue
+						Log.d(TAG, "Skipping command line");
+						flushed = false;
+					} else {
+						ioLog.write("> ", cmd);
+						write(cmd);
+					} writeLock.release();
 				}
 			} catch (InterruptedException e) {
 				Log.d(TAG, "Exiting queue processor");

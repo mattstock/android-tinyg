@@ -23,13 +23,25 @@
             android:layout_toRightOf="@+id/filepick"
             android:inputType="text" />
 
-        <Button
+        <ToggleButton
             android:id="@+id/start"
             android:layout_width="75dp"
             android:layout_height="75dp"
             android:layout_below="@+id/filepick"
             android:onClick="myClickHandler"
-            android:text="@string/start" />
+            android:textOff="@string/start"
+            android:textOn="@string/stop_label" />
+
+        <ToggleButton
+            android:id="@+id/pause"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:layout_toRightOf="@+id/start"
+            android:layout_alignTop="@+id/start"
+            android:onClick="myClickHandler"
+            android:textOff="@string/pause"
+            android:textOn="@string/resume" />
+        
     </RelativeLayout>
 
     <ScrollView

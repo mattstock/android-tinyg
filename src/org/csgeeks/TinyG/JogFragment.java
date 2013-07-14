@@ -6,6 +6,7 @@ import org.csgeeks.TinyG.Support.Machine;
 
 import com.actionbarsherlock.app.SherlockFragment;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
@@ -82,11 +83,16 @@ public class JogFragment extends SherlockFragment {
 
 		void stopMove();
 		
+		void resumeMove();
+		
+		void pauseMove();
+		
 		int queueSize();
 		
 		void goHome();
 	}
 
+	@SuppressLint("DefaultLocale")
 	private String getRateByAxis(int axis, float step) {
 		if (jogRateButton.isChecked())
 			return String.format(CMD_JOG_FULL, Machine.axisIndexToName[axis], step);

@@ -32,11 +32,12 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TextView.BufferType;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 public class FileFragment extends SherlockFragment {
 	private static final String TAG = "TinyG";
 	private JogFragmentListener parent;
-	private Button startButton;
+	private ToggleButton startButton, pauseButton;
 	private String filename;
 	private EditText fileView;
 	private SharedPreferences settings;
@@ -45,7 +46,6 @@ public class FileFragment extends SherlockFragment {
 	private TextView fileContent;
 	private ScrollView fileScroll;
 	private RandomAccessFile gcodeFile;
-	private boolean active = false;
 	private ForegroundColorSpan activeSpan;
 
 	@Override
@@ -72,7 +72,8 @@ public class FileFragment extends SherlockFragment {
 
 		fileView = (EditText) v.findViewById(R.id.filename);
 		fileView.setText(filename);
-		startButton = (Button) v.findViewById(R.id.start);
+		startButton = (ToggleButton) v.findViewById(R.id.start);
+		pauseButton = (ToggleButton) v.findViewById(R.id.pause);
 		fileContent = (TextView) v.findViewById(R.id.fileContent);
 		fileScroll = (ScrollView) v.findViewById(R.id.fileScroll);
 		activeSpan = new ForegroundColorSpan(Color.RED);
@@ -120,13 +121,16 @@ public class FileFragment extends SherlockFragment {
 			pickFile();
 			break;
 		case R.id.start:
-			if (active) {
-				cancel();
-			} else {
-				updateState(true);
+			if (startButton.isChecked())
 				queueFile();
-			}
+			else
+				parent.stopMove();
 			break;
+		case R.id.pause:
+			if (pauseButton.isChecked())
+				parent.pauseMove();
+			else
+				parent.resumeMove();
 		}
 	}
 
@@ -144,14 +148,6 @@ public class FileFragment extends SherlockFragment {
 			Toast.makeText(getActivity(), R.string.no_filemanager_installed,
 					Toast.LENGTH_SHORT).show();
 		}
-	}
-
-	public void updateState(boolean download) {
-		active = download;
-		if (download)
-			startButton.setText(R.string.stop_label);
-		else
-			startButton.setText(R.string.start);
 	}
 	
 	public void nextLine(int statusLine) {
@@ -171,7 +167,7 @@ public class FileFragment extends SherlockFragment {
 		
 		if (currentLinenum > 10) {
 			if (parent.queueSize() == 0)
-				updateState(false);
+				startButton.setChecked(false);
 			fileScroll.post(new Runnable() {
 				public void run() {
 					int y = fileContent.getLayout().getLineTop(currentLinenum-10);
@@ -207,12 +203,7 @@ public class FileFragment extends SherlockFragment {
 	}
 
 	public boolean isActive() {
-		return active;
-	}
-
-	private void cancel() {
-		parent.stopMove();
-		updateState(false);
+		return startButton.isChecked();
 	}
 
 	private void queueFile() {
@@ -221,7 +212,7 @@ public class FileFragment extends SherlockFragment {
 
 		if (gcodeFile == null) {
 			Toast.makeText((Activity)parent, "Invalid file", Toast.LENGTH_SHORT).show();
-			updateState(false);
+			startButton.setChecked(false);
 			return;
 		}
 		
