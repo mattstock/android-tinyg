@@ -143,10 +143,8 @@ abstract public class TinyGService extends Service {
 	// Pause can be completed by either a resume or a flush.
 	public void send_stop() {
 		Log.d(TAG, "in send_stop()");
-		Log.d(TAG, "paused = " + paused);
 		send_pause();
 		send_flush();
-		Log.d(TAG, "paused = " + paused);
 	}
 	
 	public void send_pause() {
@@ -155,7 +153,7 @@ abstract public class TinyGService extends Service {
 				writeLock.acquire();
 				Log.d(TAG, "sending feedhold");
 				write("!");
-				ioLog.write("> ", "!\n");
+				ioLog.write("* ", "!\n");
 				paused = true;
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -169,9 +167,8 @@ abstract public class TinyGService extends Service {
 				if (!paused)
 					writeLock.acquire();
 				Log.d(TAG, "sending queue flush");
-				write("%");  // this still doesn't work
-//				write("{\"qf\":1}\n");
-				ioLog.write("> ", "{\"qf\":1}\n");
+				write("%");
+				ioLog.write("* ", "%\n");
 				
 				Log.d(TAG, "permits: " + serialBufferAvail.availablePermits());
 				int inuse = TINYG_BUFFER_SIZE - serialBufferAvail.availablePermits();
@@ -193,7 +190,7 @@ abstract public class TinyGService extends Service {
 		if (paused) {
 			Log.d(TAG, "Sending cycle start");
 			write("~");
-			ioLog.write("> ", "~\n");
+			ioLog.write("* ", "~\n");
 			paused = false;
 			writeLock.release();
 		}
@@ -206,7 +203,7 @@ abstract public class TinyGService extends Service {
 		try {
 			writeLock.acquire();
 			Log.d(TAG, "sending reset");
-			ioLog.write("> ", "RESET\n");
+			ioLog.write("* ", "RESET\n");
 			write(rst);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -274,6 +271,7 @@ abstract public class TinyGService extends Service {
 				sendBroadcast(i, null);
 			}
 			if (json.equals("error")) {
+				ioLog.write("* ", "Parse error on JSON line\n");
 				i = new Intent(JSON_ERROR);
 				i.putExtras(b);
 				sendBroadcast(i, null);

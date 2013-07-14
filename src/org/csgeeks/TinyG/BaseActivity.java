@@ -153,8 +153,8 @@ public class BaseActivity extends SherlockFragmentActivity implements
 			Bundle b = intent.getExtras();
 			String action = intent.getAction();
 			if (action.equals(TinyGService.JSON_ERROR)) {
-				Toast.makeText(BaseActivity.this, b.getString("error"), Toast.LENGTH_SHORT)
-				.show();
+//				Toast.makeText(BaseActivity.this, b.getString("error"), Toast.LENGTH_SHORT)
+//				.show();
 			}
 			if (action.equals(TinyGService.STATUS)) {
 				StatusFragment sf = (StatusFragment) getSupportFragmentManager()
