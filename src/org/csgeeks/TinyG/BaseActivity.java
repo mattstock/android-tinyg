@@ -301,6 +301,13 @@ public class BaseActivity extends SherlockFragmentActivity implements
 			SharedPreferences.OnSharedPreferenceChangeListener {
 		public void onSharedPreferenceChanged(
 				SharedPreferences sharedPreferences, String key) {
+			if (key.equals("debug")) {
+				// Let the service know it should change logging if it's running
+				Log.d(TAG, "Changing log debugging state");
+				if (tinyg != null) {
+					tinyg.logging();
+				}
+			}
 			if (key.equals("tgfx_driver")) {
 				Log.d(TAG, "Changing binding");
 				bindType = Integer.parseInt(sharedPreferences.getString(

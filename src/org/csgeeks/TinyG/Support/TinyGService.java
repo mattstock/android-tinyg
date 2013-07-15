@@ -10,9 +10,11 @@ import java.util.concurrent.Semaphore;
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 abstract public class TinyGService extends Service {
@@ -59,6 +61,7 @@ abstract public class TinyGService extends Service {
 	private boolean paused = false;
 	private volatile boolean flushed;
 	private BlackBox ioLog;
+	private SharedPreferences settings;
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -87,12 +90,23 @@ abstract public class TinyGService extends Service {
 		
 		paused = false;
 		flushed = false;
+		
 		ioLog = new BlackBox();
-	}
+
+		settings = PreferenceManager.getDefaultSharedPreferences(this);
+		logging();
+}
 
 	abstract protected void write(String cmd);
 	abstract protected void write(byte b[]);
 
+	public void logging() {
+		if (settings.getBoolean("debug", false))
+			ioLog.open();
+		else 
+			ioLog.close();
+	}
+	
 	public void disconnect() {
 		// Let everyone know we are disconnected
 		Bundle b = new Bundle();

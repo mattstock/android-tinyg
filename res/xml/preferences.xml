@@ -8,5 +8,9 @@
         android:key="tgfx_driver"
         android:summary="The driver to use to connect to TinyG"
         android:title="Driver" />
+   <CheckBoxPreference
+       android:defaultValue="false"
+       android:key="debug"
+       android:title="@string/debug_title" />
 
 </PreferenceScreen>

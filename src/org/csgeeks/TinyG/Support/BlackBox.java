@@ -17,7 +17,9 @@ public class BlackBox {
 	private BufferedOutputStream debugOut;
 	private static final String TAG = "BlackBox";
 	
-	public BlackBox() {
+	public void open() {
+		if (debugOut != null)
+			return;
 		Log.d(TAG, "debug = " + Environment.getExternalStorageDirectory().getPath());
 	    logFile = new File(Environment.getExternalStorageDirectory().getPath(), "tinyg-"+ Process.myPid() + ".txt");
 	    try {
@@ -25,12 +27,16 @@ public class BlackBox {
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}	
+		}			
 	}
 	
 	public void close() {
+		if (debugOut == null)
+			return;
+		
 		try {
 			debugOut.close();
+			debugOut = null;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -38,12 +44,15 @@ public class BlackBox {
 	}
 
 	public void write(String dir, String cmd) {
+		if (debugOut == null)
+			return;
+		
 		try {
 			writeLock.acquire();
-			String tmp = Long.toString(System.currentTimeMillis());
+//			String tmp = Long.toString(System.currentTimeMillis());
 			debugOut.write(dir.getBytes(), 0, dir.length());
-			debugOut.write(tmp.getBytes(), 0, tmp.length());
-			debugOut.write(':');
+//			debugOut.write(tmp.getBytes(), 0, tmp.length());
+//			debugOut.write(':');
 			debugOut.write(cmd.getBytes(), 0, cmd.length());
 			writeLock.release();
 		} catch (IOException e) {
