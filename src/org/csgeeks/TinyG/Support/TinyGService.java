@@ -122,7 +122,8 @@ abstract public class TinyGService extends Service {
 		if (dequeueWorker != null)
 			dequeueWorker.interrupt();
 		dequeueWorker = null;
-		ioLog.close();
+		if (ioLog != null)
+			ioLog.close();
 		Log.d(TAG, "disconnect done");
 	}
 
