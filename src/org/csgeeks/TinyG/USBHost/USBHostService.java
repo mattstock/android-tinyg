@@ -74,9 +74,10 @@ public class USBHostService extends TinyGService {
 				return;
 			}
 			if (action.equals(ACTION_USB_PERMISSION)) {
+				Log.d(TAG, "Got permission action for USB device");
 				if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED,
 						false)) {
-
+					Log.d(TAG, "USB permission granted");
 					// Do all of the setup and call the listener AsyncTask
 					conn = mUsbManager.openDevice(deviceFTDI);
 					if (conn == null) {
@@ -183,6 +184,7 @@ public class USBHostService extends TinyGService {
 			byte[] linebuffer = new byte[1024];
 			int cnt, idx = 0;
 			try {
+				Log.d(TAG, "USB listener loop starting");
 				while (!isCancelled()) {
 					if ((cnt = conn.bulkTransfer(epIN, inbuffer, USB_BUFFER_SIZE, 0)) < 2) {
 						Log.e(TAG, "Bulk read failed");
@@ -194,6 +196,7 @@ public class USBHostService extends TinyGService {
 							continue;
 						}		
 						if (inbuffer[i] == '\n') {
+							Log.d(TAG, "Got a line");
 							publishProgress(new String(linebuffer, 0, idx));
 							idx = 0;
 						} else

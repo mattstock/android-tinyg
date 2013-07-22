@@ -101,6 +101,8 @@ abstract public class TinyGService extends Service {
 	abstract protected void write(byte b[]);
 
 	public void logging() {
+		if (ioLog == null)
+			return;
 		if (settings.getBoolean("debug", false))
 			ioLog.open();
 		else 
