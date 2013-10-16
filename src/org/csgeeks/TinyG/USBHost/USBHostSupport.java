@@ -5,16 +5,18 @@ package org.csgeeks.TinyG.USBHost;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import android.annotation.TargetApi;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import android.os.Build;
 import android.util.Log;
 
+@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR1)
 public class USBHostSupport {
 	private static final String TAG = "TinyG-USB";
 	public static final int USB_VENDOR_ID = 0x0403;
-	public static final int USB_PRODUCT_ID = 0x6001;
 	public static final long H_CLK = 120000000;
 	public static final long C_CLK = 48000000;
 	public static final int SIO_RESET = 0x00;
@@ -111,7 +113,7 @@ public class USBHostSupport {
         Iterator<UsbDevice> dI = deviceList.values().iterator();
         while (dI.hasNext()) {
         	UsbDevice d = dI.next();
-        	if ((d.getProductId() == USB_PRODUCT_ID) && (d.getVendorId() == USB_VENDOR_ID)) {
+        	if ((d.getVendorId() == USB_VENDOR_ID) && ((d.getProductId() == 0x6001) || (d.getProductId() == 0x6015))) {
         		Log.d(TAG, "got FTDI USB: " + d.getDeviceName());
         		return d;
         	}
