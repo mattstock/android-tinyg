@@ -77,6 +77,9 @@ public class SystemFragment extends SherlockFragment {
 		case 1:
 			b.putInt("hv", 7);
 			break;
+		case 2:
+			b.putInt("hv", 8);
+			break;
 		}
 
 		b.putInt("st", ((Spinner) fragView.findViewById(R.id.switch_type)).getSelectedItemPosition());
@@ -110,6 +113,9 @@ public class SystemFragment extends SherlockFragment {
 			break;
 		case 7:
 			hv_idx = 1;
+			break;
+		case 8:
+			hv_idx = 2;
 			break;
 		default:
 			hv_idx = -1;

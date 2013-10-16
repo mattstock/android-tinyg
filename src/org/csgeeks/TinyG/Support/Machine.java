@@ -321,7 +321,25 @@ public class Machine {
 			JSONObject json = new JSONObject(string);
 
 			if (json.has("r")) {
-				bResult = processBody(string, json.getJSONObject("r"));
+				if (json.has("f")) { // new style, post 380.05
+					bResult = processFooter(json.getJSONArray("f"));
+					int check = bResult.getInt("checksum");
+					if (checksumTest(string, check) == false)
+						return null;
+					switch (bResult.getInt("status")) {
+						case 0: // OK
+						case 3: // NOOP
+						case 60: // NULL move
+						break;
+					default:
+						Log.e(TAG, "Status code error: " + string);
+						return null;
+					}
+				} else {
+					bResult = new Bundle();
+				}
+
+				bResult.putAll(processBody(string, json.getJSONObject("r")));
 				return bResult;
 			}
 			if (json.has("sr")) {
@@ -333,7 +351,6 @@ public class Machine {
 				return bResult;
 			}
 		} catch (Exception e) {
-			Log.e(TAG, e.getMessage());
 			bResult = new Bundle();
 			bResult.putString("json", "error");
 			bResult.putString("error", e.getMessage());
@@ -352,59 +369,54 @@ public class Machine {
 		return b;
 	}
 
-	private Bundle processBody(String json_string, JSONObject json)
-			throws JSONException {
-		Bundle fResult = processFooter(json.getJSONArray("f"));
-
-		// Check checksum
-		int pos = json_string.lastIndexOf(",");
-		if (pos == -1) // Shouldn't be possible!
-			return null;
-		String subval = json_string.substring(0, pos);
-		int check = fResult.getInt("checksum");
-		long y = (subval.hashCode() & 0x00000000ffffffffL) % 9999;
-		if (y != check) {
-			Log.e(TAG, "Checksum error for: " + json_string + " (" + y + ","
-					+ check + ")");
-			return null;
+	private Bundle processBody(String string, JSONObject json) throws JSONException {
+		Bundle b;
+		if (json.has("f")) { // old style, pre 380.05
+			b = processFooter(json.getJSONArray("f"));
+			int check = b.getInt("checksum");
+			if (checksumTest(string, check) == false)
+				return null;
+			switch (b.getInt("status")) {
+				case 0: // OK
+				case 3: // NOOP
+				case 60: // NULL move
+				break;
+			default:
+				Log.e(TAG, "Status code error: " + string);
+				return null;
+			}
+		} else {
+			b = new Bundle();
 		}
-		switch (fResult.getInt("status")) {
-		case 0: // OK
-		case 3: // NOOP
-		case 60: // NULL move
-			break;
-		default:
-			Log.e(TAG, "Status code error: " + json_string);
-			return null;
-		}
-
+		
+		b.putAll(getStatusBundle());
 		if (json.has("sr"))
-			fResult.putAll(processStatusReport(json.getJSONObject("sr")));
+			b.putAll(processStatusReport(json.getJSONObject("sr")));
 		if (json.has("qr"))
-			fResult.putAll(processQueueReport(json.getInt("qr")));
+			b.putAll(processQueueReport(json.getInt("qr")));
 		if (json.has("sys"))
-			fResult.putAll(processSys(json.getJSONObject("sys")));
+			b.putAll(processSys(json.getJSONObject("sys")));
 		if (json.has("1"))
-			fResult.putAll(processMotor(1, json.getJSONObject("1")));
+			b.putAll(processMotor(1, json.getJSONObject("1")));
 		if (json.has("2"))
-			fResult.putAll(processMotor(2, json.getJSONObject("2")));
+			b.putAll(processMotor(2, json.getJSONObject("2")));
 		if (json.has("3"))
-			fResult.putAll(processMotor(3, json.getJSONObject("3")));
+			b.putAll(processMotor(3, json.getJSONObject("3")));
 		if (json.has("4"))
-			fResult.putAll(processMotor(4, json.getJSONObject("4")));
+			b.putAll(processMotor(4, json.getJSONObject("4")));
 		if (json.has("a"))
-			fResult.putAll(processAxis("a", json.getJSONObject("a")));
+			b.putAll(processAxis("a", json.getJSONObject("a")));
 		if (json.has("b"))
-			fResult.putAll(processAxis("b", json.getJSONObject("b")));
+			b.putAll(processAxis("b", json.getJSONObject("b")));
 		if (json.has("c"))
-			fResult.putAll(processAxis("c", json.getJSONObject("c")));
+			b.putAll(processAxis("c", json.getJSONObject("c")));
 		if (json.has("x"))
-			fResult.putAll(processAxis("x", json.getJSONObject("x")));
+			b.putAll(processAxis("x", json.getJSONObject("x")));
 		if (json.has("y"))
-			fResult.putAll(processAxis("y", json.getJSONObject("y")));
+			b.putAll(processAxis("y", json.getJSONObject("y")));
 		if (json.has("z"))
-			fResult.putAll(processAxis("z", json.getJSONObject("z")));
-		return fResult;
+			b.putAll(processAxis("z", json.getJSONObject("z")));
+		return b;
 	}
 
 	private Bundle processStatusReport(JSONObject sr) throws JSONException {
@@ -441,5 +453,19 @@ public class Machine {
 		Bundle b = getAxisBundle(axisName);
 		b.putString("json", axisName);
 		return b;
+	}
+
+	private boolean checksumTest(String s, int val) {
+		// Check checksum
+		int pos = s.lastIndexOf(",");
+		if (pos == -1) // Shouldn't be possible!
+			return false;
+		String subval = s.substring(0, pos);
+		long y = (subval.hashCode() & 0x00000000ffffffffL) % 9999;
+		if (y != val) {
+			Log.e(TAG, "Checksum error for: " + s + " (" + y + "," + val + ")");
+			return false;
+		}
+		return true;
 	}
 }

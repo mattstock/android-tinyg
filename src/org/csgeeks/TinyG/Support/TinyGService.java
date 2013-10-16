@@ -281,6 +281,7 @@ abstract public class TinyGService extends Service {
 		Intent i;
 
 		ioLog.write("< ", line + "\n");
+		Log.d(TAG, "< " + line);
 		if (json != null) {
 			if (json.equals("sr")) {
 				i = new Intent(STATUS);
@@ -300,8 +301,10 @@ abstract public class TinyGService extends Service {
 			}
 		}
 		int freed = b.getInt("buffer");
-		if (freed > 0)
+		if (freed > 0) {
+			Log.d(TAG, "b: +" + freed);
 			serialBufferAvail.release(freed);
+		}
 	}
 
 	// Asks for the service to send a full update of all state.
@@ -332,14 +335,19 @@ abstract public class TinyGService extends Service {
 			try {
 				while (true) {
 					String cmd = queue.take();
+					Log.d(TAG, "taken");
+					Log.d(TAG, "b: -" + serialBufferAvail.availablePermits());
 					serialBufferAvail.acquire(cmd.length());
+					Log.d(TAG, "buffered");
 					flushed = false;
 					writeLock.acquire();
+					Log.d(TAG, "locked");
 					if (flushed) { // Don't write that last command if we wiped the queue
 						Log.d(TAG, "Skipping command line");
 						flushed = false;
 					} else {
 						ioLog.write("> ", cmd);
+						Log.d(TAG, "> " + cmd);
 						write(cmd);
 					} writeLock.release();
 				}

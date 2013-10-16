@@ -137,6 +137,7 @@
     <string-array name="hvArray">
         <item>v6</item>
         <item>v7</item>
+        <item>v8</item>
     </string-array>
 
 </resources>
