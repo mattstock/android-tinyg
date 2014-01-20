@@ -113,12 +113,15 @@ public class USBHostSupport {
         Iterator<UsbDevice> dI = deviceList.values().iterator();
         while (dI.hasNext()) {
         	UsbDevice d = dI.next();
-        	if ((d.getVendorId() == USB_VENDOR_ID) && ((d.getProductId() == 0x6001) || (d.getProductId() == 0x6015))) {
+        	// FTDI for TinyG v6 & v8
+        	if ((d.getVendorId() == 0x0403) && ((d.getProductId() == 0x6001) || (d.getProductId() == 0x6015))) {
         		Log.d(TAG, "got FTDI USB: " + d.getDeviceName());
         		return d;
         	}
-        }	
+        	// Arduino Due for TinyG2
+        	if ((d.getVendorId() == 0x1d50)) {	
+        	}		
+        }
         return null;
 	}
-
 }
